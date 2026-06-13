@@ -383,6 +383,10 @@ body::after {
 .gauge__fill { height: 100%; background: linear-gradient(90deg, var(--accent-deep), var(--accent)); border-radius: var(--radius-pill); width: 0; transition: width var(--t-draw) var(--ease-out); }
 .cert.in-view .gauge__fill { width: var(--w); }
 .gauge__val { font-family: var(--font-mono); font-size: var(--fs-small); color: var(--accent-text); font-variant-numeric: tabular-nums; }
+.cert__link { align-self: flex-start; margin-top: var(--space-4); font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--accent-text); display: inline-flex; align-items: center; gap: 0.4em; transition: color var(--t-fast); }
+.cert__link span { transition: transform var(--t-fast) var(--ease-std); display: inline-block; }
+.cert__link:hover { color: var(--accent-soft); }
+.cert__link:hover span { transform: translate(2px, -2px); }
 
 /* =====================================================================
    CONTACT

@@ -20,6 +20,11 @@ import { certifications, sections } from "../data/site";
             </div>
             <span class="gauge__val">{c.score}%</span>
           </div>
+          {c.url && (
+            <a class="cert__link" href={c.url} target="_blank" rel="noopener noreferrer">
+              view certificate <span aria-hidden="true">↗</span>
+            </a>
+          )}
         </div>
       ))}
     </div>

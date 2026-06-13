@@ -144,7 +144,7 @@ export const flagship: Flagship[] = [
     tagline: "UWB crane anti-collision safety system, deployed at Tata Steel BlueScope",
     description:
       "A real-time industrial Anti-Collision System for crane operations, built during an embedded internship at Radiogeet and deployed at Tata Steel BlueScope. It uses UWB proximity detection and zone-based safety logic to trigger industrial outputs that prevent hazardous crane movements.",
-    pills: [{ label: "In production", variant: "deployed" }],
+    pills: [{ label: "Deployed", variant: "deployed" }],
     highlights: [
       "Architected ESP32-S3 dual-core firmware: core 1 runs time-critical UWB distance measurement while core 2 handles zone calculation, system logic, and an embedded web UI",
       "Linked nodes over ESP-NOW for low-latency peer-to-peer communication",
@@ -292,8 +292,8 @@ export const skillGroups = [
 export const protocols = ["UART", "SPI", "I²C", "CAN", "RS485 (MODBUS RTU)", "MQTT", "D-Bus", "BLE", "Wi-Fi", "ESP-NOW", "LoRa", "UWB"];
 
 export const certifications = [
-  { title: "Embedded Sensing, Actuation and Interfacing Systems", issuer: "NPTEL", year: "2025", score: 85 },
-  { title: "Electronic Systems Design — Circuits & PCB Design with CAD", issuer: "NPTEL", year: "2025", score: 88 },
+  { title: "Embedded Sensing, Actuation and Interfacing Systems", issuer: "NPTEL", year: "2025", score: 85, url: "https://drive.google.com/file/d/1-ZCbzNM-YpNXrk_fFjxa3jm20RphqDW4/view?usp=sharing" },
+  { title: "Electronic Systems Design — Circuits & PCB Design with CAD", issuer: "NPTEL", year: "2025", score: 88, url: "https://drive.google.com/file/d/1B1nftxjbRXdE542vRb415PTpZRpFnmW_/view?usp=drive_link" },
 ];
 
 export const education = [
