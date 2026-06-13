@@ -2,6 +2,7 @@
 import { hero } from "../data/site";
 ---
 <section class="hero" aria-label="Introduction">
+  <canvas class="hero__canvas" aria-hidden="true"></canvas>
   <div class="container hero__grid">
     <div class="hero__main">
       <p class="hero__titleblock">RR <b>//</b> EMBEDDED SYSTEMS · rev.2026 · HYD-IN</p>
@@ -11,7 +12,7 @@ import { hero } from "../data/site";
         <span class="eyebrow">// {hero.eyebrow}</span>
       </p>
 
-      <h1>{hero.name}<span class="end" aria-hidden="true">.</span></h1>
+      <h1><span class="hero__name" data-text={hero.name}>{hero.name}</span><span class="end" aria-hidden="true">.</span></h1>
 
       <p class="hero__lead">
         {hero.lead.map((seg) =>
@@ -65,3 +66,117 @@ import { hero } from "../data/site";
 
   <a class="hero__scroll" href="#about" aria-label="Scroll to content">scroll</a>
 </section>
+
+<script>
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---- Interactive constellation / circuit canvas ----
+  const canvas = document.querySelector<HTMLCanvasElement>(".hero__canvas");
+  const section = canvas?.closest(".hero") as HTMLElement | null;
+  if (canvas && section && !reduce) {
+    const ctx = canvas.getContext("2d")!;
+    const DPR = Math.min(window.devicePixelRatio || 1, 2);
+    let w = 0, h = 0, raf = 0, running = true;
+    const mouse = { x: -9999, y: -9999 };
+    type Node = { x: number; y: number; vx: number; vy: number };
+    let nodes: Node[] = [];
+
+    const init = () => {
+      const count = Math.min(76, Math.max(28, Math.floor((w * h) / 13000)));
+      nodes = Array.from({ length: count }, () => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.28,
+        vy: (Math.random() - 0.5) * 0.28,
+      }));
+    };
+    const resize = () => {
+      const r = section.getBoundingClientRect();
+      w = r.width; h = r.height;
+      canvas.width = w * DPR; canvas.height = h * DPR;
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      init();
+    };
+    const LINK = 124, NEAR = 150;
+    const step = () => {
+      ctx.clearRect(0, 0, w, h);
+      for (const n of nodes) {
+        n.x += n.vx; n.y += n.vy;
+        if (n.x < 0 || n.x > w) n.vx *= -1;
+        if (n.y < 0 || n.y > h) n.vy *= -1;
+        const dx = mouse.x - n.x, dy = mouse.y - n.y, d = Math.hypot(dx, dy);
+        if (d < NEAR && d > 0.01) { n.x += (dx / d) * 0.5; n.y += (dy / d) * 0.5; }
+      }
+      // links
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const a = nodes[i], b = nodes[j];
+          const dx = a.x - b.x, dy = a.y - b.y, d = Math.hypot(dx, dy);
+          if (d < LINK) {
+            ctx.strokeStyle = `rgba(0,229,255,${(1 - d / LINK) * 0.28})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+          }
+        }
+      }
+      // nodes
+      for (const n of nodes) {
+        const near = Math.hypot(mouse.x - n.x, mouse.y - n.y) < NEAR;
+        if (near) {
+          ctx.fillStyle = "rgba(0,229,255,0.14)";
+          ctx.beginPath(); ctx.arc(n.x, n.y, 6, 0, 7); ctx.fill();
+        }
+        ctx.fillStyle = near ? "rgba(0,229,255,0.95)" : "rgba(0,229,255,0.4)";
+        ctx.beginPath(); ctx.arc(n.x, n.y, near ? 2.4 : 1.5, 0, 7); ctx.fill();
+      }
+      if (running) raf = requestAnimationFrame(step);
+    };
+
+    section.addEventListener("pointermove", (e) => {
+      const r = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top;
+    }, { passive: true });
+    section.addEventListener("pointerleave", () => { mouse.x = -9999; mouse.y = -9999; });
+    window.addEventListener("resize", resize);
+
+    const io = new IntersectionObserver((entries) => {
+      const vis = entries[0].isIntersecting;
+      if (vis && !running) { running = true; raf = requestAnimationFrame(step); }
+      else if (!vis) { running = false; cancelAnimationFrame(raf); }
+    });
+    io.observe(section);
+    resize();
+    raf = requestAnimationFrame(step);
+  }
+
+  // ---- Glitch / scramble reveal on the name (on load + on hover) ----
+  const nameEl = document.querySelector<HTMLElement>(".hero__name");
+  if (nameEl && !reduce) {
+    const finalText = nameEl.dataset.text || nameEl.textContent || "";
+    const glyphs = "!<>-_\\/[]{}=+*^?#________01";
+    let active = false;
+    const scramble = () => {
+      if (active) return;
+      active = true;
+      const steps = 34;
+      let frame = 0;
+      const tick = () => {
+        const revealed = (frame / steps) * finalText.length;
+        let out = "";
+        for (let i = 0; i < finalText.length; i++) {
+          if (finalText[i] === " ") { out += " "; continue; }
+          out += i < revealed ? finalText[i] : glyphs[Math.floor(Math.random() * glyphs.length)];
+        }
+        nameEl.textContent = out;
+        frame++;
+        if (frame <= steps) window.setTimeout(tick, 42);
+        else { nameEl.textContent = finalText; active = false; }
+      };
+      tick();
+    };
+    // first run after the boot intro would have cleared (or immediately)
+    const seen = sessionStorage.getItem("rr_boot");
+    window.setTimeout(scramble, seen ? 250 : 1700);
+    nameEl.addEventListener("pointerenter", scramble);
+  }
+</script>
