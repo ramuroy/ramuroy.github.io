@@ -8,12 +8,12 @@ export const profile = {
   role: "Embedded Systems Engineer",
   tagline:
     "I build the whole stack — bare-metal firmware → custom Linux → on-device ML & voice.",
-  location: "Andhra Pradesh, India",
+  location: "Hyderabad, India",
   email: "royramu694429@gmail.com",
   phone: "+91 94936 52315",
   github: "https://github.com/ramuroy",
   githubHandle: "github.com/ramuroy",
-  linkedin: "https://www.linkedin.com/in/ramuroy",
+  linkedin: "https://www.linkedin.com/in/ramu-roy-b780382b7/",
   linkedinLabel: "Ramu Roy",
   resumeUrl: "/Ramu_Roy_Resume.pdf",
   available: true,
@@ -34,7 +34,7 @@ export const seo = {
     "wake-word detection", "Whisper STT", "Piper TTS", "ONNX tract", "MQTT",
     "D-Bus", "systemd", "UWB ranging", "MODBUS RTU", "RS485", "ESP-NOW",
     "device tree", "BSP", "Qt6 QML", "KiCad PCB design", "sensor fusion",
-    "FreeRTOS", "Andhra Pradesh",
+    "FreeRTOS", "Hyderabad", "Telangana", "Andhra Pradesh",
   ],
 };
 
@@ -70,7 +70,7 @@ export const hero = {
   ctaGhost: { label: "DOWNLOAD CV", href: profile.resumeUrl, glyph: "↓" },
   ticker: ["cgpa 8.3", "esp-idf v5.2", "yocto", "rust", "15+ repos"],
   keySpecs: [
-    { k: "Location", v: "Andhra Pradesh, IN" },
+    { k: "Location", v: "Hyderabad, IN" },
     { k: "Degree", v: "B.Tech ECE (CGPA 8.3)" },
     { k: "Core", v: "Yocto · ESP-IDF · STM32 · Rust", active: true },
     { k: "Shipped", v: "Anti-Collision @ Tata Steel", active: true },
@@ -83,7 +83,7 @@ export const about = {
   paragraphs: [
     "I'm a final-year Electronics & Communication Engineering student at RGUKT Srikakulam who works across the entire embedded stack. I write bare-metal and RTOS firmware for ESP32, ESP32-S3, and STM32; I build a custom Yocto Linux distribution from the recipe up; and I train and run ML and voice models directly on-device. The interesting problems usually live at the seams between those layers, and that's where I spend my time.",
     "The proof is in the field. As an intern at Radiogeet, I built an Industrial Anti-Collision System for crane operations that's deployed at Tata Steel BlueScope — ESP32-S3 dual-core firmware doing time-critical UWB ranging on one core and zone-safety logic on the other, talking ESP-NOW peer-to-peer and MODBUS RTU over RS485 to drive industrial relays that physically stop hazardous crane movement. Safety-critical, real-time, and running in production.",
-    "Right now I'm building eOS, a Yocto/OpenEmbedded Linux distro for the Raspberry Pi 5 with A/B RAUC OTA, an MQTT service bus, D-Bus interfaces, SQLite persistence, and a Qt6/QML UI. It includes a Rust sensor-fusion framework and a fully on-device voice subsystem — a transfer-learned wake-word detector exported to ONNX and run on the pure-Rust tract runtime, multi-mic best-source fusion across ESP32 satellites, Whisper STT, Piper TTS, and async-Rust barge-in. I like owning a system end to end, from the device tree to the deploy flow.",
+    "Right now I'm building eOS at Elipse — a Yocto/OpenEmbedded Linux distro for the Raspberry Pi 5 with A/B RAUC OTA, an MQTT service bus, D-Bus interfaces, SQLite persistence, and a Qt6/QML UI. It includes a Rust sensor-fusion framework and a fully on-device voice subsystem — a transfer-learned wake-word detector exported to ONNX and run on the pure-Rust tract runtime, multi-mic best-source fusion across ESP32 satellites, Whisper STT, Piper TTS, and async-Rust barge-in. I like owning a system end to end, from the device tree to the deploy flow.",
   ],
   glance: [
     { k: "Role", v: "Embedded Systems Engineer" },
@@ -134,7 +134,7 @@ export const flagship: Flagship[] = [
       { k: "Bus", v: "MQTT · D-Bus" },
       { k: "Stack", v: "Rust · Qt6/QML · SQLite" },
     ],
-    noRepoNote: "professional work · no public repo",
+    noRepoNote: "Elipse · no public repo",
     full: true,
   },
   {
@@ -230,13 +230,13 @@ export type Role = {
 
 export const experience: Role[] = [
   {
-    company: "eOS",
+    company: "Elipse",
     role: "Embedded Linux OS Developer",
-    period: "Mar 2026 – Present",
-    location: "India",
+    period: "May 2026 – Present",
+    location: "Hyderabad, India",
     active: true,
     summary:
-      "Building eOS from the ground up — a custom Yocto-based Linux distribution for the Raspberry Pi 5, spanning the OTA system, service bus, sensor-fusion framework, and an on-device voice assistant.",
+      "Building eOS at Elipse — a custom Yocto-based Linux distribution for the Raspberry Pi 5, spanning the OTA system, service bus, sensor-fusion framework, and an on-device voice assistant.",
     highlights: [
       "Architected a Yocto/OpenEmbedded distro with A/B RAUC OTA, an MQTT service bus, SQLite persistence, and a Qt6/QML UI — authoring recipes across the meta-eos layer with BitBake PR bumps, AUTOREV pinning, and IPK packaging.",
       "Built the Linux subsystem stack: systemd units, custom D-Bus interfaces, TLS/ACL-hardened Mosquitto MQTT, and SQLite migrations tuned for multi-writer concurrency.",
