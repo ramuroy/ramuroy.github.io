@@ -54,7 +54,7 @@ export const bootLines = [
 ];
 
 export const hero = {
-  eyebrow: "embedded systems engineer · andhra pradesh, india",
+  eyebrow: "embedded systems engineer · hyderabad, india",
   name: profile.name,
   // segments let us style arrows + emphasised domain words individually
   lead: [
@@ -81,7 +81,7 @@ export const hero = {
 export const about = {
   subhead: "A full-stack embedded engineer — silicon to UI.",
   paragraphs: [
-    "I'm a final-year Electronics & Communication Engineering student at RGUKT Srikakulam who works across the entire embedded stack. I write bare-metal and RTOS firmware for ESP32, ESP32-S3, and STM32; I build a custom Yocto Linux distribution from the recipe up; and I train and run ML and voice models directly on-device. The interesting problems usually live at the seams between those layers, and that's where I spend my time.",
+    "I'm an Electronics & Communication Engineering graduate (RGUKT Srikakulam, 2026) who works across the entire embedded stack. I write bare-metal and RTOS firmware for ESP32, ESP32-S3, and STM32; I build a custom Yocto Linux distribution from the recipe up; and I train and run ML and voice models directly on-device. The interesting problems usually live at the seams between those layers, and that's where I spend my time.",
     "The proof is in the field. As an intern at Radiogeet, I built an Industrial Anti-Collision System for crane operations that's deployed at Tata Steel BlueScope — ESP32-S3 dual-core firmware doing time-critical UWB ranging on one core and zone-safety logic on the other, talking ESP-NOW peer-to-peer and MODBUS RTU over RS485 to drive industrial relays that physically stop hazardous crane movement. Safety-critical, real-time, and running in production.",
     "Right now I'm building eOS at Elipse — a Yocto/OpenEmbedded Linux distro for the Raspberry Pi 5 with A/B RAUC OTA, an MQTT service bus, D-Bus interfaces, SQLite persistence, and a Qt6/QML UI. It includes a Rust sensor-fusion framework and a fully on-device voice subsystem — a transfer-learned wake-word detector exported to ONNX and run on the pure-Rust tract runtime, multi-mic best-source fusion across ESP32 satellites, Whisper STT, Piper TTS, and async-Rust barge-in. I like owning a system end to end, from the device tree to the deploy flow.",
   ],
