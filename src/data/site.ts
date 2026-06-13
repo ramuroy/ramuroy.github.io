@@ -156,7 +156,7 @@ export const flagship: Flagship[] = [
       { k: "MCU", v: "ESP32-S3 (dual-core)" },
       { k: "Sensing", v: "UWB ranging", active: true },
       { k: "Links", v: "ESP-NOW · RS485" },
-      { k: "I/O", v: "8-ch industrial relays" },
+      { k: "I/O", v: "Masibus 8-ch relays" },
       { k: "Result", v: "Live @ Tata Steel BlueScope", active: true },
     ],
     repo: "https://github.com/ramuroy/Industrial-Anti-Collision-System",

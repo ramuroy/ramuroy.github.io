@@ -1,9 +1,11 @@
 ---
+import { flagship, gridProjects } from "../data/site";
+const projectCount = flagship.length + gridProjects.length;
 const stats = [
   { value: 17, dec: 0, label: "GitHub repos" },
+  { value: projectCount, dec: 0, label: "Projects" },
   { value: 12, dec: 0, label: "Protocols" },
-  { value: 5, dec: 0, label: "Languages" },
-  { value: 4, dec: 0, label: "Hardware platforms" },
+  { value: 5, dec: 0, label: "Programming languages" },
 ];
 ---
 <section class="stats" aria-label="By the numbers">
