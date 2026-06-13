@@ -96,6 +96,9 @@ body::after {
    ===================================================================== */
 .js .reveal { opacity: 0; transform: translateY(16px); transition: opacity var(--t-slow) var(--ease-out), transform var(--t-slow) var(--ease-out); transition-delay: calc(var(--i, 0) * 60ms); }
 .js .reveal.in-view { opacity: 1; transform: none; }
+/* opacity-only entrance for elements that own their own transform (tilt/hover) */
+.js .fade { opacity: 0; transition: opacity var(--t-slow) var(--ease-out); transition-delay: calc(var(--i, 0) * 60ms); }
+.js .fade.in-view { opacity: 1; }
 
 /* =====================================================================
    SECTION HEADER (eyebrow + drawn cyan rule + faint numeral + title)
@@ -490,6 +493,7 @@ body.cursor-on .cursor-glow { opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   .js .reveal { opacity: 1 !important; transform: none !important; }
+  .js .fade { opacity: 1 !important; }
   .section-head .rule { transform: scaleX(1) !important; }
   .gauge__fill { transition: none; }
   .caret { animation: none; }
