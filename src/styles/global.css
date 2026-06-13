@@ -457,10 +457,6 @@ body.cursor-on .cursor-glow { opacity: 1; }
 .hero h1 { white-space: nowrap; }
 .hero__name { display: inline-block; }
 
-/* 3D tilt on flagship project cards */
-.pcard { transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transform-style: preserve-3d; }
-.pcard:hover { transform: perspective(1000px) translateY(-4px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
-
 /* =====================================================================
    STATS BAND
    ===================================================================== */
