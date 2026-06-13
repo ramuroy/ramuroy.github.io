@@ -18,7 +18,7 @@ import { certifications, sections } from "../data/site";
             <div class="gauge__track">
               <div class="gauge__fill" style={`--w:${c.score}%`}></div>
             </div>
-            <span class="gauge__val">{c.score}%</span>
+            <span class="gauge__val"><span data-count={c.score} data-dec="0">0</span>%</span>
           </div>
           {c.url && (
             <a class="cert__link" href={c.url} target="_blank" rel="noopener noreferrer">

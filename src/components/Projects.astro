@@ -14,6 +14,7 @@ const showDot = (v: string) => v === "deployed" || v === "production";
     <div class="projects__flagship">
       {flagship.map((p, i) => (
         <article class:list={["pcard", "ticked", "reveal", { "card-full": p.full }]} style={`--i:${i}`}>
+          <span class="card-glow" aria-hidden="true"></span>
           <div class="pcard__head">
             <span class="pcard__fig">{p.fig}</span>
             <div class="pcard__pills">

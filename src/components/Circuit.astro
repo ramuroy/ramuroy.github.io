@@ -1,0 +1,60 @@
+---
+// Procedural PCB circuit background with flowing "current" pulses.
+// Deterministic (seeded) so the layout is stable across builds.
+const W = 1440, H = 1024;
+function rng(seed: number) {
+  let a = seed >>> 0;
+  return () => ((a = (a * 1664525 + 1013904223) >>> 0), a / 4294967296);
+}
+const r = rng(20260614);
+const ROWS = 9, COLS = 12;
+const RH = H / ROWS, CW = W / COLS;
+
+type Trace = { d: string; pulse: boolean; dur: string; delay: string };
+const traces: Trace[] = [];
+const vias: [number, number][] = [];
+const pads: [number, number][] = [];
+
+const N = 20;
+for (let i = 0; i < N; i++) {
+  const vertical = r() < 0.38;
+  let d: string, end: [number, number];
+  if (!vertical) {
+    const y = Math.round((0.5 + Math.floor(r() * ROWS)) * RH);
+    const x0 = Math.round(r() * W * 0.45);
+    const x1 = x0 + Math.round((0.1 + r() * 0.18) * W);
+    const dy = (r() < 0.5 ? -1 : 1) * RH;
+    const j = Math.abs(dy); // 45° diagonal
+    const x2 = Math.min(W - 8, x1 + j + Math.round((0.08 + r() * 0.22) * W));
+    d = `M ${x0} ${y} H ${x1} L ${x1 + j} ${y + dy} H ${x2}`;
+    end = [x2, y + dy];
+    vias.push([x0, y]);
+  } else {
+    const x = Math.round((0.5 + Math.floor(r() * COLS)) * CW);
+    const y0 = Math.round(r() * H * 0.45);
+    const y1 = y0 + Math.round((0.12 + r() * 0.2) * H);
+    const dx = (r() < 0.5 ? -1 : 1) * CW;
+    const j = Math.abs(dx);
+    const y2 = Math.min(H - 8, y1 + j + Math.round((0.08 + r() * 0.18) * H));
+    d = `M ${x} ${y0} V ${y1} L ${x + dx} ${y1 + j} V ${y2}`;
+    end = [x + dx, y2];
+    vias.push([x, y0]);
+  }
+  vias.push(end);
+  const pulse = r() < 0.42;
+  traces.push({ d, pulse, dur: (7 + r() * 7).toFixed(1), delay: (r() * -10).toFixed(1) });
+}
+for (let i = 0; i < 14; i++) pads.push([Math.round(r() * W), Math.round(r() * H)]);
+---
+<svg class="circuit" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <g class="circuit__base">
+    {traces.map((t) => <path d={t.d} />)}
+    {vias.map(([x, y]) => <circle class="circuit__via" cx={x} cy={y} r="3" />)}
+    {pads.map(([x, y]) => <circle class="circuit__pad" cx={x} cy={y} r="1.4" />)}
+  </g>
+  <g class="circuit__pulses">
+    {traces.filter((t) => t.pulse).map((t) => (
+      <path class="circuit__pulse" d={t.d} style={`--dur:${t.dur}s; --delay:${t.delay}s`} />
+    ))}
+  </g>
+</svg>

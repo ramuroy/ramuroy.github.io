@@ -3,6 +3,7 @@ import "../styles/global.css";
 import Nav from "../components/Nav.astro";
 import Footer from "../components/Footer.astro";
 import BootIntro from "../components/BootIntro.astro";
+import Circuit from "../components/Circuit.astro";
 import { profile, seo } from "../data/site";
 
 const canonical = "https://ramuroy.github.io/";
@@ -67,8 +68,11 @@ const personLd = {
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <BootIntro />
+    <Circuit />
+    <div class="cursor-glow" aria-hidden="true"></div>
     <div class="signal-rail" aria-hidden="true">
       <div class="signal-rail__line"></div>
+      <div class="signal-rail__fill"></div>
       <div class="signal-rail__node"></div>
     </div>
     <Nav />
@@ -231,6 +235,75 @@ const personLd = {
           menuBtn?.focus();
         }
       });
+
+      // ---- Cursor glow over the grid + per-card spotlight ----
+      const finePointer = window.matchMedia("(pointer: fine)").matches;
+      if (finePointer && !reduceMotion) {
+        let mx = 0, my = 0, raf = 0;
+        window.addEventListener(
+          "pointermove",
+          (e) => {
+            mx = e.clientX;
+            my = e.clientY;
+            document.body.classList.add("cursor-on");
+            if (!raf)
+              raf = window.requestAnimationFrame(() => {
+                document.documentElement.style.setProperty("--mx", mx + "px");
+                document.documentElement.style.setProperty("--my", my + "px");
+                raf = 0;
+              });
+          },
+          { passive: true }
+        );
+        document.addEventListener("pointerleave", () => document.body.classList.remove("cursor-on"));
+        document.querySelectorAll<HTMLElement>(".pcard").forEach((card) => {
+          card.addEventListener(
+            "pointermove",
+            (e) => {
+              const rect = card.getBoundingClientRect();
+              card.style.setProperty("--cx", e.clientX - rect.left + "px");
+              card.style.setProperty("--cy", e.clientY - rect.top + "px");
+            },
+            { passive: true }
+          );
+        });
+      }
+
+      // ---- Count-up numbers ----
+      const counters = document.querySelectorAll<HTMLElement>("[data-count]");
+      if (counters.length) {
+        const runCount = (el: HTMLElement) => {
+          const target = parseFloat(el.dataset.count || "0");
+          const dec = parseInt(el.dataset.dec || "0", 10);
+          if (reduceMotion) {
+            el.textContent = target.toFixed(dec);
+            return;
+          }
+          const dur = 1000;
+          let startT = 0;
+          const tick = (t: number) => {
+            if (!startT) startT = t;
+            const p = Math.min(1, (t - startT) / dur);
+            const eased = 1 - Math.pow(1 - p, 3);
+            el.textContent = (target * eased).toFixed(dec);
+            if (p < 1) window.requestAnimationFrame(tick);
+            else el.textContent = target.toFixed(dec);
+          };
+          window.requestAnimationFrame(tick);
+        };
+        const countIO = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((e) => {
+              if (e.isIntersecting) {
+                runCount(e.target as HTMLElement);
+                countIO.unobserve(e.target);
+              }
+            });
+          },
+          { threshold: 0.6 }
+        );
+        counters.forEach((el) => countIO.observe(el));
+      }
     </script>
   </body>
 </html>
