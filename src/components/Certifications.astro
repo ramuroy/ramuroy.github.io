@@ -1,0 +1,27 @@
+---
+import SectionHeader from "./SectionHeader.astro";
+import { certifications, sections } from "../data/site";
+---
+<section id="certifications" class="section">
+  <div class="container spine">
+    <SectionHeader num={sections.certifications.num} eyebrow={sections.certifications.eyebrow} title={sections.certifications.title} />
+
+    <div class="certs__grid">
+      {certifications.map((c, i) => (
+        <div class="cert ticked reveal" style={`--i:${i}`}>
+          <div class="cert__head">
+            <span class="cert__issuer">{c.issuer} · {c.year}</span>
+            <span class="pill pill--oss">completed</span>
+          </div>
+          <p class="cert__title">{c.title}</p>
+          <div class="gauge">
+            <div class="gauge__track">
+              <div class="gauge__fill" style={`--w:${c.score}%`}></div>
+            </div>
+            <span class="gauge__val">{c.score}%</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

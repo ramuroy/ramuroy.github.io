@@ -1,0 +1,41 @@
+---
+import SectionHeader from "./SectionHeader.astro";
+import TraceDivider from "./TraceDivider.astro";
+import { about, sections } from "../data/site";
+
+const TERMS = [
+  "Tata Steel BlueScope", "Yocto/OpenEmbedded", "ESP32-S3", "ESP-IDF",
+  "Raspberry Pi 5", "RGUKT Srikakulam", "RAUC", "eOS", "Yocto", "tract", "Rust",
+];
+const re = new RegExp(
+  "(" + TERMS.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")",
+  "g"
+);
+const annotate = (text: string) => text.replace(re, '<span class="annot">$1</span>');
+---
+<section id="about" class="section">
+  <div class="container">
+    <SectionHeader num={sections.about.num} eyebrow={sections.about.eyebrow} title={sections.about.title} />
+    <div class="about__grid">
+      <div class="about__body reveal">
+        <p class="about__subhead">{about.subhead}</p>
+        {about.paragraphs.map((p) => <p set:html={annotate(p)} />)}
+      </div>
+      <aside class="reveal" style="--i:1">
+        <div class="spec-card ticked">
+          <p class="spec-card__label"><span aria-hidden="true">▣</span> at a glance</p>
+          <dl class="spec">
+            {about.glance.map((s) => (
+              <div class="spec__row hoverable">
+                <dt>{s.k}</dt>
+                <span class="spec__leader" aria-hidden="true"></span>
+                <dd class={s.active ? "is-active" : ""}>{s.v}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </aside>
+    </div>
+    <TraceDivider />
+  </div>
+</section>

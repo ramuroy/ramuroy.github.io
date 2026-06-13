@@ -1,0 +1,32 @@
+---
+import SectionHeader from "./SectionHeader.astro";
+import { skillGroups, protocols, sections } from "../data/site";
+---
+<section id="skills" class="section">
+  <div class="container">
+    <SectionHeader num={sections.skills.num} eyebrow={sections.skills.eyebrow} title={sections.skills.title} />
+
+    <div class="skills__grid">
+      {skillGroups.map((g, i) => (
+        <div class="skill-group reveal" style={`--i:${i % 3}`}>
+          <h3 class="skill-group__name">{g.name}</h3>
+          <p class="skill-group__blurb">{g.blurb}</p>
+          <div class="badges">
+            {g.items.map((it) => (
+              <span class:list={["badge", { "badge--core": g.core.includes(it) }]}>{it}</span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div class="protocols reveal">
+      <p class="protocols__label">// communication protocols</p>
+      <p class="protocols__line">
+        {protocols.map((p, i) => (
+          <Fragment>{i > 0 && <b aria-hidden="true">·</b>}{p}</Fragment>
+        ))}
+      </p>
+    </div>
+  </div>
+</section>

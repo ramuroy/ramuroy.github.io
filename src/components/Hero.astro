@@ -1,0 +1,67 @@
+---
+import { hero } from "../data/site";
+---
+<section class="hero" aria-label="Introduction">
+  <div class="container hero__grid">
+    <div class="hero__main">
+      <p class="hero__titleblock">RR <b>//</b> EMBEDDED SYSTEMS · rev.2026 · AP-IN</p>
+
+      <p class="hero__eyebrow">
+        <span class="led" aria-hidden="true"><span class="led__dot"></span></span>
+        <span class="eyebrow">// {hero.eyebrow}</span>
+      </p>
+
+      <h1>{hero.name}<span class="end" aria-hidden="true">.</span></h1>
+
+      <p class="hero__lead">
+        {hero.lead.map((seg) =>
+          seg.arrow ? (
+            <span class="arrow">{seg.label}</span>
+          ) : seg.em ? (
+            <em>{seg.t}</em>
+          ) : (
+            <Fragment>{seg.t}</Fragment>
+          )
+        )}
+      </p>
+
+      <div class="hero__ctas">
+        <a class="btn btn-primary" href={hero.ctaPrimary.href}>
+          {hero.ctaPrimary.label} <span aria-hidden="true">{hero.ctaPrimary.glyph}</span>
+        </a>
+        <a class="btn btn-ghost" href={hero.ctaGhost.href} download>
+          {hero.ctaGhost.label} <span aria-hidden="true">{hero.ctaGhost.glyph}</span>
+        </a>
+      </div>
+
+      <p class="ticker">
+        {hero.ticker.map((t, i) => (
+          <Fragment>{i > 0 && <span aria-hidden="true">·</span>}{t}</Fragment>
+        ))}
+      </p>
+    </div>
+
+    <aside class="hero__spec" aria-label="Key specifications">
+      <div class="spec-card ticked">
+        <p class="spec-card__label"><span aria-hidden="true">▣</span> key specifications</p>
+        <dl class="spec">
+          {hero.keySpecs.map((s) => (
+            <div class="spec__row hoverable">
+              <dt>{s.k}</dt>
+              <span class="spec__leader" aria-hidden="true"></span>
+              <dd class={s.active ? "is-active" : ""}>
+                {s.status ? (
+                  <span class="pill pill--production"><span class="pill__dot"></span>{s.v}</span>
+                ) : (
+                  s.v
+                )}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </aside>
+  </div>
+
+  <a class="hero__scroll" href="#about" aria-label="Scroll to content">scroll</a>
+</section>

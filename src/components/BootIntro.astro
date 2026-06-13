@@ -1,0 +1,17 @@
+---
+import { bootLines } from "../data/site";
+---
+<div class="boot" aria-hidden="true">
+  <button class="boot__skip" aria-label="Skip intro">skip ▸</button>
+  <div class="boot__panel">
+    {bootLines.map((line, i) => {
+      const html = line.replace("[ ok ]", '[ <span class="ok">ok</span> ]');
+      const isLast = i === bootLines.length - 1;
+      return (
+        <p class="boot__line" style={`--i:${i}`}>
+          <Fragment set:html={html} />{isLast && <span class="caret" aria-hidden="true"></span>}
+        </p>
+      );
+    })}
+  </div>
+</div>

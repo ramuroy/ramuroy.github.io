@@ -1,0 +1,236 @@
+---
+import "../styles/global.css";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+import BootIntro from "../components/BootIntro.astro";
+import { profile, seo } from "../data/site";
+
+const canonical = "https://ramuroy.github.io/";
+const personLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: profile.name,
+  jobTitle: profile.role,
+  url: canonical,
+  email: `mailto:${profile.email}`,
+  telephone: profile.phone,
+  address: { "@type": "PostalAddress", addressRegion: "Andhra Pradesh", addressCountry: "IN" },
+  alumniOf: { "@type": "CollegeOrUniversity", name: "RGUKT Srikakulam" },
+  knowsAbout: ["Embedded Linux", "Yocto Project", "Firmware", "ESP-IDF", "STM32", "Rust", "On-device ML"],
+  sameAs: [profile.github],
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{seo.title}</title>
+    <meta name="description" content={seo.description} />
+    <meta name="keywords" content={seo.keywords.join(", ")} />
+    <meta name="author" content={profile.name} />
+    <meta name="theme-color" content="#0A0E14" />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={seo.title} />
+    <meta property="og:description" content={seo.ogDescription} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content={`${profile.name} — Portfolio`} />
+    <meta property="og:image" content={`${canonical}og.png`} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${profile.name} — ${profile.role}`} />
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={seo.title} />
+    <meta name="twitter:description" content={seo.ogDescription} />
+    <meta name="twitter:image" content={`${canonical}og.png`} />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <script type="application/ld+json" set:html={JSON.stringify(personLd)} />
+    <!-- Enable JS-gated styles before paint (avoids reveal flash) -->
+    <script is:inline>document.documentElement.classList.add("js");</script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <BootIntro />
+    <div class="signal-rail" aria-hidden="true">
+      <div class="signal-rail__line"></div>
+      <div class="signal-rail__node"></div>
+    </div>
+    <Nav />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+
+    <script>
+      // ---- Boot / POST intro ----
+      const boot = document.querySelector(".boot");
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (boot) {
+        const seen = sessionStorage.getItem("rr_boot");
+        if (reduceMotion || seen) {
+          boot.remove();
+        } else {
+          sessionStorage.setItem("rr_boot", "1");
+          const dismiss = () => {
+            boot.classList.add("is-wiping");
+            window.setTimeout(() => {
+              boot.remove();
+              document.body.style.overflow = "";
+            }, 340);
+          };
+          // Lock scroll and schedule the unlock immediately, so nothing
+          // between here and the timeout can leave the page stuck.
+          document.body.style.overflow = "hidden";
+          window.setTimeout(dismiss, 1500);
+          boot.querySelector(".boot__skip")?.addEventListener("click", dismiss);
+        }
+      }
+
+      // ---- Scroll reveal ----
+      const revealEls = document.querySelectorAll(
+        ".reveal, .section-head, .trace-div, .cert"
+      );
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) {
+              e.target.classList.add("in-view");
+              io.unobserve(e.target);
+            }
+          }
+        },
+        { threshold: 0.15, rootMargin: "0px 0px -10% 0px" }
+      );
+      revealEls.forEach((el) => io.observe(el));
+
+      // ---- Hero underline draw on load ----
+      const hero = document.querySelector(".hero");
+      if (hero) {
+        const ems = hero.querySelectorAll(".hero__lead em");
+        ems.forEach((em, i) => (em as HTMLElement).style.setProperty("--d", `${600 + i * 160}ms`));
+        window.requestAnimationFrame(() => hero.classList.add("lead-drawn"));
+      }
+
+      // ---- Nav scroll-spy ----
+      const navLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>(".nav__link"));
+      const sectionToLink = new Map<Element, HTMLAnchorElement>();
+      navLinks.forEach((l) => {
+        const id = l.getAttribute("href")?.slice(1);
+        if (id) {
+          const sec = document.getElementById(id);
+          if (sec) sectionToLink.set(sec, l);
+        }
+      });
+      const spy = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            const link = sectionToLink.get(e.target);
+            if (link && e.isIntersecting) {
+              navLinks.forEach((x) => x.removeAttribute("aria-current"));
+              link.setAttribute("aria-current", "true");
+            }
+          });
+        },
+        { rootMargin: "-45% 0px -50% 0px", threshold: 0 }
+      );
+      sectionToLink.forEach((_l, sec) => spy.observe(sec));
+
+      // ---- Signal-rail scroll progress ----
+      const onScroll = () => {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const p = max > 0 ? window.scrollY / max : 0;
+        document.documentElement.style.setProperty("--scrollp", String(p));
+        // At the very bottom, force the last section active (the spy band can
+        // sit above a short final section + footer).
+        if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2) {
+          const last = document.querySelector<HTMLAnchorElement>('.nav__link[href="#contact"]');
+          if (last) {
+            navLinks.forEach((x) => x.removeAttribute("aria-current"));
+            last.setAttribute("aria-current", "true");
+          }
+        }
+      };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+
+      // ---- Copy to clipboard (with legacy fallback) ----
+      const copyText = async (text: string): Promise<boolean> => {
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+            return true;
+          }
+        } catch {
+          /* fall through to legacy path */
+        }
+        try {
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          ta.setAttribute("readonly", "");
+          ta.style.position = "absolute";
+          ta.style.left = "-9999px";
+          document.body.appendChild(ta);
+          ta.select();
+          const ok = document.execCommand("copy");
+          document.body.removeChild(ta);
+          return ok;
+        } catch {
+          return false;
+        }
+      };
+      document.querySelectorAll<HTMLButtonElement>("[data-copy]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const ok = await copyText(btn.getAttribute("data-copy") || "");
+          if (!ok) return;
+          const prev = btn.textContent;
+          const prevLabel = btn.getAttribute("aria-label");
+          btn.textContent = "copied ✓";
+          btn.setAttribute("aria-label", "Copied");
+          btn.classList.add("copied");
+          window.setTimeout(() => {
+            btn.textContent = prev;
+            if (prevLabel) btn.setAttribute("aria-label", prevLabel);
+            btn.classList.remove("copied");
+          }, 1400);
+        });
+      });
+
+      // ---- Mobile menu ----
+      const menuBtn = document.querySelector<HTMLButtonElement>(".nav__menu-btn");
+      const navList = document.getElementById("nav-links");
+      const closeMenu = () => {
+        navList?.removeAttribute("data-open");
+        menuBtn?.setAttribute("aria-expanded", "false");
+      };
+      menuBtn?.addEventListener("click", () => {
+        const open = navList?.toggleAttribute("data-open");
+        menuBtn.setAttribute("aria-expanded", String(!!open));
+      });
+      document.querySelectorAll(".nav__link").forEach((l) =>
+        l.addEventListener("click", closeMenu)
+      );
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && navList?.hasAttribute("data-open")) {
+          closeMenu();
+          menuBtn?.focus();
+        }
+      });
+    </script>
+  </body>
+</html>

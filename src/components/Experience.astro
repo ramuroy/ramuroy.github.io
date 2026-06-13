@@ -1,0 +1,61 @@
+---
+import SectionHeader from "./SectionHeader.astro";
+import { experience, education, spokenLanguages, sections } from "../data/site";
+---
+<section id="experience" class="section">
+  <div class="container">
+    <SectionHeader num={sections.experience.num} eyebrow={sections.experience.eyebrow} title={sections.experience.title} />
+
+    <div class="timeline">
+      {experience.map((r, i) => (
+        <article class:list={["tl-item", "reveal", { "tl-item--active": r.active }]} style={`--i:${i}`}>
+          <span class="tl-item__node" aria-hidden="true"></span>
+          <div class="tl-item__meta">
+            <span class="tl-item__date">{r.period}</span>
+            {r.active && <span class="pill pill--production"><span class="pill__dot"></span>active</span>}
+            {r.deployed && <span class="pill pill--deployed"><span class="pill__dot"></span>deployed</span>}
+          </div>
+          <h3 class="tl-item__role">
+            {r.role} <span class="tl-item__company">· {r.company}</span>
+          </h3>
+          <p class="tl-item__loc">{r.location}</p>
+          <p class="tl-item__summary">{r.summary}</p>
+          <ul class="tl-item__hl">
+            {r.highlights.map((h) => <li>{h}</li>)}
+          </ul>
+          <div class="badges">
+            {r.tags.map((t) => <span class="badge">{t}</span>)}
+          </div>
+        </article>
+      ))}
+    </div>
+
+    <div class="exp-extra">
+      <div class="spec-card ticked reveal">
+        <p class="spec-card__label"><span aria-hidden="true">▣</span> education</p>
+        {education.map((e) => (
+          <div class="edu-row">
+            <div class="edu-row__top">
+              <span class="edu-row__degree">{e.degree}</span>
+              <span class="edu-row__grade">{e.grade}</span>
+            </div>
+            <span class="edu-row__school">{e.school}</span>
+            <span class="edu-row__period">{e.period}</span>
+          </div>
+        ))}
+      </div>
+      <div class="spec-card ticked reveal" style="--i:1">
+        <p class="spec-card__label"><span aria-hidden="true">▣</span> languages</p>
+        <dl class="spec">
+          {spokenLanguages.map((l) => (
+            <div class="spec__row hoverable">
+              <dt>{l.name}</dt>
+              <span class="spec__leader" aria-hidden="true"></span>
+              <dd>{l.level}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>

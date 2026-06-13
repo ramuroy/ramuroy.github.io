@@ -1,0 +1,24 @@
+---
+import { profile } from "../data/site";
+import TraceDivider from "./TraceDivider.astro";
+---
+<footer class="footer">
+  <div class="container spine footer__inner">
+    <TraceDivider />
+    <div class="footer__row">
+      <span class="led"><span class="led__dot"></span> // {profile.availableText}</span>
+    </div>
+    <p class="footer__colophon">
+      rr@embedded:~$ built with <span class="accent">astro</span> · no trackers <span class="caret" aria-hidden="true"></span>
+    </p>
+    <div class="footer__row">
+      <span class="footer__copy">© 2026 {profile.name} · Andhra Pradesh, India</span>
+      <div class="footer__links">
+        <a href={profile.github} target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href={profile.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+        <a href={`mailto:${profile.email}`}>Email</a>
+        <a href="#main">back to top ↑</a>
+      </div>
+    </div>
+  </div>
+</footer>

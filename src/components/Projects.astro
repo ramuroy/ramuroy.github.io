@@ -1,0 +1,114 @@
+---
+import SectionHeader from "./SectionHeader.astro";
+import TraceDivider from "./TraceDivider.astro";
+import { flagship, gridProjects, sections } from "../data/site";
+
+const slug = (url?: string) => (url ? url.replace("https://github.com/", "github.com/") : "");
+const grid = [...gridProjects].sort((a, b) => (b.stars || 0) - (a.stars || 0));
+const showDot = (v: string) => v === "deployed" || v === "production";
+---
+<section id="projects" class="section">
+  <div class="container">
+    <SectionHeader num={sections.projects.num} eyebrow={sections.projects.eyebrow} title={sections.projects.title} />
+
+    <div class="projects__flagship">
+      {flagship.map((p, i) => (
+        <article class:list={["pcard", "ticked", "reveal", { "card-full": p.full }]} style={`--i:${i}`}>
+          <div class="pcard__head">
+            <span class="pcard__fig">{p.fig}</span>
+            <div class="pcard__pills">
+              {p.pills.map((pill) => (
+                <span class:list={["pill", `pill--${pill.variant}`]}>
+                  {showDot(pill.variant) && <span class="pill__dot"></span>}{pill.label}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 class="pcard__title">{p.title}</h3>
+            <p class="pcard__tagline">{p.tagline}</p>
+          </div>
+
+          <p class="pcard__desc">{p.description}</p>
+
+          <div class="badges">
+            {p.tech.map((t) => <span class="badge">{t}</span>)}
+          </div>
+
+          <div class="pcard__params cols">
+            <dl class="spec">
+              {p.params.map((row) => (
+                <div class="spec__row hoverable">
+                  <dt>{row.k}</dt>
+                  <span class="spec__leader" aria-hidden="true"></span>
+                  <dd class={row.active ? "is-active" : ""}>{row.v}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+
+          <details class="pcard__details">
+            <summary>Engineering detail</summary>
+            <ul>
+              {p.highlights.map((h) => <li>{h}</li>)}
+            </ul>
+          </details>
+
+          <div class="pcard__foot">
+            {p.repo ? (
+              <a class="pcard__ref" href={p.repo} target="_blank" rel="noopener noreferrer">
+                REF → {slug(p.repo)} <span class="arrow" aria-hidden="true">→</span>
+              </a>
+            ) : (
+              <span class="pcard__norepo">{p.noRepoNote}</span>
+            )}
+            {p.stars ? <span class="star"><span aria-hidden="true">★</span> {p.stars}</span> : null}
+          </div>
+        </article>
+      ))}
+    </div>
+
+    <TraceDivider />
+
+    <div class="projects__more">
+      <div class="projects__more-head">
+        <h3>// more on github</h3>
+        <a class="btn btn-ghost" href="https://github.com/ramuroy?tab=repositories" target="_blank" rel="noopener noreferrer">
+          VIEW ALL ON GITHUB <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+      <div class="pgrid">
+        {grid.map((g, i) => {
+          const inner = (
+            <>
+              <div class="gcard__top">
+                <span class="gcard__title">{g.title}</span>
+                {g.date && <span class="gcard__date">{g.date}</span>}
+              </div>
+              <p class="gcard__desc">{g.description}</p>
+              <div class="badges">
+                {g.tech.map((t) => <span class="badge">{t}</span>)}
+              </div>
+              <div class="gcard__foot">
+                <span class="gcard__cat">{g.category}</span>
+                {g.stars ? (
+                  <span class="star"><span aria-hidden="true">★</span> {g.stars}</span>
+                ) : g.repo ? (
+                  <span class="gcard__cat">↗ repo</span>
+                ) : (
+                  <span class="gcard__cat">local</span>
+                )}
+              </div>
+            </>
+          );
+          return g.repo ? (
+            <a class="gcard reveal" style={`--i:${i % 4}`} href={g.repo} target="_blank" rel="noopener noreferrer">{inner}</a>
+          ) : (
+            <div class="gcard reveal" style={`--i:${i % 4}`}>{inner}</div>
+          );
+        })}
+      </div>
+    </div>
+  </div>
+</section>

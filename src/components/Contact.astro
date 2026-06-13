@@ -1,0 +1,54 @@
+---
+import SectionHeader from "./SectionHeader.astro";
+import { profile, sections } from "../data/site";
+const tel = profile.phone.replace(/\s+/g, "");
+---
+<section id="contact" class="section">
+  <div class="container spine">
+    <SectionHeader num={sections.contact.num} eyebrow={sections.contact.eyebrow} />
+
+    <div class="contact__panel ticked reveal">
+      <span class="led contact__led"><span class="led__dot"></span> // {profile.availableText}</span>
+      <h2 class="contact__title">{sections.contact.title}</h2>
+
+      <dl class="spec contact__spec">
+        <div class="spec__row hoverable">
+          <dt>Email</dt>
+          <span class="spec__leader" aria-hidden="true"></span>
+          <dd>
+            <a class="link" href={`mailto:${profile.email}`}>{profile.email}</a>
+            <button class="copy-btn" data-copy={profile.email} aria-label="Copy email">copy</button>
+          </dd>
+        </div>
+        <div class="spec__row hoverable">
+          <dt>Phone</dt>
+          <span class="spec__leader" aria-hidden="true"></span>
+          <dd>
+            <a class="link" href={`tel:${tel}`}>{profile.phone}</a>
+            <button class="copy-btn" data-copy={profile.phone} aria-label="Copy phone number">copy</button>
+          </dd>
+        </div>
+        <div class="spec__row hoverable">
+          <dt>GitHub</dt>
+          <span class="spec__leader" aria-hidden="true"></span>
+          <dd><a class="link" href={profile.github} target="_blank" rel="noopener noreferrer">{profile.githubHandle}</a></dd>
+        </div>
+        <div class="spec__row hoverable">
+          <dt>LinkedIn</dt>
+          <span class="spec__leader" aria-hidden="true"></span>
+          <dd><a class="link" href={profile.linkedin} target="_blank" rel="noopener noreferrer">{profile.linkedinLabel}</a></dd>
+        </div>
+        <div class="spec__row hoverable">
+          <dt>Location</dt>
+          <span class="spec__leader" aria-hidden="true"></span>
+          <dd>{profile.location}</dd>
+        </div>
+      </dl>
+
+      <div class="hero__ctas">
+        <a class="btn btn-primary" href={`mailto:${profile.email}`}>OPEN MAILTO <span aria-hidden="true">▸</span></a>
+        <a class="btn btn-ghost" href={profile.resumeUrl} download>DOWNLOAD CV <span aria-hidden="true">↓</span></a>
+      </div>
+    </div>
+  </div>
+</section>

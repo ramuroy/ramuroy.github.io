@@ -1,0 +1,19 @@
+---
+import { nav, profile } from "../data/site";
+---
+<nav class="nav" aria-label="Primary">
+  <div class="container nav__inner">
+    <a class="masthead" href="#main" aria-label={`${profile.name} — home`}>
+      RR <b>//</b> EMBEDDED SYSTEMS <span class="rev">rev.2026</span>
+    </a>
+    <button class="nav__menu-btn" aria-expanded="false" aria-controls="nav-links">menu <span aria-hidden="true">▾</span></button>
+    <ul class="nav__links" id="nav-links">
+      {nav.map((n) => (
+        <li><a class="nav__link" href={n.href}>{n.label}</a></li>
+      ))}
+      <li>
+        <a class="nav__link" href={profile.github} target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+      </li>
+    </ul>
+  </div>
+</nav>
