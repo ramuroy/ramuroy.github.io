@@ -7,7 +7,7 @@ export const profile = {
   name: "Ramu Roy",
   role: "Embedded Systems Engineer",
   tagline:
-    "I build the whole stack — bare-metal firmware → custom Linux → on-device ML & voice.",
+    "I build the whole stack — hardware → firmware → custom Linux → on-device ML & voice.",
   location: "Hyderabad, India",
   email: "royramu694429@gmail.com",
   phone: "+91 94936 52315",
@@ -22,11 +22,11 @@ export const profile = {
 
 export const seo = {
   title:
-    "Ramu Roy — Embedded Systems Engineer | Firmware, Yocto Linux & On-Device ML",
+    "Ramu Roy — Embedded Systems Engineer | Hardware, Firmware, Yocto Linux & On-Device ML",
   description:
-    "Ramu Roy, embedded systems engineer building the whole stack: bare-metal firmware, custom Yocto Linux (eOS), ESP32/STM32, and on-device ML & voice in Rust.",
+    "Ramu Roy, embedded systems engineer building the whole stack: PCB & hardware design, bare-metal firmware, custom Yocto Linux (eOS), ESP32/STM32, and on-device ML & voice in Rust.",
   ogDescription:
-    "Embedded systems engineer building the whole stack — bare-metal firmware, custom Yocto Linux for Raspberry Pi 5, ESP32/STM32, and on-device ML & voice in Rust.",
+    "Embedded systems engineer building the whole stack — PCB & hardware design, bare-metal firmware, custom Yocto Linux for Raspberry Pi 5, ESP32/STM32, and on-device ML & voice in Rust.",
   keywords: [
     "Ramu Roy", "embedded systems engineer", "embedded Linux", "Yocto Project",
     "BitBake", "firmware engineer", "ESP-IDF", "ESP32", "ESP32-S3", "STM32",
@@ -59,11 +59,13 @@ export const hero = {
   // segments let us style arrows + emphasised domain words individually
   lead: [
     { t: "I build the whole stack — " },
-    { t: "bare-metal firmware", em: true },
+    { t: "hardware", em: true },
+    { t: " ", arrow: true, label: "→" },
+    { t: "firmware", em: true },
     { t: " ", arrow: true, label: "→" },
     { t: "custom Linux", em: true },
     { t: " ", arrow: true, label: "→" },
-    { t: "on-device ML & voice", em: true },
+    { t: "on-device ML", em: true },
     { t: "." },
   ],
   ctaPrimary: { label: "VIEW PROJECTS", href: "#projects", glyph: "▸" },
@@ -81,7 +83,7 @@ export const hero = {
 export const about = {
   subhead: "A full-stack embedded engineer — silicon to UI.",
   paragraphs: [
-    "I'm an Electronics & Communication Engineering graduate (RGUKT Srikakulam, 2026) who works across the entire embedded stack. I write bare-metal and RTOS firmware for ESP32, ESP32-S3, and STM32; I build a custom Yocto Linux distribution from the recipe up; and I train and run ML and voice models directly on-device. The interesting problems usually live at the seams between those layers, and that's where I spend my time.",
+    "I'm an Electronics & Communication Engineering graduate (RGUKT Srikakulam, 2026) who works across the entire embedded stack. I design hardware and PCBs in KiCad; I write bare-metal and RTOS firmware for ESP32, ESP32-S3, and STM32; I build a custom Yocto Linux distribution from the recipe up; and I train and run ML and voice models directly on-device. The interesting problems usually live at the seams between those layers, and that's where I spend my time.",
     "The proof is in the field. As an intern at Radiogeet, I built an Industrial Anti-Collision System for crane operations that's deployed at Tata Steel BlueScope — ESP32-S3 dual-core firmware doing time-critical UWB ranging on one core and zone-safety logic on the other, talking ESP-NOW peer-to-peer and MODBUS RTU over RS485 to drive industrial relays that physically stop hazardous crane movement. Safety-critical, real-time, and running in production.",
     "Right now I'm building eOS at Elipse — a Yocto/OpenEmbedded Linux distro for the Raspberry Pi 5 with A/B RAUC OTA, an MQTT service bus, D-Bus interfaces, SQLite persistence, and a Qt6/QML UI. It includes a Rust sensor-fusion framework and a fully on-device voice subsystem — a transfer-learned wake-word detector exported to ONNX and run on the pure-Rust tract runtime, multi-mic best-source fusion across ESP32 satellites, Whisper STT, Piper TTS, and async-Rust barge-in. I like owning a system end to end, from the device tree to the deploy flow.",
   ],
@@ -231,7 +233,7 @@ export type Role = {
 export const experience: Role[] = [
   {
     company: "Elipse",
-    role: "Embedded Linux OS Developer",
+    role: "Embedded Systems Engineer",
     period: "May 2026 – Present",
     location: "Hyderabad, India",
     active: true,
@@ -282,7 +284,7 @@ export const skillGroups = [
   { name: "Embedded Linux & OS", blurb: "Building custom Linux distributions from the ground up with Yocto.", items: ["Yocto Project", "BitBake", "OpenEmbedded", "kas", "meta-layers", ".bb/.bbappend recipes", "IPK packaging", "RAUC A/B OTA", "Custom distro build", "Cross-compilation", "BSP", "Device tree"], core: ["Yocto Project", "BitBake", "RAUC A/B OTA"] },
   { name: "Linux Internals", blurb: "The userspace plumbing that ties a running system together.", items: ["systemd", "D-Bus", "journald", "SQLite", "Mosquitto MQTT (TLS, ACL)"], core: ["systemd", "D-Bus"] },
   { name: "Firmware & RTOS", blurb: "Bare-metal and RTOS firmware on ESP32 and STM32 silicon.", items: ["ESP-IDF v5.x", "FreeRTOS dual-core", "STM32 HAL/LL", "Bare-metal", "Interrupt/polling", "BLE (NimBLE)", "NVS lifecycle", "OTA"], core: ["ESP-IDF v5.x", "STM32 HAL/LL", "FreeRTOS dual-core"] },
-  { name: "On-Device ML & Voice", blurb: "Wake-word, speech, and sensor inference running entirely on the edge.", items: ["PyTorch", "ONNX", "tract (Rust)", "Transfer learning", "KWS", "VAD", "Mel-spectrogram", "Whisper STT", "Piper TTS", "openWakeWord", "Multi-mic fusion", "Barge-in"], core: ["PyTorch", "ONNX", "tract (Rust)"] },
+  { name: "On-Device ML & Voice", blurb: "Wake-word, speech, and sensor inference running entirely on the edge.", items: ["PyTorch", "ONNX", "tract (Rust)", "Transfer learning", "KWS", "VAD", "Mel-spectrogram", "Whisper STT", "Piper TTS", "Multi-mic fusion", "Barge-in"], core: ["PyTorch", "ONNX", "tract (Rust)"] },
   { name: "Languages", blurb: "Systems and application languages I write production code in.", items: ["C", "Embedded C/C++", "Rust (async/Tokio)", "Python", "MATLAB"], core: ["Embedded C/C++", "Rust (async/Tokio)"] },
   { name: "Sensors & Peripherals", blurb: "Radar, air-quality, and industrial I/O I interface and calibrate.", items: ["HLK-C4001 mmWave radar", "PIR motion", "PM/VOC/CO₂ air-quality", "AHT10", "ADS1115 ADC", "UWB modules", "Masibus DI/DO/AI/AO", "Industrial relays"], core: [] },
   { name: "PCB & Hardware", blurb: "From schematic capture to flashed boards and bring-up.", items: ["KiCad", "Schematic capture", "Layout", "Power-supply design", "Raspberry Pi 5", "ESP32 / ESP32-S3", "STM32"], core: ["KiCad"] },
@@ -309,7 +311,7 @@ export const spokenLanguages = [
 
 /* Section signatures (eyebrow / numeral / heading) */
 export const sections = {
-  about: { num: "01", eyebrow: "// 01 — overview", title: "Bare-metal to custom Linux to on-device ML" },
+  about: { num: "01", eyebrow: "// 01 — overview", title: "From hardware to custom Linux to on-device ML" },
   projects: { num: "02", eyebrow: "// 02 — selected work", title: "Shipped firmware, distros & deployed systems" },
   experience: { num: "03", eyebrow: "// 03 — revision history", title: "Where I've done the work" },
   skills: { num: "04", eyebrow: "// 04 — specifications", title: "The full embedded stack" },
