@@ -215,7 +215,7 @@ export const gridProjects: GridProject[] = [
   { title: "Digital Dice", description: "An Arduino digital dice with a 7-segment display.", tech: ["Arduino", "7-seg"], date: "", repo: "https://github.com/ramuroy/Digital-Dice", category: "IoT" },
   { title: "Click Counter Up/Down", description: "An Arduino up/down click counter.", tech: ["Arduino"], date: "", repo: "https://github.com/ramuroy/Click-Counter-Up-Down", category: "IoT" },
   { title: "Rain Detector", description: "An Arduino-based rain detector.", tech: ["Arduino", "Sensors"], date: "", repo: "https://github.com/ramuroy/Rain-Detector", category: "IoT" },
-  { title: "Solar Track", description: "A sun-tracking system that follows the sun across the sky.", tech: ["Arduino", "Sensors"], date: "Mar 2025", category: "IoT" },
+  { title: "Solar Track", description: "Dual-axis sun tracker — four shaded LDRs steer two servos (azimuth + tilt) to keep a panel facing the sun.", tech: ["Arduino", "Servo", "LDR"], date: "Mar 2025", repo: "https://github.com/ramuroy/Solar-Track", category: "IoT" },
 ];
 
 export type Role = {
