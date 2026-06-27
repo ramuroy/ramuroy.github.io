@@ -386,7 +386,8 @@ body::after {
 .cert__title { color: var(--text); font-weight: 500; font-size: var(--fs-small); line-height: var(--lh-snug); margin-bottom: var(--space-4); }
 .gauge { display: flex; align-items: center; gap: var(--space-3); margin-top: auto; }
 .gauge__track { flex: 1; height: 8px; background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius-pill); overflow: hidden; }
-.gauge__fill { height: 100%; background: linear-gradient(90deg, var(--accent-deep), var(--accent)); border-radius: var(--radius-pill); width: 0; transition: width var(--t-draw) var(--ease-out); }
+.gauge__fill { height: 100%; background: linear-gradient(90deg, var(--accent-deep), var(--accent)); border-radius: var(--radius-pill); width: var(--w); transition: width var(--t-draw) var(--ease-out); }
+.js .gauge__fill { width: 0; }
 .cert.in-view .gauge__fill { width: var(--w); }
 .gauge__val { font-family: var(--font-mono); font-size: var(--fs-small); color: var(--accent-text); font-variant-numeric: tabular-nums; }
 .cert__link { align-self: flex-start; margin-top: var(--space-4); font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--accent-text); display: inline-flex; align-items: center; gap: 0.4em; transition: color var(--t-fast); }
