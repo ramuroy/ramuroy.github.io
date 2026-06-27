@@ -289,6 +289,13 @@ const personLd = {
       // ---- Count-up numbers ----
       const counters = document.querySelectorAll<HTMLElement>("[data-count]");
       if (counters.length) {
+        // Markup ships the real values so they show without JS. Since JS is
+        // running, reset to 0 so the count-up animates from scratch on scroll.
+        if (!reduceMotion) {
+          counters.forEach((el) => {
+            el.textContent = (0).toFixed(parseInt(el.dataset.dec || "0", 10));
+          });
+        }
         const runCount = (el: HTMLElement) => {
           const target = parseFloat(el.dataset.count || "0");
           const dec = parseInt(el.dataset.dec || "0", 10);

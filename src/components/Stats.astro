@@ -2,7 +2,7 @@
 import { flagship, gridProjects } from "../data/site";
 const projectCount = flagship.length + gridProjects.length;
 const stats = [
-  { value: 17, dec: 0, label: "GitHub repos" },
+  { value: 19, dec: 0, label: "GitHub repos" },
   { value: projectCount, dec: 0, label: "Projects" },
   { value: 12, dec: 0, label: "Protocols" },
   { value: 5, dec: 0, label: "Programming languages" },
@@ -12,7 +12,7 @@ const stats = [
   <div class="container stats__grid">
     {stats.map((s, i) => (
       <div class="stat reveal" style={`--i:${i}`}>
-        <div class="stat__value"><span data-count={s.value} data-dec={s.dec}>0</span></div>
+        <div class="stat__value"><span data-count={s.value} data-dec={s.dec}>{s.value}</span></div>
         <div class="stat__label">{s.label}</div>
       </div>
     ))}
