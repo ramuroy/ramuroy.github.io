@@ -9,6 +9,27 @@ export default defineConfig({
   site: 'https://ramuroy.github.io',
   trailingSlash: 'ignore',
   integrations: [sitemap()],
+  security: {
+    csp: {
+      directives: [
+        "default-src 'self'",
+        "base-uri 'self'",
+        "connect-src 'self'",
+        "font-src 'self'",
+        "form-action 'self'",
+        "img-src 'self' data:",
+        "object-src 'none'",
+      ],
+      // Component-specific CSS variables are emitted as style attributes.
+      // Attribute permission is inserted per page as style-src-attr.
+      styleDirective: {
+        resources: ["'self'"],
+      },
+    },
+  },
+  markdown: {
+    syntaxHighlight: false,
+  },
   build: {
     inlineStylesheets: 'auto',
   },

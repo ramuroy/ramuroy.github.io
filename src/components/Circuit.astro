@@ -15,7 +15,7 @@ const traces: Trace[] = [];
 const vias: [number, number][] = [];
 const pads: [number, number][] = [];
 
-const N = 20;
+const N = 10;
 for (let i = 0; i < N; i++) {
   const vertical = r() < 0.38;
   let d: string, end: [number, number];
@@ -44,7 +44,7 @@ for (let i = 0; i < N; i++) {
   const pulse = r() < 0.42;
   traces.push({ d, pulse, dur: (7 + r() * 7).toFixed(1), delay: (r() * -10).toFixed(1) });
 }
-for (let i = 0; i < 14; i++) pads.push([Math.round(r() * W), Math.round(r() * H)]);
+for (let i = 0; i < 6; i++) pads.push([Math.round(r() * W), Math.round(r() * H)]);
 ---
 <svg class="circuit" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
   <g class="circuit__base">

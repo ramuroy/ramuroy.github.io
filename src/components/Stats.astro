@@ -1,11 +1,12 @@
 ---
-import { flagship, gridProjects } from "../data/site";
+import { flagship, gridProjects, profile, protocols, skillGroups } from "../data/site";
 const projectCount = flagship.length + gridProjects.length;
+const languageCount = skillGroups.find((group) => group.name === "Languages")?.items.length ?? 0;
 const stats = [
-  { value: 19, dec: 0, label: "GitHub repos" },
+  { value: profile.githubRepoCount, dec: 0, label: "GitHub repos" },
   { value: projectCount, dec: 0, label: "Projects" },
-  { value: 12, dec: 0, label: "Protocols" },
-  { value: 5, dec: 0, label: "Programming languages" },
+  { value: protocols.length, dec: 0, label: "Protocols" },
+  { value: languageCount, dec: 0, label: "Programming languages" },
 ];
 ---
 <section class="stats" aria-label="By the numbers">

@@ -49,10 +49,11 @@ import { hero } from "../data/site";
           {hero.keySpecs.map((s) => (
             <div class="spec__row hoverable">
               <dt>{s.k}</dt>
-              <span class="spec__leader" aria-hidden="true"></span>
               <dd class={s.active ? "is-active" : ""}>
                 {s.status ? (
-                  <span class="pill pill--production"><span class="pill__dot"></span>{s.v}</span>
+                  <span class:list={["pill", s.available ? "pill--production" : "pill--wip"]}>
+                    {s.available && <span class="pill__dot"></span>}{s.v}
+                  </span>
                 ) : (
                   s.v
                 )}
@@ -139,12 +140,14 @@ import { hero } from "../data/site";
     section.addEventListener("pointerleave", () => { mouse.x = -9999; mouse.y = -9999; });
     window.addEventListener("resize", resize);
 
-    const io = new IntersectionObserver((entries) => {
-      const vis = entries[0].isIntersecting;
-      if (vis && !running) { running = true; raf = requestAnimationFrame(step); }
-      else if (!vis) { running = false; cancelAnimationFrame(raf); }
-    });
-    io.observe(section);
+    if ("IntersectionObserver" in window) {
+      const io = new IntersectionObserver((entries) => {
+        const vis = entries[0].isIntersecting;
+        if (vis && !running) { running = true; raf = requestAnimationFrame(step); }
+        else if (!vis) { running = false; cancelAnimationFrame(raf); }
+      });
+      io.observe(section);
+    }
     resize();
     raf = requestAnimationFrame(step);
   }
@@ -174,9 +177,12 @@ import { hero } from "../data/site";
       };
       tick();
     };
-    // first run after the boot intro would have cleared (or immediately)
-    const seen = sessionStorage.getItem("rr_boot");
-    window.setTimeout(scramble, seen ? 250 : 1700);
+    // Run after the first-visit intro, or shortly after load for returning users.
+    if (document.querySelector(".boot.is-active")) {
+      window.addEventListener("rr:boot-done", () => window.setTimeout(scramble, 120), { once: true });
+    } else {
+      window.setTimeout(scramble, 250);
+    }
     nameEl.addEventListener("pointerenter", scramble);
   }
 </script>

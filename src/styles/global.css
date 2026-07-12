@@ -1,3 +1,4 @@
+@import "./fonts.css";
 @import "./tokens.css";
 
 /* =====================================================================
@@ -60,8 +61,9 @@ body::after {
    ===================================================================== */
 .container { width: 100%; max-width: var(--maxw); margin-inline: auto; padding-inline: var(--gutter); }
 .spine { max-width: var(--maxw-spine); }
-.section { padding-block: var(--section-gap); position: relative; }
+.section { padding-block: var(--section-gap); position: relative; scroll-margin-top: calc(var(--nav-h) + var(--space-4)); }
 .measure { max-width: var(--measure); }
+.sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
 
 .skip-link {
   position: absolute; left: var(--space-4); top: -120px; z-index: 200;
@@ -94,11 +96,11 @@ body::after {
 /* =====================================================================
    REVEAL (progressive enhancement: only hides when html.js)
    ===================================================================== */
-.js .reveal { opacity: 0; transform: translateY(16px); transition: opacity var(--t-slow) var(--ease-out), transform var(--t-slow) var(--ease-out); transition-delay: calc(var(--i, 0) * 60ms); }
-.js .reveal.in-view { opacity: 1; transform: none; }
+.js.reveal-ready .reveal { opacity: 0; transform: translateY(16px); transition: opacity var(--t-slow) var(--ease-out), transform var(--t-slow) var(--ease-out); transition-delay: calc(var(--i, 0) * 60ms); }
+.js.reveal-ready .reveal.in-view { opacity: 1; transform: none; }
 /* opacity-only entrance for elements that own their own transform (tilt/hover) */
-.js .fade { opacity: 0; transition: opacity var(--t-slow) var(--ease-out); transition-delay: calc(var(--i, 0) * 60ms); }
-.js .fade.in-view { opacity: 1; }
+.js.reveal-ready .fade { opacity: 0; transition: opacity var(--t-slow) var(--ease-out); transition-delay: calc(var(--i, 0) * 60ms); }
+.js.reveal-ready .fade.in-view { opacity: 1; }
 
 /* =====================================================================
    SECTION HEADER (eyebrow + drawn cyan rule + faint numeral + title)
@@ -107,15 +109,16 @@ body::after {
 .section-head__num {
   position: absolute; top: -0.55em; left: -0.1em; z-index: 0;
   font-family: var(--font-display); font-weight: 700; font-size: var(--fs-numeral);
-  color: var(--border-bright); opacity: 0.85; pointer-events: none; line-height: 1; letter-spacing: -0.04em;
+  color: var(--faint); opacity: 1; pointer-events: none; line-height: 1; letter-spacing: -0.04em;
 }
 .section-head__inner { position: relative; z-index: 1; }
 .section-head .rule {
   display: block; height: 1px; width: clamp(48px, 8vw, 96px); background: var(--accent);
-  margin-block: var(--space-3) var(--space-4); transform: scaleX(0); transform-origin: left;
+  margin-block: var(--space-3) var(--space-4); transform: scaleX(1); transform-origin: left;
   transition: transform var(--t-slow) var(--ease-out);
 }
-.section-head.in-view .rule { transform: scaleX(1); }
+.js.reveal-ready .section-head .rule { transform: scaleX(0); }
+.js.reveal-ready .section-head.in-view .rule, .section-head.in-view .rule { transform: scaleX(1); }
 .section-head__title { font-size: var(--fs-h2); color: var(--text); max-width: 22ch; }
 
 /* =====================================================================
@@ -157,12 +160,12 @@ body::after {
    ===================================================================== */
 .spec { display: flex; flex-direction: column; gap: 0.55rem; }
 .spec__row { display: flex; align-items: baseline; gap: 0.75rem; }
-.spec__row dt { flex: 0 0 auto; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.12em; color: var(--label); font-size: var(--fs-micro); }
-.spec__leader { flex: 1 1 auto; border-bottom: 1px dotted var(--border); transform: translateY(-0.3em); min-width: 1.5rem; }
+.spec__row dt { flex: 1 1 auto; min-width: 0; display: flex; align-items: baseline; gap: 0.75rem; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.12em; color: var(--label); font-size: var(--fs-micro); }
+.spec__row dt::after { content: ""; flex: 1 1 auto; min-width: 1.5rem; border-bottom: 1px dotted var(--border); transform: translateY(-0.3em); }
 .spec__row dd { flex: 0 1 auto; text-align: right; color: var(--text); font-size: var(--fs-small); font-variant-numeric: tabular-nums; }
 .spec__row dd.is-active { color: var(--accent-text); font-weight: 500; }
 .spec__row.hoverable:hover dt { color: var(--text-secondary); }
-.spec__row.hoverable:hover .spec__leader { border-color: var(--border-bright); }
+.spec__row.hoverable:hover dt::after { border-color: var(--border-bright); }
 .spec__row.hoverable:hover dd { color: var(--accent-text); }
 
 /* Spec card wrapper */
@@ -182,6 +185,7 @@ body::after {
    STATUS LED
    ===================================================================== */
 .led { display: inline-flex; align-items: center; gap: 0.55em; font-family: var(--font-mono); font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
+.led--off { color: var(--warn); }
 .led__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--led-on); box-shadow: 0 0 0 3px var(--led-ring), 0 0 10px var(--success-glow); animation: breathe 2.4s ease-in-out infinite; }
 @keyframes breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
 
@@ -230,7 +234,7 @@ body::after {
 /* Hidden by default so no-JS users never get stuck behind the overlay;
    only shown once JS confirms support (and then dismissed by JS). */
 .boot { position: fixed; inset: 0; z-index: 300; background: var(--bg-deep); display: none; place-items: center; }
-.js .boot { display: grid; }
+.boot.is-active { display: grid; }
 .boot[hidden] { display: none; }
 .boot.is-wiping { animation: boot-wipe 320ms var(--ease-wipe) forwards; }
 @keyframes boot-wipe { to { clip-path: inset(0 0 100% 0); } }
@@ -290,7 +294,6 @@ body::after {
 .projects__flagship { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); }
 .card-full { grid-column: 1 / -1; }
 @media (max-width: 860px) { .projects__flagship { grid-template-columns: 1fr; } }
-@media (max-width: 600px) { .pcard__params.cols { grid-template-columns: 1fr; } }
 
 .pcard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: clamp(1.25rem, 3vw, 2rem); position: relative; overflow: hidden; transition: transform var(--t) var(--ease-std), border-color var(--t), box-shadow var(--t); display: flex; flex-direction: column; gap: var(--space-4); }
 .pcard:hover { transform: translateY(-3px); border-color: var(--border-bright); box-shadow: var(--shadow-card-hover); }
@@ -303,6 +306,7 @@ body::after {
 .pcard__params { border-top: 1px solid var(--border); padding-top: var(--space-4); }
 .pcard__params.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem var(--space-5); }
 .pcard__params.cols .spec { display: contents; }
+@media (max-width: 600px) { .pcard__params.cols { grid-template-columns: 1fr; } }
 .pcard__details summary { font-family: var(--font-mono); font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent-text); cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 0.5em; padding: 0.2rem 0; }
 .pcard__details summary::-webkit-details-marker { display: none; }
 .pcard__details summary::before { content: "▸"; transition: transform var(--t-fast); display: inline-block; }
@@ -349,6 +353,7 @@ body::after {
 .tl-item__loc { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); }
 .tl-item__summary { color: var(--text-secondary); max-width: 64ch; margin-block: var(--space-3); font-size: var(--fs-small); }
 .tl-item__hl { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-4); }
+.tl-item__hl { max-width: 82ch; }
 .tl-item__hl li { position: relative; padding-left: 1.3em; color: var(--text-secondary); font-size: var(--fs-small); line-height: var(--lh-snug); }
 .tl-item__hl li::before { content: "›"; position: absolute; left: 0; color: var(--accent); opacity: 0.7; }
 
@@ -387,7 +392,7 @@ body::after {
 .gauge { display: flex; align-items: center; gap: var(--space-3); margin-top: auto; }
 .gauge__track { flex: 1; height: 8px; background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius-pill); overflow: hidden; }
 .gauge__fill { height: 100%; background: linear-gradient(90deg, var(--accent-deep), var(--accent)); border-radius: var(--radius-pill); width: var(--w); transition: width var(--t-draw) var(--ease-out); }
-.js .gauge__fill { width: 0; }
+.js.reveal-ready .gauge__fill { width: 0; }
 .cert.in-view .gauge__fill { width: var(--w); }
 .gauge__val { font-family: var(--font-mono); font-size: var(--fs-small); color: var(--accent-text); font-variant-numeric: tabular-nums; }
 .cert__link { align-self: flex-start; margin-top: var(--space-4); font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--accent-text); display: inline-flex; align-items: center; gap: 0.4em; transition: color var(--t-fast); }
@@ -424,10 +429,12 @@ body::after {
    PCB TRACE DIVIDER
    ===================================================================== */
 .trace-div { display: block; width: 100%; height: 24px; margin-block: var(--space-7); opacity: 0.6; }
-.trace-div path { stroke: var(--trace); stroke-width: 1; fill: none; stroke-dasharray: var(--len, 600); stroke-dashoffset: var(--len, 600); }
+.trace-div path { stroke: var(--trace); stroke-width: 1; fill: none; stroke-dasharray: var(--len, 600); stroke-dashoffset: 0; }
+.js.reveal-ready .trace-div path { stroke-dashoffset: var(--len, 600); }
 .trace-div.in-view path { animation: trace-draw var(--t-draw) var(--ease-out) forwards; }
 @keyframes trace-draw { to { stroke-dashoffset: 0; } }
-.trace-div circle { fill: var(--accent); opacity: 0; }
+.trace-div circle { fill: var(--accent); opacity: 1; }
+.js.reveal-ready .trace-div circle { opacity: 0; }
 .trace-div.in-view circle { animation: via-in 0.4s var(--ease-out) 0.5s forwards; }
 @keyframes via-in { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: scale(1); } }
 
@@ -484,13 +491,29 @@ body.cursor-on .cursor-glow { opacity: 1; }
   .pcard__ref { min-height: 44px; }
 }
 
+@media (max-width: 420px) {
+  .contact__spec .spec__row { align-items: flex-start; }
+  .contact__spec .spec__row dd { min-width: 0; overflow-wrap: anywhere; }
+  .contact__spec .copy-btn { margin-left: 0.25em; }
+}
+
+@media print {
+  .nav, .boot, .circuit, .cursor-glow, .signal-rail, .hero__canvas, .hero__scroll { display: none !important; }
+  body { color: #111; background: #fff; }
+  body::before, body::after { display: none; }
+  .section, .hero { min-height: auto; padding-block: 1.5rem; break-inside: avoid; }
+  .js.reveal-ready :is(.reveal, .fade) { opacity: 1 !important; transform: none !important; }
+  .section-head__title { -webkit-text-fill-color: currentColor; color: #111; animation: none; }
+  a { text-decoration: underline; }
+}
+
 /* =====================================================================
    REDUCED MOTION
    ===================================================================== */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
-  .js .reveal { opacity: 1 !important; transform: none !important; }
-  .js .fade { opacity: 1 !important; }
+  .js.reveal-ready .reveal { opacity: 1 !important; transform: none !important; }
+  .js.reveal-ready .fade { opacity: 1 !important; }
   .section-head .rule { transform: scaleX(1) !important; }
   .gauge__fill { transition: none; }
   .caret { animation: none; }

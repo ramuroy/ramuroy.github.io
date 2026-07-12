@@ -6,7 +6,9 @@ import TraceDivider from "./TraceDivider.astro";
   <div class="container spine footer__inner">
     <TraceDivider />
     <div class="footer__row">
-      <span class="led"><span class="led__dot"></span> // {profile.availableText}</span>
+      <span class:list={["led", { "led--off": !profile.available }]}>
+        {profile.available && <span class="led__dot"></span>} // {profile.availableText}
+      </span>
     </div>
     <p class="footer__colophon">
       rr@embedded:~$ built with <span class="accent">astro</span> · no trackers <span class="caret" aria-hidden="true"></span>

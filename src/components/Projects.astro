@@ -4,7 +4,7 @@ import TraceDivider from "./TraceDivider.astro";
 import { flagship, gridProjects, sections } from "../data/site";
 
 const slug = (url?: string) => (url ? url.replace("https://github.com/", "github.com/") : "");
-const grid = [...gridProjects].sort((a, b) => (b.stars || 0) - (a.stars || 0));
+const grid = gridProjects.filter((project) => project.featured).sort((a, b) => (b.stars || 0) - (a.stars || 0));
 const showDot = (v: string) => v === "deployed" || v === "production";
 ---
 <section id="projects" class="section">
@@ -42,7 +42,6 @@ const showDot = (v: string) => v === "deployed" || v === "production";
               {p.params.map((row) => (
                 <div class="spec__row hoverable">
                   <dt>{row.k}</dt>
-                  <span class="spec__leader" aria-hidden="true"></span>
                   <dd class={row.active ? "is-active" : ""}>{row.v}</dd>
                 </div>
               ))}
@@ -74,7 +73,7 @@ const showDot = (v: string) => v === "deployed" || v === "production";
 
     <div class="projects__more">
       <div class="projects__more-head">
-        <h3>// more on github</h3>
+        <h3>// selected on github</h3>
         <a class="btn btn-ghost" href="https://github.com/ramuroy?tab=repositories" target="_blank" rel="noopener noreferrer">
           VIEW ALL ON GITHUB <span aria-hidden="true">↗</span>
         </a>

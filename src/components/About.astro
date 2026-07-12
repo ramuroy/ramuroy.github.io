@@ -11,7 +11,8 @@ const re = new RegExp(
   "(" + TERMS.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")",
   "g"
 );
-const annotate = (text: string) => text.replace(re, '<span class="annot">$1</span>');
+const annotate = (text: string) =>
+  text.split(re).filter(Boolean).map((value) => ({ value, highlighted: TERMS.includes(value) }));
 ---
 <section id="about" class="section">
   <div class="container">
@@ -19,7 +20,13 @@ const annotate = (text: string) => text.replace(re, '<span class="annot">$1</spa
     <div class="about__grid">
       <div class="about__body reveal">
         <p class="about__subhead">{about.subhead}</p>
-        {about.paragraphs.map((p) => <p set:html={annotate(p)} />)}
+        {about.paragraphs.map((p) => (
+          <p>
+            {annotate(p).map((part) =>
+              part.highlighted ? <span class="annot">{part.value}</span> : <Fragment>{part.value}</Fragment>
+            )}
+          </p>
+        ))}
       </div>
       <aside class="reveal" style="--i:1">
         <div class="spec-card ticked">
@@ -28,7 +35,6 @@ const annotate = (text: string) => text.replace(re, '<span class="annot">$1</spa
             {about.glance.map((s) => (
               <div class="spec__row hoverable">
                 <dt>{s.k}</dt>
-                <span class="spec__leader" aria-hidden="true"></span>
                 <dd class={s.active ? "is-active" : ""}>{s.v}</dd>
               </div>
             ))}

@@ -6,13 +6,19 @@ import BootIntro from "../components/BootIntro.astro";
 import Circuit from "../components/Circuit.astro";
 import { profile, seo } from "../data/site";
 
-const canonical = "https://ramuroy.github.io/";
+// CSP Level 3 supports style-src-attr, but Astro's directive union does not yet include it.
+// @ts-expect-error -- required for authored CSS custom properties in style attributes.
+Astro.csp?.insertDirective("style-src-attr 'unsafe-inline'");
+
+const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).href;
 const personLd = {
   "@context": "https://schema.org",
   "@type": "Person",
   name: profile.name,
   jobTitle: profile.role,
+  description: profile.tagline,
   url: canonical,
+  image: new URL("/og.png", canonical).href,
   email: `mailto:${profile.email}`,
   telephone: profile.phone,
   address: { "@type": "PostalAddress", addressLocality: "Hyderabad", addressRegion: "Telangana", addressCountry: "IN" },
@@ -20,6 +26,7 @@ const personLd = {
   knowsAbout: ["Embedded Linux", "Yocto Project", "Firmware", "ESP-IDF", "STM32", "Rust", "On-device ML"],
   sameAs: [profile.github, profile.linkedin],
 };
+const personLdJson = JSON.stringify(personLd).replace(/</g, "\\u003c");
 ---
 
 <!doctype html>
@@ -32,6 +39,8 @@ const personLd = {
     <meta name="keywords" content={seo.keywords.join(", ")} />
     <meta name="author" content={profile.name} />
     <meta name="theme-color" content="#0A0E14" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
@@ -53,21 +62,13 @@ const personLd = {
     <meta name="twitter:description" content={seo.ogDescription} />
     <meta name="twitter:image" content={`${canonical}og.png`} />
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
-
-    <script type="application/ld+json" set:html={JSON.stringify(personLd)} />
+    <script is:inline type="application/ld+json" set:html={personLdJson} />
     <!-- Enable JS-gated styles before paint (avoids reveal flash) -->
     <script is:inline>document.documentElement.classList.add("js");</script>
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to content</a>
     <BootIntro />
+    <a class="skip-link" href="#main">Skip to content</a>
     <Circuit />
     <div class="cursor-glow" aria-hidden="true"></div>
     <div class="signal-rail" aria-hidden="true">
@@ -82,46 +83,29 @@ const personLd = {
     <Footer />
 
     <script>
-      // ---- Boot / POST intro ----
-      const boot = document.querySelector(".boot");
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (boot) {
-        const seen = sessionStorage.getItem("rr_boot");
-        if (reduceMotion || seen) {
-          boot.remove();
-        } else {
-          sessionStorage.setItem("rr_boot", "1");
-          const dismiss = () => {
-            boot.classList.add("is-wiping");
-            window.setTimeout(() => {
-              boot.remove();
-              document.body.style.overflow = "";
-            }, 340);
-          };
-          // Lock scroll and schedule the unlock immediately, so nothing
-          // between here and the timeout can leave the page stuck.
-          document.body.style.overflow = "hidden";
-          window.setTimeout(dismiss, 1500);
-          boot.querySelector(".boot__skip")?.addEventListener("click", dismiss);
-        }
-      }
 
       // ---- Scroll reveal ----
       const revealEls = document.querySelectorAll(
         ".reveal, .fade, .section-head, .trace-div, .cert"
       );
-      const io = new IntersectionObserver(
-        (entries) => {
-          for (const e of entries) {
-            if (e.isIntersecting) {
-              e.target.classList.add("in-view");
-              io.unobserve(e.target);
+      if (reduceMotion || !("IntersectionObserver" in window)) {
+        revealEls.forEach((el) => el.classList.add("in-view"));
+      } else {
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              if (e.isIntersecting) {
+                e.target.classList.add("in-view");
+                io.unobserve(e.target);
+              }
             }
-          }
-        },
-        { threshold: 0.15, rootMargin: "0px 0px -10% 0px" }
-      );
-      revealEls.forEach((el) => io.observe(el));
+          },
+          { threshold: 0.15, rootMargin: "0px 0px -10% 0px" }
+        );
+        revealEls.forEach((el) => io.observe(el));
+        document.documentElement.classList.add("reveal-ready");
+      }
 
       // ---- Hero underline draw on load ----
       const hero = document.querySelector(".hero");
@@ -141,22 +125,25 @@ const personLd = {
           if (sec) sectionToLink.set(sec, l);
         }
       });
-      const spy = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((e) => {
-            const link = sectionToLink.get(e.target);
-            if (link && e.isIntersecting) {
-              navLinks.forEach((x) => x.removeAttribute("aria-current"));
-              link.setAttribute("aria-current", "true");
-            }
-          });
-        },
-        { rootMargin: "-45% 0px -50% 0px", threshold: 0 }
-      );
-      sectionToLink.forEach((_l, sec) => spy.observe(sec));
+      if ("IntersectionObserver" in window) {
+        const spy = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((e) => {
+              const link = sectionToLink.get(e.target);
+              if (link && e.isIntersecting) {
+                navLinks.forEach((x) => x.removeAttribute("aria-current"));
+                link.setAttribute("aria-current", "location");
+              }
+            });
+          },
+          { rootMargin: "-45% 0px -50% 0px", threshold: 0 }
+        );
+        sectionToLink.forEach((_l, sec) => spy.observe(sec));
+      }
 
       // ---- Signal-rail scroll progress ----
-      const onScroll = () => {
+      let scrollRaf = 0;
+      const updateScrollProgress = () => {
         const max = document.documentElement.scrollHeight - window.innerHeight;
         const p = max > 0 ? window.scrollY / max : 0;
         document.documentElement.style.setProperty("--scrollp", String(p));
@@ -166,12 +153,19 @@ const personLd = {
           const last = document.querySelector<HTMLAnchorElement>('.nav__link[href="#contact"]');
           if (last) {
             navLinks.forEach((x) => x.removeAttribute("aria-current"));
-            last.setAttribute("aria-current", "true");
+            last.setAttribute("aria-current", "location");
           }
         }
       };
+      const onScroll = () => {
+        if (scrollRaf) return;
+        scrollRaf = window.requestAnimationFrame(() => {
+          updateScrollProgress();
+          scrollRaf = 0;
+        });
+      };
       window.addEventListener("scroll", onScroll, { passive: true });
-      onScroll();
+      updateScrollProgress();
 
       // ---- Copy to clipboard (with legacy fallback) ----
       const copyText = async (text: string): Promise<boolean> => {
@@ -185,28 +179,35 @@ const personLd = {
         }
         try {
           const ta = document.createElement("textarea");
+          ta.dataset.copyFallback = "";
           ta.value = text;
           ta.setAttribute("readonly", "");
           ta.style.position = "absolute";
           ta.style.left = "-9999px";
           document.body.appendChild(ta);
           ta.select();
-          const ok = document.execCommand("copy");
-          document.body.removeChild(ta);
-          return ok;
+          const legacyCopy = Reflect.get(document, "execCommand");
+          return typeof legacyCopy === "function" && legacyCopy.call(document, "copy");
         } catch {
           return false;
+        } finally {
+          document.querySelector("textarea[data-copy-fallback]")?.remove();
         }
       };
+      const copyStatus = document.getElementById("copy-status");
       document.querySelectorAll<HTMLButtonElement>("[data-copy]").forEach((btn) => {
         btn.addEventListener("click", async () => {
           const ok = await copyText(btn.getAttribute("data-copy") || "");
-          if (!ok) return;
+          if (!ok) {
+            if (copyStatus) copyStatus.textContent = "Copy failed. Please select and copy the value manually.";
+            return;
+          }
           const prev = btn.textContent;
           const prevLabel = btn.getAttribute("aria-label");
           btn.textContent = "copied ✓";
           btn.setAttribute("aria-label", "Copied");
           btn.classList.add("copied");
+          if (copyStatus) copyStatus.textContent = `${prevLabel || "Value"} copied to clipboard.`;
           window.setTimeout(() => {
             btn.textContent = prev;
             if (prevLabel) btn.setAttribute("aria-label", prevLabel);
@@ -234,6 +235,19 @@ const personLd = {
           closeMenu();
           menuBtn?.focus();
         }
+      });
+      document.addEventListener("pointerdown", (e) => {
+        const target = e.target as Node;
+        if (
+          navList?.hasAttribute("data-open") &&
+          !navList.contains(target) &&
+          !menuBtn?.contains(target)
+        ) {
+          closeMenu();
+        }
+      });
+      window.matchMedia("(min-width: 721px)").addEventListener("change", (e) => {
+        if (e.matches) closeMenu();
       });
 
       // ---- Cursor glow over the grid + per-card spotlight ----
@@ -289,13 +303,6 @@ const personLd = {
       // ---- Count-up numbers ----
       const counters = document.querySelectorAll<HTMLElement>("[data-count]");
       if (counters.length) {
-        // Markup ships the real values so they show without JS. Since JS is
-        // running, reset to 0 so the count-up animates from scratch on scroll.
-        if (!reduceMotion) {
-          counters.forEach((el) => {
-            el.textContent = (0).toFixed(parseInt(el.dataset.dec || "0", 10));
-          });
-        }
         const runCount = (el: HTMLElement) => {
           const target = parseFloat(el.dataset.count || "0");
           const dec = parseInt(el.dataset.dec || "0", 10);
@@ -315,18 +322,26 @@ const personLd = {
           };
           window.requestAnimationFrame(tick);
         };
-        const countIO = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((e) => {
-              if (e.isIntersecting) {
-                runCount(e.target as HTMLElement);
-                countIO.unobserve(e.target);
-              }
-            });
-          },
-          { threshold: 0.6 }
-        );
-        counters.forEach((el) => countIO.observe(el));
+        if (reduceMotion || !("IntersectionObserver" in window)) {
+          counters.forEach(runCount);
+        } else {
+          // Markup ships real values for no-JS and failure-safe rendering.
+          counters.forEach((el) => {
+            el.textContent = (0).toFixed(parseInt(el.dataset.dec || "0", 10));
+          });
+          const countIO = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((e) => {
+                if (e.isIntersecting) {
+                  runCount(e.target as HTMLElement);
+                  countIO.unobserve(e.target);
+                }
+              });
+            },
+            { threshold: 0.6 }
+          );
+          counters.forEach((el) => countIO.observe(el));
+        }
       }
     </script>
   </body>
