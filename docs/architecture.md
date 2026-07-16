@@ -47,7 +47,7 @@ Current derived values include:
 - the repository count in the hero ticker and statistics band;
 - total projects from flagship plus complete grid-project arrays;
 - protocol count;
-- spoken-language count;
+- programming-language count (from the Languages skill group);
 - availability labels and indicators; and
 - the curated project grid from `gridProjects.filter(project => project.featured)`.
 

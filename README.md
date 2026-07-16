@@ -17,6 +17,10 @@ progressively enhanced client JavaScript.
 
 - [Architecture and maintenance guide](docs/architecture.md)
 - [Engineering decisions and rationale](docs/decisions.md)
+- [2026-07-16 full-site audit report and improvement roadmap](docs/site-audit-2026-07-16.md)
+  (with [unabridged findings](docs/audit-findings-full-2026-07-16.md) and
+  [raw data](docs/audit-data-2026-07-16.json))
+- [2026-07-16 audit checkpoint and continuation notes](docs/checkpoints/2026-07-16-full-audit.md)
 - [2026-07-13 hardening checkpoint and continuation notes](docs/checkpoints/2026-07-13-site-hardening.md)
 - [Change history](CHANGELOG.md)
 

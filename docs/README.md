@@ -6,9 +6,16 @@ Use these documents in this order:
    its invariants, and how to change it safely.
 2. [Engineering decisions and rationale](decisions.md) — why the current toolchain,
    security, content, accessibility, and deployment choices were made.
-3. [2026-07-13 site-hardening checkpoint](checkpoints/2026-07-13-site-hardening.md) —
+3. [2026-07-16 full-site audit report](site-audit-2026-07-16.md) — 31 curated
+   defects with fixes, category critiques, and the ranked improvement roadmap.
+   Companions: [unabridged findings](audit-findings-full-2026-07-16.md) (all 245
+   with complete evidence) and [machine-readable data](audit-data-2026-07-16.json)
+   (findings + roadmap + raw design proposals).
+4. [2026-07-16 audit checkpoint](checkpoints/2026-07-16-full-audit.md) — what the
+   audit session did and decided, pending user inputs, and resume steps.
+5. [2026-07-13 site-hardening checkpoint](checkpoints/2026-07-13-site-hardening.md) —
    the complete work log, evidence boundary, and exact next-session checklist.
-4. [Project changelog](../CHANGELOG.md) — user- and developer-visible changes by
+6. [Project changelog](../CHANGELOG.md) — user- and developer-visible changes by
    release/checkpoint.
 
 The root [README](../README.md) remains the quick-start and content-editing guide.

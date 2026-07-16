@@ -1,8 +1,9 @@
 # Engineering decisions and rationale
 
-These records capture the decisions made during the 2026-07-13 hardening pass. They
-are intentionally concise but durable: future changes should preserve the stated
-constraints or supersede a record explicitly.
+These records capture the decisions made during the 2026-07-13 hardening pass and
+the engagements that followed on the same branch. They are intentionally concise but
+durable: future changes should preserve the stated constraints or supersede a record
+explicitly.
 
 ## D-001 — Keep hardening work isolated from `main`
 
@@ -227,3 +228,28 @@ miss during ordinary visual review.
 **Consequences:** The build fails if core metadata, sitemap entries, or public assets
 disappear. New routes should be tested against canonical construction and sitemap
 generation.
+
+## D-014 — Record the 2026-07-16 audit in full before implementing any of it
+
+**Status:** Accepted
+
+**Context:** A complete line-by-line audit (245 adversarially verified findings, a
+ranked enhancement roadmap, and 45 raw design proposals) was produced on
+2026-07-16 by a multi-agent process that is expensive to repeat. The user requires
+review and explicit approval before any finding is acted upon.
+
+**Decision:** Commit the full audit record to the repository as documentation
+before starting fixes: the curated report (`docs/site-audit-2026-07-16.md`), the
+unabridged findings with evidence (`docs/audit-findings-full-2026-07-16.md`), and
+the machine-readable dataset (`docs/audit-data-2026-07-16.json`). Implementation
+happens later, in phases, on this branch, only with the user's approval; the
+checkpoint `docs/checkpoints/2026-07-16-full-audit.md` carries the handoff.
+
+**Why:** The findings are the product of a large verification effort and must
+survive machine and session changes; documenting before changing also gives the
+user real oversight of what will be modified on their public professional site.
+
+**Consequences:** The repository temporarily documents known defects it has not
+yet fixed (B1–B31 in the report). Fixes should reference finding IDs so the audit
+documents double as a work log. The audit documents may be pruned or archived
+after the roadmap is executed.

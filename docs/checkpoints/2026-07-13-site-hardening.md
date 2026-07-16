@@ -143,8 +143,9 @@ to that observed state.
 
 - Added `profile.githubRepoCount` and synchronized it to the observed public value of
   19.
-- Derived repository, project, protocol, and spoken-language statistics from shared
-  data.
+- Derived repository, project, protocol, and programming-language statistics from
+  shared data. (This line originally said "spoken-language"; corrected 2026-07-16 —
+  the statistic derived in `Stats.astro` is the programming-language count.)
 - Made hero, Contact, and Footer availability indicators follow
   `profile.available` consistently.
 - Added the optional `featured` project flag and marked the seven projects reflected

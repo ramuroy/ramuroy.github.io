@@ -1,0 +1,2005 @@
+# Full audit findings — 2026-07-16 (unabridged)
+
+Machine-verbatim companion to `site-audit-2026-07-16.md`. Every finding from the audit, with its complete
+evidence (**Why**), the suggested fix, and the independent verifier's verdict and note. Identical content to
+`audit-data-2026-07-16.json`, rendered for reading. Verdicts: **CONFIRMED** = verifier reproduced the fact;
+**PLAUSIBLE** = premise verified, severity is a judgment call.
+
+
+## Code correctness (HTML / Astro / TS / JS) — 18 findings
+
+### 1. [MAJOR] src/components/BootIntro.astro:25 — The boot-intro is:inline script is blocked by the emitted CSP (its hash is not in script-src), so the first-visit boot intro never runs in production.
+
+**Why (evidence):** astro.config.mjs enables Astro's CSP, which emits a <meta http-equiv="content-security-policy"> with script-src 'self' plus 6 sha256 hashes. Astro does not hash is:inline scripts. Verified against dist/index.html: sha256 of the emitted BootIntro inline script body is 'HkEC0mgz/9wBimkk0ndFimkJpZIqs5u3FYr+MJ7Y5hI=' which is NOT among the allowed hashes (only the Hero inline module hash 'iGvHKuQGe08fHDaGCA37TfcfoKjyVbBJNjMo9gUNNNk=' matches). Because this script sits in <body>, after the CSP meta, every enforcing browser refuses to execute it: `.boot` never gets `is-active` (stays display:none), the intro never shows, sessionStorage 'rr_boot' is never set, and 'rr:boot-done' never fires (the Hero scramble falls back to its 250ms path, so only the boot feature is dead). This contradicts docs/decisions.md D-005 and the boot feature's existence.
+
+**Suggested fix:** Allow the script explicitly: compute its hash and add it via the config's csp scriptDirective hashes (or Astro.insertScriptHash in Layout.astro), or convert BootIntro's script from is:inline to a normal processed <script> so Astro bundles/hashes it. Also extend scripts/check-build.mjs to hash every inline <script> in dist/index.html and assert each hash appears in the CSP meta — that check would have caught this.
+
+**Verifier:** CONFIRMED — Verified by hashing dist/index.html inline scripts: the BootIntro is:inline script's sha256 (HkEC0mgz/9wBimkk0ndFimkJpZIqs5u3FYr+MJ7Y5hI=) is not among the CSP meta's script-src hashes and no insertScriptHash/scriptDirective.hashes exists in the repo, so the boot intro is blocked in enforcing browsers (a second unhashed is:inline script in src/layouts/Layout.astro is blocked too).
+
+### 2. [MAJOR] src/styles/global.css:217 — Nav scroll-spy highlight never appears: JS sets aria-current="location" but the CSS targets [aria-current="true"].
+
+**Why (evidence):** src/layouts/Layout.astro line 135 (and line 156 for the bottom-of-page fallback) does link.setAttribute("aria-current", "location"), confirmed in the built bundle dist/_astro/Layout.astro_astro_type_script_index_0_lang.DIpWoDw8.js. But global.css lines 217-218 style `.nav__link[aria-current="true"]` (color + underline scaleX). The attribute values never match, so the active-section indicator in the nav is completely non-functional for all users; only :hover styling ever shows.
+
+**Suggested fix:** Change the two selectors in global.css lines 217-218 to `.nav__link[aria-current="location"]` (or `[aria-current]` to match any value); "location" is the semantically correct ARIA token, so keep the JS as is.
+
+**Verifier:** CONFIRMED — Layout.astro (lines 135/156) sets aria-current="location" but global.css:217-218 only styles [aria-current="true"], and no other rule in the cascade matches, so the nav active indicator never shows.
+
+### 3. [MINOR] src/components/Hero.astro:20 — Arrow segments in the hero lead drop the data's `t: " "` spaces, so the text content runs words together ("hardware→firmware").
+
+**Why (evidence):** site.ts hero.lead arrow segments are `{ t: " ", arrow: true, label: "→" }`, but Hero.astro's arrow branch renders only `<span class="arrow">{seg.label}</span>` and never renders seg.t — the field is silently dead data. dist/index.html confirms: `<em>hardware</em><span class="arrow">→</span><em>firmware</em>` with zero whitespace. Visual spacing survives only via `.hero__lead .arrow { padding-inline: 0.15em }`; the accessible name, copied text, and reader-mode text is "hardware→firmware→custom Linux→on-device ML" with no word separation. Note the arrow spans are also not aria-hidden despite being decorative.
+
+**Suggested fix:** Render the space too, e.g. `<Fragment>{' '}<span class="arrow" aria-hidden="true">{seg.label}</span>{' '}</Fragment>` (or `{seg.t}` around the span), or remove the unused `t` field from arrow segments if spacing is added literally.
+
+**Verifier:** CONFIRMED — Hero.astro:20 renders only seg.label and drops the arrow segments' `t: " "` (site.ts:64/66/68); dist/index.html shows `<em>hardware</em><span class="arrow">→</span><em>firmware</em>` with no whitespace, so spacing is padding-only and copied/accessible text runs words together.
+
+### 4. [MINOR] src/components/Projects.astro:7 — Eight non-featured gridProjects entries in site.ts are never rendered by any component, yet are counted in the Stats "Projects" number.
+
+**Why (evidence):** Projects.astro filters `gridProjects.filter((project) => project.featured)`, keeping 7 of 15 entries; the other 8 (5V→3.3V Regulator, Servo Tester, AC-to-DC Converter, Water Level Detector, Morse Caster, Digital Dice, Click Counter, Rain Detector) appear nowhere in the built page. Meanwhile Stats.astro computes projectCount = flagship.length + gridProjects.length = 18, so the visible "18 Projects" stat includes 8 items a visitor can never find on the page (only 10 project cards render).
+
+**Suggested fix:** Either render all gridProjects (or an expandable list), count only rendered projects in Stats (flagship.length + featured count), or document in site.ts that non-featured entries exist solely to feed the stats counter.
+
+**Verifier:** PLAUSIBLE — Premise fully accurate (7/15 gridProjects render, Stats counts all 18, the 8 named entries appear nowhere), but counting all built projects in the stat vs. only showcased cards is an editorial judgment call, not a definite bug.
+
+### 5. [MINOR] src/layouts/Layout.astro:205 — Copy button: a second click within the 1.4s feedback window captures prev="copied ✓", leaving the button permanently labeled "copied ✓".
+
+**Why (evidence):** The click handler snapshots `const prev = btn.textContent` before setting "copied ✓", then restores prev after 1400ms with setTimeout, but never clears an in-flight timeout or guards re-entry. Sequence: click 1 at t=0 (prev="copy", text→"copied ✓"), click 2 at t=500ms (prev="copied ✓", text→"copied ✓"), timeout 1 fires at 1400ms restoring "copy", timeout 2 fires at 1900ms restoring "copied ✓" — the button (and its aria-label, restored to "Copied") is stuck in the copied state until reload.
+
+**Suggested fix:** Keep one timer id per button (e.g., a WeakMap or dataset field): on click, clearTimeout the existing timer and only snapshot prev/prevLabel when the button does not already have the .copied class.
+
+**Verifier:** CONFIRMED — Layout.astro:205-215 matches the claim exactly — the handler snapshots prev/prevLabel unconditionally and never clears an in-flight setTimeout, so a second click within 1400ms captures prev="copied ✓" and aria-label "Copied"; the second timeout then restores those, leaving the button text stuck at "copied ✓" (only the .copied class is removed) until reload, with no guard anywhere else in the file.
+
+### 6. [POLISH] src/components/About.astro:10 — The TERMS highlight regex has no word boundaries, so "Rust" is annotated inside the hyphenated words "pure-Rust" and "async-Rust".
+
+**Why (evidence):** The regex is a plain alternation of escaped terms. In paragraph 3, dist output shows `pure-<span class="annot">Rust</span>` and `async-<span class="annot">Rust</span>` — the annotation underline starts mid-word after the hyphen, which reads as a typo-like partial highlight rather than a term annotation. Longer-before-shorter ordering (Yocto/OpenEmbedded before Yocto) is handled correctly.
+
+**Suggested fix:** Anchor terms at word-ish boundaries, e.g. build the regex as `(?<![\w-])(term1|term2|...)(?![\w-])`, or explicitly add "pure-Rust"/"async-Rust" as terms if whole-compound highlighting is preferred.
+
+**Verifier:** CONFIRMED — About.astro:10 builds the term regex with no boundary anchors, and src/data/site.ts:89 contains "pure-Rust" and "async-Rust", so split() isolates "Rust" after the hyphen and annotate() highlights it mid-word — the partial-highlight behavior is real and unhandled elsewhere.
+
+### 7. [POLISH] src/components/BootIntro.astro:12 — Boot lines render with leading/trailing template whitespace that white-space: pre-wrap makes visible.
+
+**Why (evidence):** dist/index.html contains `<p class="boot__line" style="--i:0"> rr@embedded:~$ boot --portfolio  </p>` — a leading space and two trailing spaces from the .astro template layout survive compressHTML inside the element. Because .boot__line uses white-space: pre-wrap (global.css 242), every boot line is indented by one extra space and the last line shows a gap between "signal acquired" and the caret block, which is noticeable in a terminal-styled monospace intro.
+
+**Suggested fix:** Tighten the template so no stray whitespace surrounds the expressions (put the expression and caret on one line, e.g. `<p class="boot__line" style={`--i:${i}`}>{...}{isLast && <span class="caret" .../>}</p>` without inner line breaks), or drop white-space: pre-wrap and rely on markup.
+
+**Verifier:** CONFIRMED — dist/index.html really contains leading/trailing spaces inside .boot__line elements and global.css:242 sets white-space: pre-wrap, so the stray template whitespace from BootIntro.astro:12-19 is visibly rendered.
+
+### 8. [POLISH] src/components/Hero.astro:40 — Ticker and protocols separators are aria-hidden with no surrounding whitespace, so screen readers and copied text run items together.
+
+**Why (evidence):** Hero.astro renders `{i > 0 && <span aria-hidden="true">·</span>}{t}` and Skills.astro line 27 renders `<b aria-hidden="true">·</b>` the same way; dist shows `cgpa 8.3<span aria-hidden="true">·</span>esp-idf v5.2` with zero whitespace. Visual spacing comes from padding-inline on the separator, but because the only separator character is aria-hidden, assistive tech hears "cgpa 8.3esp-idf v5.2yocto..." and text copied from the page has no delimiters either.
+
+**Suggested fix:** Render a real space around the separator (e.g. `{' '}` on each side) or use non-hidden separators / a list structure (<ul> with inline <li>) so item boundaries survive in the accessibility tree and clipboard.
+
+**Verifier:** CONFIRMED — Verified: Hero.astro:40 and Skills.astro:27 emit only an aria-hidden separator with no whitespace, dist/index.html shows `cgpa 8.3<span aria-hidden="true">·</span>esp-idf v5.2`, and global.css:270 provides spacing solely via padding-inline on the hidden span, so item boundaries are lost to assistive tech and clipboard text.
+
+### 9. [POLISH] src/components/Hero.astro:94 — Hero canvas resize handler regenerates the entire node field on every resize event, and devicePixelRatio is captured once.
+
+**Why (evidence):** resize() calls init(), which discards and re-randomizes all constellation nodes. On mobile, the URL-bar show/hide fires resize continually while scrolling near the hero, visibly re-scattering the constellation; desktop window drags do the same on every event (no debounce). Separately, DPR is read once at setup (line 79), so dragging the window to a monitor with a different devicePixelRatio leaves the canvas rendered at the wrong resolution until reload. The window resize listener is also never removed, though that is harmless on this single persistent page.
+
+**Suggested fix:** In resize(), rescale existing node positions to the new width/height (x *= newW/oldW) instead of re-running init(), debounce the handler (~150ms), and re-read devicePixelRatio inside resize().
+
+**Verifier:** CONFIRMED — Hero.astro:94 resize() does call init() (line 99), re-randomizing all nodes on every undebounced resize event (listener at line 141), and DPR is a const read once at line 79 — all claims check out against the source with no mitigating guard elsewhere.
+
+### 10. [POLISH] src/layouts/Layout.astro:11 — Astro.csp?.insertDirective is optional-chained and @ts-expect-error'd, so if the untyped API disappears the style-src-attr directive vanishes silently and all style-attribute CSS variables break.
+
+**Why (evidence):** The site depends on style attributes for --i stagger delays, --w gauge widths, --len trace lengths, and --dur/--delay pulse timing. The directive currently reaches dist (`style-src-attr 'unsafe-inline'` confirmed in the CSP meta), but the call is invisible to the type system (@ts-expect-error) and a no-op if a future Astro rename removes Astro.csp — the build would succeed while every inline style attribute gets blocked at runtime (gauges snap to full width, reveal staggers vanish). scripts/check-build.mjs checks only that a CSP meta exists, not its content.
+
+**Suggested fix:** Add a check to scripts/check-build.mjs asserting the CSP meta content includes "style-src-attr 'unsafe-inline'" (and ideally that every style="..." attribute is otherwise allowed), so the silent no-op becomes a build failure.
+
+**Verifier:** CONFIRMED — Layout.astro:11 is exactly as described (optional-chained, @ts-expect-error'd untyped API), the site depends on style-attribute custom properties with no cascade fallback (style-src-attr would fall back to hash-only style-src, blocking them), and check-build.mjs:30 asserts only that a CSP meta exists, not that it contains style-src-attr — so the failure mode would indeed be silent; a real, correctly-scoped polish/hardening finding.
+
+### 11. [POLISH] src/layouts/Layout.astro:55 — og:image and twitter:image are built by string concatenation `${canonical}og.png`, which only works while the canonical URL ends in "/".
+
+**Why (evidence):** Line 21 correctly uses `new URL("/og.png", canonical)` for JSON-LD, but lines 55 and 63 concatenate. For the root page canonical is "https://ramuroy.github.io/" so the result is fine today, but any future non-root page (e.g. /projects) would yield "https://ramuroy.github.io/projectsog.png". Two different construction methods for the same asset in the same file is the latent bug.
+
+**Suggested fix:** Compute `const ogImage = new URL("/og.png", canonical).href` once in the frontmatter and use it for personLd.image, og:image, and twitter:image.
+
+**Verifier:** CONFIRMED — Lines 55 and 63 of src/layouts/Layout.astro do concatenate `${canonical}og.png` while line 21 uses new URL("/og.png", canonical); canonical derives from Astro.url.pathname, so any non-root page would produce a broken og:image URL exactly as claimed.
+
+### 12. [POLISH] src/layouts/Layout.astro:67 — The head inline script that adds the `js` class is also absent from the CSP hash allowlist and only executes because it happens to precede the injected CSP meta.
+
+**Why (evidence):** sha256 of `document.documentElement.classList.add("js");` is 'WZRJfWvsnNCPcxzZwvyhovnZGqhZaC+8gPGPRbx6wTk=', not in the CSP script-src hash list. It currently runs because Astro injects the CSP meta after authored head content, and a meta CSP governs only content parsed after it. Any change that moves the meta earlier (Astro version bump, head reordering) would silently block this script, re-enabling the reveal-flash it exists to prevent (and breaking nothing visibly, so it would go unnoticed).
+
+**Suggested fix:** Add this script's hash to the CSP configuration alongside the BootIntro fix so all inline scripts are allowlisted regardless of document position.
+
+**Verifier:** CONFIRMED — Verified in dist/index.html: the script's sha256 (WZRJfWvsnNCPcxzZwvyhovnZGqhZaC+8gPGPRbx6wTk=) is absent from the injected CSP meta's script-src list, astro.config.mjs defines no scriptDirective.hashes, and the inline script (byte 3487) precedes the CSP meta (byte 3534), so it runs only by document-order luck.
+
+### 13. [POLISH] src/layouts/Layout.astro:131 — Scroll-spy never clears the nav highlight when the user scrolls back up into the hero, leaving a stale aria-current on the About link.
+
+**Why (evidence):** The spy observer only acts on entries with isIntersecting=true; when a section leaves the -45%/-50% root band, nothing removes its link's aria-current. The hero has no nav link, so after visiting About and scrolling back to the top, the About link stays marked current while the viewport shows the hero. (Currently masked by the [aria-current="true"] CSS mismatch, but it will surface once that is fixed.)
+
+**Suggested fix:** In the observer callback, when an entry is not intersecting and its link currently has aria-current, remove the attribute (or explicitly clear all links when window.scrollY falls below the first section's offset).
+
+**Verifier:** CONFIRMED — Layout.astro:131-137 only sets aria-current on isIntersecting entries and never clears it when a section leaves the observer band; the hero maps to no nav link, so a stale aria-current remains after scrolling back to top (currently masked by the [aria-current="true"] vs "location" mismatch in global.css:217).
+
+### 14. [POLISH] src/layouts/Layout.astro:167 — --scrollp (signal-rail fill/node and circuit parallax) is only recomputed on scroll, so it goes stale after viewport resizes or content-height changes.
+
+**Why (evidence):** updateScrollProgress runs on the scroll event and once at load. Rotating a phone, resizing the window, or toggling a flagship card's <details> (which changes document.documentElement.scrollHeight) changes the correct progress value, but the rail fill height, node position, and .circuit parallax offset keep the old value until the next scroll event. At a fixed scroll position after opening "Engineering detail", the rail node no longer matches the actual progress.
+
+**Suggested fix:** Also call the rAF-throttled onScroll from a window 'resize' listener (and optionally a ResizeObserver on document.documentElement or a 'toggle' listener on .pcard__details) so progress is recomputed when geometry changes.
+
+**Verifier:** CONFIRMED — Layout.astro registers updateScrollProgress only via the scroll listener (line 167) plus one initial call (line 168); no resize/ResizeObserver/toggle hook exists anywhere for --scrollp (the only resize listener, Hero.astro:141, serves the hero canvas), so the rail fill/node (global.css:199-200) and .circuit parallax (global.css:444) do go stale when viewport or document height changes without a scroll.
+
+### 15. [POLISH] src/layouts/Layout.astro:210 — The clipboard live-region announcement reads awkwardly: "Copy email copied to clipboard."
+
+**Why (evidence):** The status message interpolates the button's aria-label (`prevLabel`), which is the imperative "Copy email" / "Copy phone number", producing "Copy email copied to clipboard." for screen-reader users instead of naming the copied value.
+
+**Suggested fix:** Derive the subject from the row (e.g., data-copy-label="Email address") or strip the leading "Copy " from the aria-label before composing the message.
+
+**Verifier:** CONFIRMED — Layout.astro:210 interpolates the buttons' imperative aria-labels ("Copy email"/"Copy phone number" from src/components/Contact.astro:21,28), so screen readers hear "Copy email copied to clipboard." — factually accurate, minor polish issue.
+
+### 16. [POLISH] src/layouts/Layout.astro:249 — MediaQueryList.addEventListener throws on Safari 13 and older, aborting the rest of the module script (cursor glow, magnetic buttons, count-up animation).
+
+**Why (evidence):** window.matchMedia("(min-width: 721px)").addEventListener("change", ...) is unsupported on Safari <14 / iOS <14 where MQL only has addListener; the resulting TypeError stops execution of everything after line 249 in the bundled script. Impact is graceful (stats keep their server-rendered values because zeroing happens later in the same script), but the cursor-glow, card-spotlight, magnetic-button, and count-up enhancements silently die on those browsers while earlier features (reveal, spy, copy) still ran.
+
+**Suggested fix:** Wrap in a feature test (`if ("addEventListener" in mql)`) with an addListener fallback, or wrap the statement in try/catch; alternatively move the count-up block above the mobile-menu block so the most visible enhancement is not downstream of the riskiest call.
+
+**Verifier:** CONFIRMED — Layout.astro:249 calls window.matchMedia(...).addEventListener("change", ...) with no feature test, addListener fallback, or try/catch (the only try/catch blocks are in the copy helper at lines 172-191), and the cursor-glow (253), magnetic-button (286), and count-up (303, with zeroing at 330 correctly placed after the risky call) code is all downstream in the same module script, so a TypeError on Safari/iOS <14 would kill those enhancements exactly as described.
+
+### 17. [POLISH] src/styles/global.css:65 — Dead CSS selectors: .measure, .mono, .tnum, and .boot[hidden] match nothing in the markup or scripts.
+
+**Why (evidence):** Cross-checking every class in dist/index.html plus classes added by JS (js, reveal-ready, in-view, is-wiping, lead-drawn, cursor-on, copied, is-active) against dist/_astro/index.CdjYdy0X.css: `.measure` (line 65), `.mono` (line 79), `.tnum` (line 84) are never used anywhere, and `.boot[hidden]` (line 238) is dead because no code ever sets the hidden attribute on .boot (JS uses classList/remove()). (.led--off and .pill--wip are conditionally reachable when profile.available is false, so they are fine.)
+
+**Suggested fix:** Delete the four dead rules, or keep .measure/.mono/.tnum only if they are documented as authoring utilities for future content.
+
+**Verifier:** CONFIRMED — All four selectors in src/styles/global.css (.measure:65, .mono:79, .tnum:84, .boot[hidden]:238) match nothing — no markup uses those classes and BootIntro.astro removes the .boot element via boot.remove()/classList without ever setting the hidden attribute; severity is correctly "polish" since dead CSS has no runtime effect.
+
+### 18. [POLISH] src/styles/tokens.css:5 — Twelve design tokens are defined but never referenced by any var() usage, JS, or markup.
+
+**Why (evidence):** Unused custom properties in the built CSS: --accent-2, --border-w, --danger, --elevated, --elevated-hover, --fs-h1, --scrim, --shadow-lg, --shadow-sm, --silkscreen, --space-1, --space-10. None appear in var() references in dist CSS, inline styles in dist HTML, or setProperty calls in the bundled JS. Dead weight and drift risk (e.g., --fs-h1 exists but the hero uses --fs-hero).
+
+**Suggested fix:** Remove the unused tokens or annotate them as intentional palette reserves; at minimum drop clearly superseded ones like --fs-h1 and --border-w.
+
+**Verifier:** CONFIRMED — All 12 named tokens are defined in src/styles/tokens.css but have zero var() references, setProperty writes, or getPropertyValue reads across src, dist, and public — genuinely dead tokens (polish-level).
+
+
+## CSS quality & browser compatibility — 25 findings
+
+### 19. [MINOR] src/styles/global.css:49 — Unprefixed `mask-image` without `-webkit-mask-image` fallback on the blueprint grid and signal rail.
+
+**Why (evidence):** Line 49 (`body::before { mask-image: radial-gradient(...) }`) and line 197 (`.signal-rail { mask-image: linear-gradient(...) }`) use only the unprefixed property. Chrome/Edge before 120 (Dec 2023) and many Android WebViews only support `-webkit-mask-image`; there the mask is ignored, so the grid does not fade toward the bottom of the viewport and the rail loses its soft top/bottom ends. Purely decorative degradation, but a two-line fix.
+
+**Suggested fix:** Duplicate each declaration with the `-webkit-mask-image:` prefixed form immediately before the unprefixed one at both line 49 and line 197.
+
+**Verifier:** CONFIRMED — src/styles/global.css:49 (body::before) and :197 (.signal-rail) use only unprefixed mask-image, no -webkit- fallback exists anywhere (grep across src and the built dist/_astro/index.CdjYdy0X.css shows zero webkit-mask occurrences and no autoprefixer/postcss config), so the decorative fade is dropped in Chromium <120 and older WebViews exactly as claimed.
+
+### 20. [MINOR] src/styles/global.css:56 — body::after hardcodes rgba(124, 140, 255, 0.07), which is the --accent-2 color, bypassing the token.
+
+**Why (evidence):** The ambient glow gradient uses `rgba(124, 140, 255, 0.07)` — exactly the RGB of --accent-2 (#7C8CFF, tokens.css line 31), which is otherwise never used. Retuning --accent-2 will silently not affect this gradient, defeating the 'tuning the look = editing tokens.css' contract stated at the top of tokens.css.
+
+**Suggested fix:** Replace with `color-mix(in srgb, var(--accent-2) 7%, transparent)` (with the rgba as a preceding fallback line for older engines), or add a `--glow-2` token.
+
+**Verifier:** CONFIRMED — global.css:56 hardcodes rgba(124,140,255,0.07), matching --accent-2 (#7C8CFF, tokens.css:31) which is otherwise referenced nowhere, violating the "everything references var()" contract stated at tokens.css:2-3.
+
+### 21. [MINOR] src/styles/global.css:72 — .skip-link transitions `top` (layout property) for its focus reveal.
+
+**Why (evidence):** `.skip-link { top: -120px; transition: top var(--t-fast) var(--ease-std); } .skip-link:focus { top: var(--space-4); }` animates the layout property `top`. It fires rarely (keyboard focus) but is the codebase's own stated anti-pattern; a transform slide is cheaper and cannot trigger reflow of the fixed layer.
+
+**Suggested fix:** Position it at its final `top` and animate `transform: translateY(-200%)` -> `translateY(0)` on :focus, or simply drop the transition (instant appearance is also fine for a skip link).
+
+**Verifier:** PLAUSIBLE — Code matches the claim exactly (global.css:72 transitions `top` for the :focus reveal at line 74) and it does contradict the repo's own transform-only guidance, but on an absolutely-positioned element animated only on keyboard focus the perf impact is negligible, making the fix a judgment call.
+
+### 22. [MINOR] src/styles/global.css:208 — Nav background relies on color-mix() with no plain-color fallback, leaving the sticky nav fully transparent in browsers that support backdrop-filter but not color-mix.
+
+**Why (evidence):** `.nav { background: color-mix(in srgb, var(--bg) 72%, transparent); backdrop-filter: ... }`. The @supports guard on line 209 only covers missing backdrop-filter. Safari 15.4-16.1 and Firefox 103-112 support backdrop-filter but not color-mix (Safari 16.2+/Firefox 113+), so the color-mix declaration is dropped, background stays `transparent`, and the nav is only a blur with no dark tint over content. The other color-mix uses (lines 142, 144, 146, 413) degrade acceptably because base border/background values exist on `.pill`/`.copy-btn`, but the nav has no prior background declaration.
+
+**Suggested fix:** Add a fallback line before the color-mix declaration: `background: rgba(10, 14, 20, 0.72);` (the --bg color at 72%), then keep the color-mix line to override it in supporting browsers.
+
+**Verifier:** CONFIRMED — global.css:208 uses color-mix() for the .nav background with no plain fallback, and the @supports guard on line 209 only handles missing backdrop-filter, so browsers with backdrop-filter but not color-mix (Safari 15.4-16.1, Firefox 103-112) render the sticky nav with a transparent background; no other rule in tokens.css/fonts.css/global.css supplies a fallback.
+
+### 23. [MINOR] src/styles/global.css:253 — `.hero { min-height: 100svh }` has no vh fallback; browsers without svh drop the declaration and the hero collapses.
+
+**Why (evidence):** svh requires Safari 15.4+/Chrome 108+/Firefox 101+. In older browsers the whole `min-height: 100svh` declaration is invalid and discarded (falls back to `auto`), so the hero is no longer full-viewport and the absolutely-positioned `.hero__scroll` (line 272, `bottom: var(--space-5)`) can overlap the CTA/ticker content. This is the only dvh/svh use in the codebase and the only one lacking a legacy fallback.
+
+**Suggested fix:** Add `min-height: 100vh;` on the line before `min-height: 100svh;` so unsupporting browsers still get a full-height hero (svh overrides where supported).
+
+**Verifier:** CONFIRMED — global.css:253 is the sole viewport-height rule in the repo and uses 100svh with no 100vh fallback anywhere in the cascade, so pre-svh browsers drop the declaration and lose the full-height hero (though padding-block prevents a total collapse).
+
+### 24. [MINOR] src/styles/global.css:394 — .gauge__fill animates `width` (a layout property) instead of transform.
+
+**Why (evidence):** `.gauge__fill { ...; width: var(--w); transition: width var(--t-draw) var(--ease-out); }` with `.js.reveal-ready .gauge__fill { width: 0 }` (line 395) and `.cert.in-view .gauge__fill { width: var(--w) }` (line 396). Animating width triggers layout+paint every frame for each certification gauge. The fill sits inside `.gauge__track` which is `overflow: hidden` with a pill radius, so a compositor-only transform would look identical.
+
+**Suggested fix:** Keep `width: var(--w)` static and animate `transform: scaleX(0)` -> `scaleX(1)` with `transform-origin: left` instead (update the reveal-ready/in-view rules and the reduced-motion override on line 518 accordingly).
+
+**Verifier:** CONFIRMED — global.css:394-396 do animate width on .gauge__fill inside an overflow:hidden pill track, with no cascade override besides the line-518 reduced-motion transition disable, so the layout-animation premise and the scaleX suggestion are accurate (minor, one-shot reveal animation).
+
+### 25. [MINOR] src/styles/global.css:452 — .cursor-glow hardcodes rgba(0, 229, 255, 0.10), which is exactly the --glow-soft token value.
+
+**Why (evidence):** `background: radial-gradient(440px circle at var(--mx,50%) var(--my,28%), rgba(0, 229, 255, 0.10), transparent 62%);` duplicates --glow-soft (tokens.css line 38: rgba(0, 229, 255, 0.10)). Changing the accent in tokens.css leaves the cursor glow the old cyan.
+
+**Suggested fix:** Use `var(--glow-soft)` in the gradient stop instead of the literal rgba value.
+
+**Verifier:** CONFIRMED — global.css:452 hardcodes rgba(0, 229, 255, 0.10), identical to --glow-soft (tokens.css:38); no cascade override exists, and the sibling .card-glow rule already uses the token, so the duplication is real.
+
+### 26. [MINOR] src/styles/global.css:483 — Shimmer animation runs infinitely on every section title, animating background-position (continuous repaint) even off-screen.
+
+**Why (evidence):** `.section-head__title { ...; animation: shimmer 7s linear infinite; }` applies to all ~6 section titles simultaneously. Animating `background-position` on background-clip:text elements is repainted on the main thread every frame for the life of the page, regardless of whether the title is in the viewport. reduced-motion disables it (line 526), but default-motion users pay the cost permanently.
+
+**Suggested fix:** Gate it to visibility: `animation-play-state: paused` by default and `running` only when `.section-head.in-view` (the IntersectionObserver already adds this class), or run the animation a finite number of iterations after reveal.
+
+**Verifier:** CONFIRMED — global.css:483 applies `animation: shimmer 7s linear infinite` to all section titles with no visibility/play-state gating anywhere in src; only reduced-motion (line 526) and print (line 506) disable it, so the continuous background-position repaint for default-motion users is real, if minor.
+
+### 27. [MINOR] src/styles/tokens.css:0 — 12 design tokens are defined but never referenced anywhere: --elevated, --elevated-hover, --scrim, --accent-2, --silkscreen, --danger, --shadow-sm, --shadow-lg, --space-1, --space-10, --border-w, --fs-h1.
+
+**Why (evidence):** Grep across src/ shows these custom properties appear only in tokens.css (lines 10, 11, 16, 31, 33, 44, 55, 57, 63, 72, 81, 96). Notably --border-w (1px) exists specifically for border widths, yet every border in global.css hardcodes `1px` (about 30 occurrences, e.g. lines 140, 154, 172, 208, 222, 306, 393), and --accent-2's color is instead hardcoded as rgba() in global.css line 56. Dead tokens mislead anyone retuning the theme (editing --elevated or --shadow-lg does nothing).
+
+**Suggested fix:** Either wire the tokens up (use var(--border-w) in borders, var(--accent-2) in body::after) or delete the unused ones so tokens.css stays a truthful single source of truth.
+
+**Verifier:** CONFIRMED — All 12 tokens are defined in src/styles/tokens.css but never referenced via var() anywhere in the repo, and --accent-2's color (#7C8CFF) is indeed hardcoded as rgba(124,140,255,.07) in src/styles/global.css:56 (body::after) instead of using the token.
+
+### 28. [POLISH] src/components/Hero.astro:117 — Hero canvas JS hardcodes the accent color rgba(0,229,255,...) in four places, bypassing the token system.
+
+**Why (evidence):** Lines 117, 127, 130 (twice) embed the --accent RGB literally in canvas stroke/fill styles. Canvas cannot use var() directly, but if --accent is retuned in tokens.css the constellation stays the old cyan.
+
+**Suggested fix:** Read the token once at init: `const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent')` and build the rgba strings from it (or define a single JS constant documented as mirroring --accent).
+
+**Verifier:** CONFIRMED — Hero.astro lines 117/127/130 hardcode rgba(0,229,255,...) four times matching --accent (#00E5FF, tokens.css:26) with no getComputedStyle bridge, so a token retune would not propagate to the canvas — accurate, though tokens.css's own --glow vars hardcode the same RGB, so the drift risk is pre-existing in CSS as well.
+
+### 29. [POLISH] src/styles/fonts.css:8 — @font-face uses the deprecated format("woff2-variations") keyword instead of format(woff2) tech(variations).
+
+**Why (evidence):** All three faces (lines 8, 16, 24) declare `format("woff2-variations")`. Browsers accept this legacy string (and it is what ships in dist/_astro/index.CdjYdy0X.css), but the CSS Fonts 4 syntax is `format(woff2) tech(variations)`; any future engine that drops the legacy keyword would skip the src and fall back to system fonts. Low risk, spec-hygiene only.
+
+**Suggested fix:** Use a dual src list: `src: url(...) format(woff2) tech(variations), url(...) format("woff2-variations");` so both old and new parsers match.
+
+**Verifier:** CONFIRMED — src/styles/fonts.css lines 8/16/24 do use the deprecated format("woff2-variations") keyword with no modern format(woff2) tech(variations) fallback anywhere; accurate as a polish-level spec-hygiene finding.
+
+### 30. [POLISH] src/styles/global.css:0 — 13 animation/transition durations and easings bypass the motion tokens (--t*, --ease-*).
+
+**Why (evidence):** Hardcoded durations: line 143 `pulse-dot 2s ease-in-out`; 189 `breathe 2.4s ease-in-out`; 201 `ping 2.2s ease-out`; 239 `boot-wipe 320ms` (coupled to a separately hardcoded 340ms JS timeout in BootIntro.astro line 64 — changing one without the other breaks the wipe); 242 `boot-line 0.4s`; 245 `blink 1.06s`; 266 `draw-underline 0.5s`; 273 `nudge 2s`; 348 `pulse-dot 2s`; 438 `via-in 0.4s ... 0.5s` delay; 452 `opacity 0.5s ease`; 456 `opacity 0.35s ease`; 483 `shimmer 7s`. tokens.css defines --t-fast/--t/--t-slow/--t-draw and three easings, so half the motion system lives outside the tokens. Also line 99/102 hardcode the 60ms stagger step and 16px reveal offset.
+
+**Suggested fix:** Add loop-duration tokens (e.g. --t-pulse: 2s, --t-loop-slow: 7s, --t-boot-wipe: 320ms) and reference them; at minimum derive the BootIntro JS timeout and the boot-wipe CSS duration from one source.
+
+**Verifier:** PLAUSIBLE — Every cited hardcoded duration/easing, the 60ms/16px values at lines 99/102, the token definitions in tokens.css (lines 106-112), and the 340ms JS timeout in BootIntro.astro line 64 vs 320ms boot-wipe were verified accurate, but tokenizing loop durations is a polish/consistency judgment call, not a functional defect.
+
+### 31. [POLISH] src/styles/global.css:20 — overflow-x: hidden is set on body only (not html), and .hero h1 forces white-space: nowrap — a longer name would overflow with no guard at the html level.
+
+**Why (evidence):** Line 20 `body { overflow-x: hidden }` plus line 465 `.hero h1 { white-space: nowrap }`. With the current short name ('Ramu Roy') nothing overflows, but the h1 is data-driven from site.ts; a longer hero.name at 320px viewports would overflow the body, and since only body (not html) hides overflow-x, some browsers can still produce a horizontal scroll on the root when body content escapes.
+
+**Suggested fix:** Apply `overflow-x: hidden` (or better, `overflow-x: clip`) to html as well, or scope nowrap to `.hero__name` with a fallback (e.g. allow wrapping below a min width).
+
+**Verifier:** PLAUSIBLE — Premise verified — body-only overflow-x:hidden (global.css:20), unconditional .hero h1 nowrap (global.css:465), data-driven name with a 2.9rem clamp floor and no wrap fallback anywhere in the cascade — but the overflow only occurs with a hypothetical longer hero.name, so it is a latent-robustness judgment call rather than a current defect.
+
+### 32. [POLISH] src/styles/global.css:29 — ::selection uses hardcoded `color: #fff` instead of a token.
+
+**Why (evidence):** `::selection { background: var(--selection-bg); color: #fff; }` — the background is tokenized but the foreground is a literal white that does not exist in the palette (--text is #E6EDF3). It is the only literal hex color in the non-print styles.
+
+**Suggested fix:** Use `color: var(--text)` or add the value to tokens.css if pure white on selection is intentional.
+
+**Verifier:** PLAUSIBLE — Premise verified — global.css:29 is exactly `::selection { background: var(--selection-bg); color: #fff; }` and tokens.css has no white token (only --selection-bg), but whether an untokenized selection foreground matters is a style judgment, and the side-claim "only literal hex in non-print styles" is slightly overstated (mask-image #000 at lines 49/197 and rgba literals at 56/452 exist, though none are foreground colors).
+
+### 33. [POLISH] src/styles/global.css:32 — Standard scrollbar-width/scrollbar-color and ::-webkit-scrollbar rules conflict: in Chrome 121+ the -webkit rules are ignored, so the intended 10px bordered thumb never renders.
+
+**Why (evidence):** Line 32 sets `* { scrollbar-width: thin; scrollbar-color: var(--border-bright) transparent; }` while lines 33-35 style `::-webkit-scrollbar` at 10px with a 2px --bg border. Per spec, when the standard properties are set Chromium (121+) disables ::-webkit-scrollbar styling entirely, so modern Chrome shows the ~8px 'thin' scrollbar and the pseudo-element rules are dead; the two systems also disagree on width (thin vs 10px).
+
+**Suggested fix:** Pick one system: keep only the standard `scrollbar-width`/`scrollbar-color` (and delete the -webkit rules), or scope the standard properties behind `@supports not selector(::-webkit-scrollbar)`.
+
+**Verifier:** CONFIRMED — global.css:32 sets standard scrollbar-width/scrollbar-color on *, which in Chromium 121+ disables the unguarded ::-webkit-scrollbar rules at lines 33-35, making the 10px bordered thumb dead code in modern Chrome; no @supports guard or other scrollbar rules exist elsewhere in the repo.
+
+### 34. [POLISH] src/styles/global.css:66 — .sr-only uses the deprecated `clip: rect(0, 0, 0, 0)` without the modern clip-path equivalent.
+
+**Why (evidence):** `clip` only applies to absolutely positioned elements and has been deprecated in favor of `clip-path` for years. It still works everywhere, so this is future-proofing only.
+
+**Suggested fix:** Add `clip-path: inset(50%) !important;` alongside the existing `clip` declaration in the .sr-only rule.
+
+**Verifier:** PLAUSIBLE — src/styles/global.css:66 does use only the deprecated `clip: rect(0,0,0,0)` with no `clip-path` fallback anywhere, but `clip` works in all browsers and overflow:hidden + 1px sizing already hides the element, so adding clip-path is a future-proofing judgment call, not a real defect.
+
+### 35. [POLISH] src/styles/global.css:79 — Utility classes .mono, .tnum, and .measure are defined but never used in any component markup.
+
+**Why (evidence):** Grep across src/ shows `.mono` (line 79), `.tnum` (line 84), and `.measure` (line 65) appear only in global.css; no .astro file references them. Astro does not tree-shake global.css, so they ship as dead bytes and suggest APIs that are not actually exercised.
+
+**Suggested fix:** Remove the three unused utility classes, or keep them with a comment marking them as intentional authoring utilities.
+
+**Verifier:** CONFIRMED — Grep across src/ and public/ confirms no markup uses .mono (global.css:79), .tnum (:84), or .measure (:65); only the unrelated tokens var(--font-mono)/var(--measure) are referenced, so the classes ship as dead CSS.
+
+### 36. [POLISH] src/styles/global.css:121 — Redundant selector `.section-head.in-view .rule` in the rule-draw group — it restates the base state.
+
+**Why (evidence):** Line 117 already sets `.section-head .rule { transform: scaleX(1) }` as the no-JS base. Line 121's group `.js.reveal-ready .section-head.in-view .rule, .section-head.in-view .rule { transform: scaleX(1); }` — the second selector can only match when the first also would (in-view is only ever added by JS, which also adds .js/.reveal-ready), and without JS the base rule already applies. Dead selector that obscures the reveal mechanism.
+
+**Suggested fix:** Drop `, .section-head.in-view .rule` from the selector list on line 121.
+
+**Verifier:** CONFIRMED — The second selector on global.css:121 is dead in every state: it loses on specificity (0,3,0 vs 0,4,0) to line 120 when reveal-ready is present, and duplicates the base scaleX(1) from line 117 when it is not — the auditor's minor sub-premise error (Layout.astro's reduced-motion branch adds in-view without reveal-ready) does not rescue it.
+
+### 37. [POLISH] src/styles/global.css:197 — Signal rail position uses 100vw, which includes the scrollbar, so the rail sits ~half a scrollbar-width right of the true container edge.
+
+**Why (evidence):** `left: max(calc((100vw - var(--maxw)) / 2 + 0.5rem), 0.9rem)`. The `.container` is centered within the layout viewport (excludes the classic scrollbar), but 100vw includes it, shifting the fixed rail right by scrollbarWidth/2 (~7-8px on Windows/Linux Firefox and Chrome with classic scrollbars) relative to the container's actual left gutter, narrowing the intended 0.5rem clearance.
+
+**Suggested fix:** Compute from the real client width instead, e.g. position the rail inside a full-width wrapper using `left: max(calc((100% - var(--maxw)) / 2 + 0.5rem), 0.9rem)` on an inset-0 fixed parent, or accept and document the offset.
+
+**Verifier:** CONFIRMED — global.css:197 contains exactly the claimed `left: max(calc((100vw - var(--maxw))/2 + 0.5rem), 0.9rem)`; `.container` (line 62) centers via `margin-inline: auto` in the layout viewport while 100vw includes a classic vertical scrollbar, no `scrollbar-gutter` or other compensation exists anywhere in tokens.css/global.css (body only has `overflow-x: hidden`, which doesn't affect the vertical scrollbar), so the fixed rail really does sit ~scrollbarWidth/2 right of the container edge on classic-scrollbar browsers — a real but cosmetic offset, correctly flagged as polish.
+
+### 38. [POLISH] src/styles/global.css:221 — CSS mobile-nav breakpoint (max-width: 720px) and JS close-menu matchMedia (min-width: 721px) leave a fractional-width gap where neither matches.
+
+**Why (evidence):** global.css line 221 uses `@media (max-width: 720px)` while Layout.astro line 249 listens on `(min-width: 721px)`. At fractional viewport widths 720 < w < 721 (zoomed displays, non-integer DPR), the desktop layout applies but the JS 'close menu on resize to desktop' listener never fires, so a menu opened at <=720px stays data-open when crossing into the gap. Harmless today only because desktop CSS ignores data-open.
+
+**Suggested fix:** Use complementary queries: keep CSS at (max-width: 720px) and have JS listen on the same query, closing the menu when `!e.matches`.
+
+**Verifier:** PLAUSIBLE — Premise verified exactly (global.css:221 uses max-width:720px, Layout.astro:249 uses min-width:721px, leaving a fractional gap where neither matches), but the defect has no observable effect since desktop CSS ignores data-open, making it a polish-level judgment call.
+
+### 39. [POLISH] src/styles/global.css:333 — Several font sizes bypass the --fs-* type scale: .gcard__title (1rem), .skill-group__name (1.05rem), .masthead mobile (0.66rem), .stat__value (ad-hoc clamp).
+
+**Why (evidence):** Line 333 `.gcard__title { font-size: 1rem }`, line 375 `.skill-group__name { font-size: 1.05rem }`, line 227 `.masthead { font-size: 0.66rem }` (below the smallest token --fs-micro min of 0.72rem), and line 475 `.stat__value { font-size: clamp(2.1rem, 1.4rem + 2.6vw, 3.4rem) }` all define one-off sizes while every other text element uses --fs-* tokens.
+
+**Suggested fix:** Map .gcard__title/.skill-group__name to --fs-body or a new --fs-card-title token, tokenize the stat numeral clamp (e.g. --fs-stat), and reconsider 0.66rem (10.5px) for readability or tokenize it.
+
+**Verifier:** PLAUSIBLE — All four off-scale font sizes exist as claimed (global.css:333, 375, 227, 475) and tokens.css's smallest token min is 0.72rem, but tokenizing them is a consistency/polish judgment call rather than a functional bug.
+
+### 40. [POLISH] src/styles/global.css:355 — Duplicate selector: `.tl-item__hl` is declared twice on consecutive lines.
+
+**Why (evidence):** Line 355 `.tl-item__hl { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-4); }` is immediately followed by line 356 `.tl-item__hl { max-width: 82ch; }` — a leftover split of one rule.
+
+**Suggested fix:** Merge `max-width: 82ch` into the first `.tl-item__hl` block and delete the duplicate.
+
+**Verifier:** CONFIRMED — global.css:355-356 does contain two consecutive `.tl-item__hl` rules (the second only adds max-width: 82ch); a harmless but real duplicate that should be merged.
+
+### 41. [POLISH] src/styles/global.css:465 — `.hero h1` is declared in two distant places, and `.section-head__title` color on line 122 is dead code overridden by line 483.
+
+**Why (evidence):** `.hero h1` gets typography at line 258 and `white-space: nowrap` at line 465 (under the 'Glitch / scramble' section). Similarly `.section-head__title { ...; color: var(--text); }` (line 122) is always overridden by `color: transparent` in the shimmer rule (line 483) at equal specificity later in the file — the line-122 color only matters as an implicit fallback if the shimmer rule is removed. Split declarations for the same element make conflicting edits easy.
+
+**Suggested fix:** Consolidate `white-space: nowrap` into the hero h1 rule at line 258 (or scope it to `.hero__name`), and add a comment on line 122 noting the color is intentionally overridden by the shimmer block.
+
+**Verifier:** PLAUSIBLE — Premise verified: `.hero h1` is split across lines 258 and 465, and the line-122 `color: var(--text)` on `.section-head__title` is always overridden on screen by `color: transparent` at line 483 (with further overrides at 506 print and 526 reduced-motion) — but this is a maintainability/style judgment with no functional defect, so it is plausible polish rather than a confirmed bug.
+
+### 42. [POLISH] src/styles/global.css:483 — background-clip:text + `color: transparent` has no @supports guard; unsupporting engines render an invisible heading.
+
+**Why (evidence):** The rule sets `-webkit-text-fill-color: transparent; color: transparent;` unconditionally. Any engine that applies `color: transparent` but fails to clip the gradient to glyphs (very old browsers, some niche WebViews) shows a gradient box with unreadable text. Coverage today is broad (prefixed+unprefixed both present), so risk is low, hence polish.
+
+**Suggested fix:** Wrap the gradient/transparent-color declarations in `@supports ((-webkit-background-clip: text) or (background-clip: text)) { ... }` so the default `color: var(--text)` from line 122 survives elsewhere.
+
+**Verifier:** CONFIRMED — global.css:483 does apply color:transparent + background-clip:text with no @supports guard (the only fallback is the @media print reset at line 506), so the base color from line 122 is lost and non-clipping engines would show an invisible heading; premise and location are exactly as claimed, severity correctly low.
+
+### 43. [POLISH] src/styles/tokens.css:22 — Token values duplicated as literals instead of aliases: --label repeats --muted, --led-on repeats --success, and --fs-eyebrow/--fs-micro are near-identical.
+
+**Why (evidence):** --label (line 22) and --muted (line 21) are both #7C8B99; --led-on (line 41) and --success (line 39) are both #3DD68C. Because they are literal copies rather than `var()` references, retuning --muted or --success silently desynchronizes the aliases. --fs-eyebrow (line 89) and --fs-micro (line 90) differ only in max (0.80rem vs 0.78rem), which is likely unintentional drift.
+
+**Suggested fix:** Define aliases by reference: `--label: var(--muted); --led-on: var(--success);` and either merge --fs-eyebrow/--fs-micro or comment why they differ.
+
+**Verifier:** PLAUSIBLE — All cited values are exact literal duplicates as claimed (tokens.css lines 21/22, 39/41, 89/90) with no aliasing elsewhere in the cascade, but whether they should be var() references or independent knobs is a maintenance-style judgment call.
+
+
+## Content accuracy & consistency — 16 findings
+
+### 44. [MINOR] docs/architecture.md:51 — Architecture doc lists "spoken-language count" as a derived stat, but the derived statistic is the programming-language count.
+
+**Why (evidence):** The "Content model and derived values" list says a current derived value is "spoken-language count". Stats.astro line 4 derives languageCount from skillGroups group "Languages" (C, Embedded C/C++, Rust, Python, MATLAB = 5) and labels it "Programming languages". The spoken-language count (3, from spokenLanguages) is never displayed as an aggregate. The doc misdirects future maintainers about which array feeds the stat.
+
+**Suggested fix:** Change "spoken-language count" to "programming-language count (from the Languages skill group)".
+
+**Verifier:** CONFIRMED — Doc issue is real but at docs/architecture.md:50 (not 51): it lists "spoken-language count" as a derived value, while the only derived language stat is languageCount in src/components/Stats.astro:4, computed from the "Languages" skill group and labeled "Programming languages"; spokenLanguages is only rendered as a list in Experience.astro, never as an aggregate.
+
+### 45. [MINOR] docs/checkpoints/2026-07-13-site-hardening.md:146 — Checkpoint doc repeats the same error: "Derived repository, project, protocol, and spoken-language statistics" — the stat derived is programming languages, not spoken languages.
+
+**Why (evidence):** Same mismatch as docs/architecture.md line 51: the statistics band shows "5 Programming languages" derived from the skillGroups "Languages" items, not the 3-entry spokenLanguages array. The checkpoint is the handoff document for finishing the branch, so the inaccuracy can propagate.
+
+**Suggested fix:** Reword to "...protocol, and programming-language statistics from shared data".
+
+**Verifier:** CONFIRMED — docs/checkpoints/2026-07-13-site-hardening.md:146 does say "spoken-language statistics," but src/components/Stats.astro:4-9 derives the count from the skillGroups "Languages" items labeled "Programming languages," while spokenLanguages is only rendered in Experience.astro, never as a statistic.
+
+### 46. [MINOR] public/Ramu_Roy_Resume.pdf:0 — Resume (page 3, Transformerless Power Supply entry) says "IN4007 diodes"; the part is the 1N4007.
+
+**Why (evidence):** The rectifier diode's standard designation is 1N4007 (JEDEC 1N series), not IN4007. On an embedded-hardware resume this reads as a component-naming typo. The site's own description of the same project ("A 220V AC → 5V DC transformerless power supply designed in KiCad") avoids the part name, so the error exists only in the downloadable CV.
+
+**Suggested fix:** Regenerate the resume PDF with "1N4007 diodes".
+
+**Verifier:** CONFIRMED — Page 3 of public/Ramu_Roy_Resume.pdf literally says "IN4007 diodes" in the Transformerless Power Supply PCB entry; the correct JEDEC designation is 1N4007, so the typo is real.
+
+### 47. [MINOR] src/components/Stats.astro:3 — The "18 Projects" stat double-counts the On-Device Voice Subsystem, which the site itself labels "part of eOS".
+
+**Why (evidence):** projectCount = flagship.length (3) + gridProjects.length (15) = 18. But flagship FIG. 03 carries the pill "Part of eOS" and noRepoNote "part of eOS", and the eOS card's own description already includes "a fully on-device voice subsystem". So the same work is counted twice in the headline number a visitor is invited to trust.
+
+**Suggested fix:** Either exclude nested flagship entries from the count (e.g. add a `standalone: false` flag and filter), or count 17, or relabel the stat (e.g. "Project cards").
+
+**Verifier:** PLAUSIBLE — Premise verified — flagship includes both eOS (description mentions the voice subsystem) and a separate "On-Device Voice Subsystem" entry labeled "Part of eOS", and Stats.astro:3 sums all flagship + grid entries — but whether counting distinct project cards is misleading is an editorial judgment call.
+
+### 48. [MINOR] src/data/site.ts:79 — Hero key-spec says "Anti-Collision @ Tata Steel" but everywhere else (site and resume) the deployment site is "Tata Steel BlueScope", a different company.
+
+**Why (evidence):** hero.keySpecs "Shipped" value is "Anti-Collision @ Tata Steel". All other references (about paragraph 2, flagship FIG. 02 tagline/description/params "Live @ Tata Steel BlueScope", both experience entries, and the resume) say "Tata Steel BlueScope". Tata Steel BlueScope is a distinct joint-venture entity, so the shortened name misattributes the deployment and is internally inconsistent.
+
+**Suggested fix:** Change the key-spec value to "Anti-Collision @ Tata Steel BlueScope" (or "@ TS BlueScope" if width is a concern).
+
+**Verifier:** CONFIRMED — src/data/site.ts:79 does say "Anti-Collision @ Tata Steel" while all seven other references (site.ts:88,147,149,163,261,263 and About.astro:7) say "Tata Steel BlueScope", a distinct joint-venture entity, so the inconsistency is real.
+
+### 49. [MINOR] src/data/site.ts:245 — Site claims he "Architected a Yocto/OpenEmbedded distro" at Elipse while the resume says he is "Contributing to" it — the two documents tell different ownership stories.
+
+**Why (evidence):** Experience highlight 1 for Elipse reads "Architected a Yocto/OpenEmbedded distro with A/B RAUC OTA...". The resume PDF (page 1, Elipse section) says "Contributing to a Yocto Project / OpenEmbedded-based custom embedded Linux operating system", and the resume summary says "At Elipse I contribute to eOS". The flagship eOS card similarly says "eOS is a from-scratch embedded Linux platform built..." under his sole byline. A recruiter comparing the site with the attached CV sees an inflated/contradictory claim about the same two-month-old role (May 2026 – Present).
+
+**Suggested fix:** Align the verb with the resume, e.g. "Co-built / contribute to a Yocto/OpenEmbedded distro...", or update the resume if "architected" is accurate — but make both artifacts agree.
+
+**Verifier:** PLAUSIBLE — Premise verified: src/data/site.ts:245 says "Architected a Yocto/OpenEmbedded distro" while public/Ramu_Roy_Resume.pdf says "I contribute to eOS" / "Contributing to a Yocto Project / OpenEmbedded-based custom embedded Linux operating system" for the same Elipse role — the discrepancy is real, but whether it constitutes problematic inflation is an editorial judgment.
+
+### 50. [MINOR] src/data/site.ts:300 — Second NPTEL certification title differs from the resume/official course name — site drops "Hands-on" and "Software".
+
+**Why (evidence):** Site: "Electronic Systems Design — Circuits & PCB Design with CAD". Resume PDF (page 4): "Electronic Systems Design, Hands-on Circuits and PCB Design with CAD Software". Anyone verifying the certificate against the linked Google Drive scan or NPTEL records will find a name that doesn't match the site's rendering.
+
+**Suggested fix:** Use the full official course title on the site: "Electronic Systems Design, Hands-on Circuits and PCB Design with CAD Software" (or an explicit ellipsis if shortened for layout).
+
+**Verifier:** CONFIRMED — src/data/site.ts:300 shows "Electronic Systems Design — Circuits & PCB Design with CAD" while the bundled resume (public/Ramu_Roy_Resume.pdf, pdftotext) reads "Electronic Systems Design, Hands-on Circuits and PCB Design with CAD Software" — the site really shortens the official course title with no ellipsis.
+
+### 51. [POLISH] src/components/About.astro:10 — About-annotation regex has no word boundaries, so "Rust" is highlighted mid-word inside "pure-Rust" and "async-Rust", and "tract" would match inside words like "contract" in future copy.
+
+**Why (evidence):** The alternation regex built from TERMS matches raw substrings. In the rendered page (dist/index.html) "pure-Rust" and "async-Rust" are split so only the "Rust" fragment gets the .annot styling, producing partially highlighted compound words. Any future paragraph containing e.g. "abstract" or "attraction" would get a highlighted "tract" fragment.
+
+**Suggested fix:** Wrap the alternation with lookarounds, e.g. new RegExp("(?<![\\w-])(" + ... + ")(?![\\w-])", "g"), or curate hyphenated variants explicitly.
+
+**Verifier:** CONFIRMED — Regex in src/components/About.astro:10 has no boundaries and dist/index.html actually renders `pure-<span class="annot">Rust</span>` and `async-<span class="annot">Rust</span>`, exactly as claimed.
+
+### 52. [POLISH] src/data/site.ts:61 — Hero lead ends at "on-device ML" while profile.tagline (used in JSON-LD) ends "on-device ML & voice" — the two versions of the signature line have drifted.
+
+**Why (evidence):** profile.tagline (line 10): "hardware → firmware → custom Linux → on-device ML & voice." The hero.lead segments (lines 61–70) render "hardware → firmware → custom Linux → on-device ML." seo.title also omits voice while seo.description and ogDescription include "on-device ML & voice". The visible h1 lead and the Person JSON-LD description therefore differ.
+
+**Suggested fix:** Pick one canonical phrasing (with or without "& voice") and use it in tagline, hero.lead, and seo.title, or derive hero.lead from profile.tagline.
+
+**Verifier:** PLAUSIBLE — Premise is accurate — tagline (src/data/site.ts:10, used in JSON-LD via src/layouts/Layout.astro:19) ends "on-device ML & voice" while hero.lead (site.ts:61-70) and seo.title (site.ts:26) end at "on-device ML" — but the mismatch is a content-consistency judgment call, not a functional defect.
+
+### 53. [POLISH] src/data/site.ts:124 — "Raspberry Pi 5 (16GB)" lacks the space used by the resume ("16 GB") — unit spacing is inconsistent between the two documents.
+
+**Why (evidence):** site.ts uses "(16GB)" in both the eOS description (line 124) and the Platform param (line 134); the resume PDF writes "16 GB RAM" / "Raspberry Pi 5 (16 GB)". SI/datasheet convention (and the site's own datasheet aesthetic) puts a space between value and unit.
+
+**Suggested fix:** Change both occurrences to "16 GB".
+
+**Verifier:** CONFIRMED — src/data/site.ts lines 124 and 134 both write "(16GB)" while the resume PDF (public/Ramu_Roy_Resume.pdf) writes "16 GB RAM" and "Raspberry Pi 5 (16 GB)", so the unit-spacing inconsistency between the two documents is factually real.
+
+### 54. [POLISH] src/data/site.ts:127 — Flagship card highlights are near-verbatim duplicates of the Experience section bullets, so the same sentences appear twice on the one-page site.
+
+**Why (evidence):** eOS flagship highlights (lines 127–130) repeat Elipse experience highlights (lines 245–250) almost word for word (e.g. "Authored and extended Yocto recipes (.bb/.bbappend) across the meta-eos layer, with BitBake PR bumps, AUTOREV pinning, and IPK packaging" vs "authoring recipes across the meta-eos layer with BitBake PR bumps, AUTOREV pinning, and IPK packaging"). Likewise Anti-Collision flagship highlights (151–155) duplicate Radiogeet experience highlights (263–266), and the feature list "A/B RAUC OTA, an MQTT service bus, SQLite persistence, and a Qt6/QML UI" appears three times on the page (about paragraph 3, eOS description, Elipse highlight 1). A reader scrolling Projects then Experience reads the same copy twice.
+
+**Suggested fix:** Differentiate the two surfaces: keep project cards system/outcome-focused and experience bullets responsibility/impact-focused, or trim the experience bullets to reference the flagship cards.
+
+**Verifier:** PLAUSIBLE — Premise verified — src/data/site.ts lines 127-130 vs 245-250 and 151-155 vs 263-266 are near-verbatim duplicates, and the "A/B RAUC OTA, an MQTT service bus…" phrase appears at lines 89, 124, and 245 — but whether repeated copy across Projects/Experience sections needs differentiation is an editorial judgment call.
+
+### 55. [POLISH] src/data/site.ts:128 — D-Bus interface list is abbreviated inconsistently: "org.eos.Config1, RoomCommands1, RoomAggregates1" vs the resume's fully qualified "org.eos.RoomCommands1, org.eos.RoomAggregates1".
+
+**Why (evidence):** The eOS flagship highlight names one interface with its namespace and the other two without, which reads as if RoomCommands1/RoomAggregates1 live outside org.eos. The resume gives all three fully qualified names.
+
+**Suggested fix:** Write "org.eos.{Config1, RoomCommands1, RoomAggregates1}" or list all three fully qualified.
+
+**Verifier:** PLAUSIBLE — src/data/site.ts:128 does mix one qualified name (org.eos.Config1) with two bare ones (RoomCommands1, RoomAggregates1) as claimed, but this is a common shorthand and the resume is not in the repo to verify the comparison, so it is a polish-level judgment call rather than a confirmed defect.
+
+### 56. [POLISH] src/data/site.ts:152 — "core 1 ... core 2" numbering is technically off for the ESP32-S3, whose two cores are core 0 and core 1; the resume deliberately avoids numbering.
+
+**Why (evidence):** Flagship highlight (line 152) and the Radiogeet experience bullet (line 264) say "core 1 runs time-critical UWB distance measurement while core 2 handles zone calculation...". The ESP32-S3's dual cores are PRO_CPU (core 0) and APP_CPU (core 1); there is no core 2. The resume says "one core ... the second core", which is accurate. Embedded reviewers will notice.
+
+**Suggested fix:** Either use "core 0 / core 1" or mirror the resume's "one core ... the other core" phrasing in both bullets.
+
+**Verifier:** CONFIRMED — src/data/site.ts:152 and :264 both say "core 1 ... core 2", but the ESP32-S3's dual cores are numbered 0 and 1, so the numbering is factually wrong as claimed.
+
+### 57. [POLISH] src/data/site.ts:212 — Two featured grid cards (FreeRTOS Multitasking LEDs, Object Detection over SPI) have empty dates while the other five featured cards show dates, making the curated grid look inconsistent.
+
+**Why (evidence):** gridProjects entries at lines 212 and 213 are featured: true with date: "". In the rendered grid (confirmed in dist/index.html) five cards carry a date badge and two do not. Since these are real repos, dates presumably exist (repo creation/last-commit).
+
+**Suggested fix:** Add approximate dates to the two featured entries, or drop the date badge from the curated grid entirely for uniformity.
+
+**Verifier:** PLAUSIBLE — Premise verified — src/data/site.ts:212-213 are featured: true with date: "", and Projects.astro:87 conditionally renders the date badge ({g.date && ...}) so exactly 5 of the 7 featured cards show dates and 2 do not; whether that inconsistency needs fixing is a content/design judgment call.
+
+### 58. [POLISH] src/data/site.ts:258 — Radiogeet location is the vague "India" while the other two roles have specific locations ("Hyderabad, India", "Remote").
+
+**Why (evidence):** experience[1].location = "India" renders as the only country-level location in the timeline; the resume gives no location for Radiogeet at all. The granularity mismatch stands out in the otherwise precise datasheet presentation.
+
+**Suggested fix:** Use the actual city (or "On-site, India" / "Remote" as appropriate) to match the specificity of the other entries.
+
+**Verifier:** PLAUSIBLE — Premise is accurate — site.ts:258 has location "India" vs "Hyderabad, India" (line 240) and "Remote" (line 274) — but the granularity mismatch is a subjective polish/content judgment, not a defect.
+
+### 59. [POLISH] src/data/site.ts:272 — Ampnics title "R&D Engineer" abbreviates the resume's "Research and Development Engineer".
+
+**Why (evidence):** The resume PDF (page 2) titles the role "Research and Development Engineer, Ampnics"; the site timeline shows "R&D Engineer · Ampnics". Titles on the site and CV should match exactly for background-check consistency; the other two roles match verbatim.
+
+**Suggested fix:** Use "Research & Development Engineer" (or the resume's exact wording) on the site, or shorten the resume title to match.
+
+**Verifier:** PLAUSIBLE — Premise verified — src/data/site.ts:272 has role "R&D Engineer" while the resume PDF (public/Ramu_Roy_Resume.pdf) reads "Research and Development Engineer, Ampnics" and the other two roles match verbatim — but whether the common abbreviation R&D constitutes a consistency problem is a judgment call.
+
+
+## Accessibility (WCAG 2.2 AA) — 18 findings
+
+### 60. [MAJOR] src/components/BootIntro.astro:4 — BootIntro overlay is role=dialog aria-modal=true but has no focus trap and the background is not inert, so Tab moves focus behind the full-screen overlay.
+
+**Why (evidence):** The overlay (z-index 300) auto-focuses `.boot__skip` (line 73), but pressing Tab moves focus to the skip-link (z-index 200, rendered beneath the overlay), then the nav, etc. — all visually hidden behind the boot screen, so focus becomes invisible (WCAG 2.4.7), and because aria-modal="true" removes that background content from the accessibility tree, keyboard focus lands on elements a screen reader cannot perceive. Compounding this, the Escape handler is attached to `boot` itself (line 70-72), so once focus escapes the overlay, Escape no longer dismisses it.
+
+**Suggested fix:** While the boot overlay is active: set `inert` on the overlay's siblings (Nav, main, footer, skip link) or trap Tab inside the dialog (wrap focus back to the skip button), and move the Escape keydown listener to `document` (removing it on dismiss).
+
+**Verifier:** CONFIRMED — src/components/BootIntro.astro:4 has aria-modal dialog with no focus trap/inert siblings and the Escape listener on `boot` (lines 70-72) stops working once focus tabs out; only mitigation is the 1300ms auto-dismiss timer, which shortens but does not eliminate the issue.
+
+### 61. [MAJOR] src/styles/global.css:135 — Global focus style uses outline:none with a box-shadow ring, which leaves no visible focus indicator in forced-colors / Windows High Contrast mode (WCAG 2.4.7).
+
+**Why (evidence):** `:where(a, button, input, [tabindex]):focus-visible { outline: none; box-shadow: var(--focus-ring); }` is the only focus indicator for every link and button on the page. Forced-colors mode strips box-shadow, and outline is explicitly suppressed, so keyboard users in WHCM get zero focus indication on the nav, CTAs, copy buttons, skip link, footer links, etc. There is no `@media (forced-colors: active)` block anywhere in the codebase (grep confirms 0 hits in src and dist CSS).
+
+**Suggested fix:** Replace `outline: none` with `outline: 2px solid transparent; outline-offset: 2px` (transparent outlines are repainted with system colors in forced-colors mode), or add a `@media (forced-colors: active)` override restoring a solid outline.
+
+**Verifier:** CONFIRMED — src/styles/global.css:135 reads exactly as claimed (`outline: none; box-shadow: var(--focus-ring)`), it is the sole focus indicator for a/button/input/[tabindex], and grep confirms no `forced-colors` media query or other outline rule exists anywhere in src, so WHCM users get no visible focus ring.
+
+### 62. [MAJOR] src/styles/global.css:217 — Scroll-spy CSS matches aria-current="true" but the JS sets aria-current="location", so the current-section nav highlight never appears.
+
+**Why (evidence):** Layout.astro:135 and :156 set link.setAttribute("aria-current", "location") (the correct ARIA token for an in-page location). But global.css:217-218 style `.nav__link[aria-current="true"]` — confirmed shipped in dist/_astro/index.CdjYdy0X.css as `[aria-current=true]{color:var(--accent-text)}`. The selectors never match, so sighted users get no visual indication of the active section even though AT is told about it; the entire scroll-spy visual feature is dead.
+
+**Suggested fix:** Change the selectors in global.css lines 217-218 to `.nav__link[aria-current="location"]` (or the attribute-presence selector `.nav__link[aria-current]`).
+
+**Verifier:** CONFIRMED — global.css:217-218 style .nav__link[aria-current="true"] but Layout.astro:135/156 set aria-current="location"; no other rule in the cascade matches the attribute, so the active-nav visual highlight never renders.
+
+### 63. [MAJOR] src/styles/global.css:223 — Mobile nav menu is completely unusable without JavaScript: the link list is hidden unconditionally and the toggle button only works via JS.
+
+**Why (evidence):** In the ≤720px media query, `.nav__links` gets `opacity:0; pointer-events:none; visibility:hidden` with no `html.js` gate (unlike the reveal system, which correctly gates on `.js.reveal-ready`). The `.nav__menu-btn` that reveals it depends entirely on the Layout script (Layout.astro:220-251). With JS disabled on a mobile viewport, the button does nothing and all five section links plus the GitHub link are unreachable — violating the project's hard progressive-enhancement requirement and keyboard/AT access to navigation.
+
+**Suggested fix:** Gate the collapsed state on the js class: `html.js .nav__links { ...hidden state... }` (the head script adds `js` before paint), so no-JS users see the expanded link list; or implement a CSS-only disclosure fallback.
+
+**Verifier:** CONFIRMED — global.css:223 hides .nav__links unconditionally under 720px with visibility:hidden/pointer-events:none, revealed only by JS-set [data-open] (Layout.astro:227); no html.js gate or CSS-only fallback exists anywhere in the cascade, so no-JS mobile users lose all navigation — unlike the reveal system at global.css:97 which correctly gates on html.js.
+
+### 64. [MAJOR] src/styles/global.css:483 — Section titles use background-clip:text with -webkit-text-fill-color:transparent, making every h2 invisible in forced-colors / Windows High Contrast mode.
+
+**Why (evidence):** `.section-head__title` sets `-webkit-text-fill-color: transparent; color: transparent` and paints the glyphs with a background gradient. In forced-colors mode the browser forces `background-image: none` but does not restore `-webkit-text-fill-color`, so all six section headings (About, Projects, Experience, Skills, Certifications section heads) render as invisible text. The reduced-motion block (line 526) fixes this only for reduced-motion users, not forced-colors users.
+
+**Suggested fix:** Add `@media (forced-colors: active) { .section-head__title { -webkit-text-fill-color: CanvasText; color: CanvasText; background: none; animation: none; } }`.
+
+**Verifier:** CONFIRMED — src/styles/global.css:483 does exactly what the finding says, and grep confirms no forced-colors/-ms-high-contrast/CanvasText handling exists anywhere in the repo — only print (line 506) and reduced-motion (line 526) restore the text fill, leaving section titles invisible in forced-colors mode.
+
+### 65. [MINOR] src/components/Hero.astro:161 — The name-scramble effect rewrites the h1's textContent with random glyphs, temporarily replacing the page's only h1 accessible name with garbage.
+
+**Why (evidence):** scramble() (Hero.astro:161-179) sets nameEl.textContent to strings like "R!m< R{y" for ~1.4s on load and again on every pointerenter. The h1 is not aria-hidden and has no stable aria-label, so a screen reader reading the heading during the animation (or after AT text-change notifications) announces glyph noise instead of "Ramu Roy". It is correctly gated on prefers-reduced-motion, but SR users do not necessarily set that preference.
+
+**Suggested fix:** Give the h1 a stable name: render the scrambling span with aria-hidden="true" alongside an sr-only span containing the real name, or set aria-label={hero.name} on the h1.
+
+**Verifier:** CONFIRMED — Hero.astro:161-179 does rewrite the un-labeled h1's textContent with random glyphs for ~1.4s on load and on pointerenter (line 186), and the h1 at line 15 has no aria-label/aria-hidden mitigation anywhere, so the finding is factually accurate.
+
+### 66. [MINOR] src/components/Nav.astro:15 — Decorative arrow glyphs are not aria-hidden in two places: "GitHub ↗" in the nav and "↗ repo" in project grid cards.
+
+**Why (evidence):** Nav.astro:15 renders `GitHub ↗` with the arrow as plain text, and Projects.astro:98 renders `<span class="gcard__cat">↗ repo</span>` — screen readers announce "north east arrow". Every other glyph on the site (▸, ↓, ★, ▾, ·, → in buttons and links) is correctly wrapped in aria-hidden spans, confirmed by 6 unhidden "↗ repo" instances in dist/index.html; these two spots are inconsistent.
+
+**Suggested fix:** Wrap both arrows in `<span aria-hidden="true">↗</span>` matching the pattern used elsewhere (e.g. Projects.astro:78).
+
+**Verifier:** CONFIRMED — Nav.astro:15 renders "GitHub ↗" as plain text and Projects.astro:98 renders unhidden "↗ repo", while sibling glyphs (Projects.astro:61,66,78,96) are correctly wrapped in aria-hidden spans — the inconsistency is real.
+
+### 67. [MINOR] src/components/Nav.astro:15 — target="_blank" links give no programmatic or textual indication that they open in a new tab.
+
+**Why (evidence):** All external links (nav GitHub link, project repo/refs in Projects.astro:60,77,106, cert links in Certifications.astro:24, contact GitHub/LinkedIn in Contact.astro:33,37, footer links in Footer.astro:19-20) use target="_blank". The only cue is the ↗ glyph, which is aria-hidden in most instances, so screen-reader users get no warning of the context change (WCAG 3.2.5 advisory / G201).
+
+**Suggested fix:** Append an sr-only "(opens in new tab)" span inside each external link, or include it in an aria-label.
+
+**Verifier:** CONFIRMED — All listed external links (Nav.astro:15, Projects.astro:60/77/106, Certifications.astro:24, Contact.astro:33/37, Footer.astro:19-20) use target="_blank" with no aria-label, sr-only span, or other new-tab indication anywhere in the codebase; a minor but real accessibility gap (WCAG 3.2.5 advisory, as the finding itself notes).
+
+### 68. [MINOR] src/components/Projects.astro:66 — GitHub star counts render as a bare number to screen readers because the ★ glyph is aria-hidden and no text explains the value.
+
+**Why (evidence):** `<span class="star"><span aria-hidden="true">★</span> {p.stars}</span>` (also line 96) means AT announces just "1" or "3" with no context after the repo link — meaningless numbers in the card footers.
+
+**Suggested fix:** Add sr-only context, e.g. `<span class="sr-only">GitHub stars:</span>` before the number, or aria-label="3 GitHub stars" on the .star span.
+
+**Verifier:** CONFIRMED — Projects.astro lines 66 and 96 match the claim verbatim: ★ is aria-hidden and the star count has no aria-label or sr-only context anywhere in the component or styles, so AT announces a contextless number.
+
+### 69. [MINOR] src/layouts/Layout.astro:330 — Count-up animation zeroes the server-rendered stat and certification-score values, so AT users can read "0" or an intermediate value.
+
+**Why (evidence):** When JS+IntersectionObserver are available and motion is allowed, all [data-count] spans (4 stats in Stats.astro:16 and both cert scores in Certifications.astro:21) are set to "0" until 60% visible, then animate over 1s. A screen reader or user reading before/during the animation gets 0 or a random intermediate number (e.g. "GitHub repos 0", "47%"). The no-JS and reduced-motion paths are handled correctly; only the animated path exposes wrong values.
+
+**Suggested fix:** Keep the real value in an sr-only span (or aria-label on the stat) and run the count-up in an adjacent aria-hidden="true" span, so the accessible value is always final.
+
+**Verifier:** CONFIRMED — Layout.astro:330 zeroes all [data-count] spans until 60% visible then animates them, and neither Stats.astro:16 nor Certifications.astro:21 provides an sr-only/aria fallback, so assistive tech can read 0 or an intermediate value on the JS+motion path exactly as claimed.
+
+### 70. [MINOR] src/styles/global.css:489 — Several interactive targets are under the 24px WCAG 2.5.8 minimum on fine-pointer devices because the enlarged tap sizes are gated behind (pointer: coarse).
+
+**Why (evidence):** The 44px min-height for .copy-btn and .pcard__ref only applies inside `@media (pointer: coarse)`. WCAG 2.2 AA 2.5.8 (Target Size Minimum, 24x24px) applies to all pointer inputs. On desktop: .copy-btn (padding 0.1em 0.45em at --fs-micro ≈ 12px font) is roughly 15-18px tall and sits ~0.5em from the adjacent email/phone link, so the spacing exception likely fails; .pcard__ref, .cert__link, and .footer__links a are ~15-19px tall text links; .hero__scroll and .gcard__date-adjacent elements are similar.
+
+**Suggested fix:** Apply the min-height/padding rules unconditionally (or use min-height: 24px with negative-margin hit areas) for .copy-btn, .pcard__ref, .cert__link, and footer links instead of gating on pointer: coarse.
+
+**Verifier:** PLAUSIBLE — Premise accurate — 44px targets are gated behind @media (pointer: coarse) at global.css:489-492 and the base .copy-btn/.pcard__ref/.cert__link/footer links are ~19-25px tall — but the claimed 2.5.8 violation is a judgment call: the flagged targets are wide or isolated enough (copy-btn ~40px wide next to a wide link, rows 0.55rem apart, other links isolated or gap-separated) that WCAG's 24px-circle spacing exception likely covers most of them, contradicting the auditor's "spacing exception likely fails".
+
+### 71. [POLISH] src/components/Certifications.astro:16 — Certification titles are plain <p> elements rather than headings, so cert cards are not navigable by heading within the Certifications section.
+
+**Why (evidence):** `<p class="cert__title">{c.title}</p>` — every other card grid on the page (projects h3, skills h3, experience h3) exposes item titles as headings; cert cards do not, making heading navigation inconsistent.
+
+**Suggested fix:** Change .cert__title to an <h3> (styles are class-based so no visual change).
+
+**Verifier:** CONFIRMED — src/components/Certifications.astro:16 uses <p class="cert__title"> while sibling card grids (Projects.astro:30, Skills.astro:12, Experience.astro:18) expose titles as h3, so cert cards are the only ones missing heading navigation.
+
+### 72. [POLISH] src/components/Projects.astro:106 — Grid project cards wrap the entire card content in an <a>, producing very long accessible link names.
+
+**Why (evidence):** When a repo exists, the whole gcard (title, date, full description sentence, tech badges, category, star count) becomes one link, so AT announces e.g. "Transformerless Power Supply Aug 2024 A 220V AC → 5V DC transformerless power supply designed in KiCad. KiCad PCB Hardware/PCB 3" for each of the 8 linked cards — tedious in link lists (Tab or SR link navigation).
+
+**Suggested fix:** Restrict the link to the card title and stretch its hit area with a ::after pseudo-element (`.gcard { position: relative }` + `a::after { position:absolute; inset:0 }`), leaving the description outside the accessible name.
+
+**Verifier:** CONFIRMED — src/components/Projects.astro:105-106 does wrap the full gcard content (title, date, description, tech badges, category, star count) in a single <a> with no aria-label anywhere in the component, so the accessible name is the concatenated card text for every repo-linked grid card — the premise is factually accurate and the verbose-link-name AT issue is real, though minor (severity "polish" is apt).
+
+### 73. [POLISH] src/components/SectionHeader.astro:12 — ASCII ornament characters ("//", "·") in eyebrows, the masthead, and the projects sub-heading are exposed to screen readers as noise.
+
+**Why (evidence):** Eyebrow text like "// 02 — selected work" (data in site.ts sections), the nav masthead "RR // EMBEDDED SYSTEMS" (Nav.astro:7), hero eyebrow "// embedded systems engineer…" (Hero.astro:12), "// selected on github" h3 (Projects.astro:76), the contact/footer LED text " // available for embedded roles", and "· {company}" (Experience.astro:19) all include decorative slashes/dots read as "slash slash" or "dot" by some screen readers.
+
+**Suggested fix:** Move the "//" and "·" ornaments into aria-hidden spans (matching how ticker/protocol separators already do it) or generate them via CSS ::before content.
+
+**Verifier:** PLAUSIBLE — Premise verified — "//" and "·" ornaments are in accessible text at all cited locations (site.ts:316-321, Nav.astro:7, Hero.astro:12, Projects.astro:76, Contact.astro:12, Experience.astro:19) while sibling separators (Hero.astro:40, Skills.astro:27) are already aria-hidden, but whether screen readers announce this punctuation depends on verbosity settings, so severity is a judgment call.
+
+### 74. [POLISH] src/layouts/Layout.astro:80 — Activating the skip link draws the global focus ring around the entire <main> element.
+
+**Why (evidence):** `<main id="main" tabindex="-1">` matches the `[tabindex]` clause of the global `:focus-visible` rule (global.css:135), so keyboard users who use the skip link (or arrive via the boot-dismiss focus hand-off and the masthead #main link) see a full-viewport cyan box-shadow ring around all page content.
+
+**Suggested fix:** Add `main:focus-visible { box-shadow: none; outline: none; }` (focus target styling is unnecessary on a non-interactive skip destination) or scope the global rule to exclude [tabindex="-1"].
+
+**Verifier:** CONFIRMED — main id="main" tabindex="-1" (Layout.astro:80) matches the [tabindex] clause of the global :focus-visible rule (global.css:135) and no rule anywhere overrides main's focus styling, so keyboard skip-link activation rings the whole page.
+
+### 75. [POLISH] src/layouts/Layout.astro:86 — prefers-reduced-motion is sampled once at load with no change listener, so toggling the OS setting mid-session leaves JS-driven motion (canvas, scramble, count-up, cursor effects) running.
+
+**Why (evidence):** Layout.astro:86, Hero.astro:72, and BootIntro.astro:31 read `matchMedia(...).matches` once. CSS animations respond live to the media query, but the hero constellation canvas, name scramble, magnetic buttons, cursor glow, and count-up keep running if the user enables reduced motion after page load (a page reload is required).
+
+**Suggested fix:** Use `matchMedia("(prefers-reduced-motion: reduce)")` with a change listener (or re-check .matches inside the animation callbacks) and stop the canvas rAF loop / skip effects when it flips to true.
+
+**Verifier:** CONFIRMED — All three cited lines sample matchMedia("(prefers-reduced-motion: reduce)").matches once with no change listener anywhere in src, so JS-driven motion (hero canvas rAF loop, cursor/magnetic effects, count-up) genuinely keeps running after a mid-session OS toggle; CSS cannot mitigate this.
+
+### 76. [POLISH] src/layouts/Layout.astro:210 — The aria-live confirmation message is awkwardly phrased: it announces "Copy email copied to clipboard."
+
+**Why (evidence):** `copyStatus.textContent = `${prevLabel || "Value"} copied to clipboard.`` interpolates the button's aria-label ("Copy email" / "Copy phone number"), producing "Copy email copied to clipboard." — grammatically confusing when announced.
+
+**Suggested fix:** Derive the noun from a dedicated data attribute (e.g. data-copy-name="Email address") and announce "Email address copied to clipboard."
+
+**Verifier:** CONFIRMED — src/layouts/Layout.astro:210 interpolates the button aria-label ("Copy email" per src/components/Contact.astro:21), so the aria-live region really announces "Copy email copied to clipboard." — the awkward phrasing is real, though minor polish.
+
+### 77. [POLISH] src/styles/global.css:310 — <summary> (details toggles on flagship cards) is excluded from the custom :focus-visible ring, so its focus style is inconsistent with every other control.
+
+**Why (evidence):** The global focus rule targets `:where(a, button, input, [tabindex])`; the focusable `summary` in Projects.astro:52 is not covered and falls back to the UA default outline — visible (so not a WCAG failure) but visually inconsistent with the site's cyan ring, and on some browsers the default outline hugs the collapsed inline-flex text tightly.
+
+**Suggested fix:** Add `summary` to the :where() selector list on global.css:135.
+
+**Verifier:** CONFIRMED — The only custom focus rule is global.css:135 `:where(a, button, input, [tabindex]):focus-visible`; the `<summary>` in Projects.astro:52 has no tabindex and no other focus styling anywhere in tokens.css/global.css/components, so it falls back to the UA default outline instead of the site's --focus-ring — the premise and suggested fix location are accurate.
+
+
+## Performance — 19 findings
+
+### 78. [MAJOR] src/layouts/Layout.astro:45 — No <link rel="preload"> for any of the three woff2 fonts, so every font load is chained behind the external stylesheet (HTML -> CSS -> font = 2 sequential round trips), guaranteeing FOUT on first visit.
+
+**Why (evidence):** dist/index.html contains zero preload hints (grep 'preload' = 0 matches). The fonts are referenced only from dist/_astro/index.CdjYdy0X.css (url(/_astro/inter-latin-wght-normal.Dx4kXJAl.woff2) etc.), so the browser cannot start fetching them until the 34.8 KB render-blocking stylesheet is downloaded and parsed. All visible text on the page uses these families (Inter body, Space Grotesk headings/hero h1, JetBrains Mono for nav/eyebrows/buttons), and with font-display: swap every first-visit user sees the full page render in fallback fonts and then reflow when 110.9 KB of fonts arrive. On a Slow-4G profile this adds roughly one full RTT + download time to the point where the hero settles.
+
+**Suggested fix:** Preload the three hashed woff2 files in <head>: in Layout.astro import each font file with Vite's ?url suffix (e.g. `import interUrl from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url"`) and emit `<link rel="preload" as="font" type="font/woff2" crossorigin href={interUrl}>` for each, or migrate to Astro's built-in Fonts API which emits preloads automatically. This keeps the hashed filenames in sync with the CSS.
+
+**Verifier:** CONFIRMED — Verified: zero preload hints in src/layouts/Layout.astro head and dist/index.html; the three woff2 fonts are referenced only from the render-blocking CSS (src/styles/fonts.css -> dist/_astro/index.CdjYdy0X.css) with font-display: swap, so late font discovery and FOUT on first visit are real (head is lines 34-68; line 45 is the favicon link but the issue anchors correctly to the head).
+
+### 79. [MAJOR] src/styles/global.css:448 — Six full-viewport .circuit__pulse paths animate stroke-dashoffset with a per-element drop-shadow filter on infinite loops, forcing continuous rasterization work for the life of the page even when the user is idle.
+
+**Why (evidence):** Circuit.astro emits ~10 traces of which pulse:true (r() < 0.42) yields 6 .circuit__pulse paths in dist (grep count = 6). Each has `animation: flow var(--dur,9s) linear infinite` animating stroke-dashoffset (not a compositor-only property; it re-tessellates/repaints the stroke every frame) combined with `filter: drop-shadow(0 0 5px var(--accent))`, which forces the browser to re-run the filter over the path's bounding area every frame. The parent .circuit SVG is position:fixed covering 112% of the viewport with z-index -1, so it is always "on screen" and the animations never get viewport-culled — this burns CPU/GPU and battery continuously on every visit, forever, including while the user reads without scrolling. Reduced-motion users are exempt (animation squashed + opacity 0), but everyone else pays.
+
+**Suggested fix:** Cheapest fix: replace the drop-shadow filter with a second, slightly wider/lower-opacity stroke or a pre-blurred SVG <filter> region kept small; better: animate a small <circle> along the trace with animateMotion/offset-path (transform-only, compositable), or pause the pulses when the tab/section is idle (IntersectionObserver toggling animation-play-state, or CSS `animation-play-state: paused` when a `.idle` class is set after N seconds without interaction). Also consider reducing pulse count or duty cycle (stroke-dasharray 26 4000 means the visible pulse is tiny — a JS-free `animation-delay` stagger with fewer concurrent pulses looks identical).
+
+**Verifier:** CONFIRMED — global.css:448 matches exactly (infinite stroke-dashoffset animation + per-element drop-shadow on 6 pulse paths inside a position:fixed 112%-height z-index:-1 SVG per line 444 and dist grep), and no play-state/visibility/IO guard exists anywhere in src — only the prefers-reduced-motion exemption the finding already notes.
+
+### 80. [MINOR] src/components/BootIntro.astro:74 — The first-visit boot overlay hides all content behind an opaque fixed layer for ~1.64s (1300ms timer + 340ms wipe), delaying perceived first contentful render and interactivity for every new visitor.
+
+**Why (evidence):** BootIntro.astro:67-74: on first visit (sessionStorage unset) the opaque .boot overlay (background: var(--bg-deep), position:fixed inset:0, z-index 300) is activated and only dismissed after a 1300ms setTimeout plus a 320-340ms wipe animation, with body scroll locked. The real page is fully rendered underneath (and the hero canvas rAF loop runs behind the opaque overlay for that whole period, doing invisible work). This is a deliberate design choice, but it adds ~1.6s to time-to-content on exactly the visit that matters most (recruiter's first click), and does nothing for returning-session visits.
+
+**Suggested fix:** Shorten the auto-dismiss to ~800-900ms (the three lines stagger at 220ms each, so they finish around 760ms), start the wipe as soon as the last line lands, and defer starting the hero canvas loop until rr:boot-done so no rAF work happens behind the opaque overlay.
+
+**Verifier:** PLAUSIBLE — Premise verified: opaque fixed .boot overlay (global.css:236) is dismissed only after 1300ms + 340ms wipe (BootIntro.astro:74,58-64) while the hero canvas rAF loop runs behind it (Hero.astro:146-152); but skip/Escape/reduced-motion/session-gate mitigations exist, so the ~1.6s first-visit delay is a deliberate design tradeoff, not an outright defect.
+
+### 81. [MINOR] src/components/Hero.astro:141 — The hero canvas resize listener is undebounced and init() re-randomizes all node positions on every resize event — on mobile the URL-bar show/hide fires resize during scroll, causing repeated canvas reallocation and visible constellation 'teleporting'.
+
+**Why (evidence):** Hero.astro:141 `window.addEventListener("resize", resize)` with resize() (lines 94-100) setting canvas.width/height (which clears and reallocates the backing store at up to 2x DPR) and calling init() (lines 85-93), which regenerates every node at Math.random() positions. Desktop window drags fire resize dozens of times per second; on mobile Chrome/Safari the visual viewport change from the collapsing URL bar fires resize while scrolling the hero, so users see the whole constellation jump to new random positions and pay the reallocation cost mid-scroll. Height-only changes (URL bar) don't even need re-randomization.
+
+**Suggested fix:** Debounce resize (~150ms) and preserve node state: scale existing node coordinates by newW/oldW, newH/oldH instead of calling init(), or only re-init when the node count target actually changes. Skip handling when only height changed by < ~120px (mobile URL bar).
+
+**Verifier:** CONFIRMED — Hero.astro:141 adds an undebounced resize listener whose handler (lines 94-100) reallocates the canvas backing store and calls init() (lines 85-93) to re-randomize all node positions on every event, with no guard anywhere (the reduced-motion check and IntersectionObserver do not mitigate mid-scroll resizes while the hero is visible).
+
+### 82. [MINOR] src/layouts/Layout.astro:290 — Magnetic buttons and .pcard spotlight call getBoundingClientRect() on every pointermove with styles written between events, causing a forced synchronous layout per pointer frame while hovering.
+
+**Why (evidence):** Layout.astro:278 (pcard spotlight) and Layout.astro:290 (magnetic .btn) each read el.getBoundingClientRect() inside raw pointermove handlers and then write inline custom properties (--cx/--cy, --tx/--ty). The style write dirties layout, so the next event's gBCR read forces a reflow — classic read/write interleaving, unthrottled (no rAF like the cursor-glow handler above). .btn transform transitions at 240ms also means continuous compositing while the pointer roams button areas. Hovering across the projects grid triggers this on every frame.
+
+**Suggested fix:** Cache the rect on pointerenter (elements don't move mid-hover; invalidate on scroll/resize if needed) and batch the writes into the existing rAF used for the cursor glow, or at least gate writes behind a per-element rAF flag like the --mx/--my handler already does.
+
+**Verifier:** CONFIRMED — Verified at Layout.astro:278 (.pcard --cx/--cy) and :290 (.btn --tx/--ty): both are raw pointermove handlers reading getBoundingClientRect() then writing inline custom props with no rAF batching (unlike the --mx/--my handler at 263-268 which does use one), and the .btn writes feed a transform with `transition: transform var(--t)` where tokens.css:110 sets --t: 240ms — since transforms are reflected in gBCR, each write dirties exactly what the next read must flush, so the read/write interleaving is real; only mitigation is the pointer:fine/!reduceMotion guard, which doesn't help normal desktop users.
+
+### 83. [MINOR] src/layouts/Layout.astro:330 — Count-up enhancement erases the server-rendered stat and gauge numbers to "0" as soon as the deferred module runs, producing a visible flash from real values -> 0 -> count-up and a text-width layout change inside each stat/gauge.
+
+**Why (evidence):** The HTML ships real values (e.g. 19, 16, 12, 5 in Stats.astro, 85/88 in Certifications.astro) for no-JS correctness, but Layout.astro:329-331 sets every [data-count] element's textContent to "0" when the module executes — which is after first paint since it's a deferred external module (dist/_astro/Layout...js). First-visit users without the boot overlay (reduced-motion users are exempted from boot but NOT from this reset — runCount handles reduceMotion, but only after the IO fires; the reset at line 330 runs unconditionally in the non-reduced branch) see the correct numbers flash to 0, then sit at "0" until the 0.6-threshold IntersectionObserver fires. "0" vs "19"/"85" also changes glyph count, shifting the centered stat text despite tabular-nums.
+
+**Suggested fix:** Don't reset to 0 eagerly: leave the shipped value in place and only zero it in the IO callback immediately before starting runCount (the element is guaranteed off/partially-off screen at threshold 0.6 anyway is false — it fires when 60% visible — so better: start the animation from the shipped value's first frame, i.e. set textContent inside the first rAF tick), or reserve width with min-width: Xch on .stat__value.
+
+**Verifier:** PLAUSIBLE — Layout.astro:330 really does eagerly zero all [data-count] values after first paint, but the flash is largely masked: the same script simultaneously hides .reveal stat/cert cards (global.css:99), top-of-page loads have stats below the fold, and first visits are covered by the BootIntro overlay — so the visible real→0 flash only occurs on reload/back-nav with scroll restoration onto those sections, making severity a judgment call.
+
+### 84. [MINOR] src/pages/index.astro:0 — The single render-blocking 34.8 KB stylesheet is kept external on a one-page site, adding an extra critical-path request and delaying font discovery; inlineStylesheets 'auto' will never inline it.
+
+**Why (evidence):** astro.config.mjs sets build.inlineStylesheets: 'auto' (astro.config.mjs:34), whose size threshold is far below 34,846 B, so dist/index.html always references /_astro/index.CdjYdy0X.css via a render-blocking <link>. For a single-page site there is no cross-page caching benefit to an external sheet: first paint waits on a second request, and the @font-face rules (and thus font fetches) are discovered one network hop later than necessary. Gzipped the CSS is roughly 7 KB; inlined, dist/index.html would still be well under 25 KB compressed.
+
+**Suggested fix:** Set build.inlineStylesheets: 'always' in astro.config.mjs. This removes the render-blocking request and lets the preload scanner see the @font-face URLs in the first HTML bytes. If you keep it external instead, at minimum add the font preloads from the other finding.
+
+**Verifier:** CONFIRMED — Verified in the repo: astro.config.mjs:34 sets inlineStylesheets 'auto' (4 KB threshold), dist/index.html references the external 34,846 B /_astro/index.CdjYdy0X.css via a render-blocking link with no font preloads, and src/pages has only index.astro — the correct anchor is astro.config.mjs:34, not src/pages/index.astro:0.
+
+### 85. [MINOR] src/styles/fonts.css:6 — font-display: swap with no metric-compatible fallback (size-adjust/ascent-override) means the guaranteed first-visit font swap reflows the whole page — the site's only real CLS source.
+
+**Why (evidence):** There are no <img> elements and decorative canvas/SVG layers are absolutely positioned, so layout shift can only come from fonts — and it will: swap + no preload means fallback text renders first, then Inter/Space Grotesk/JetBrains Mono swap in. Space Grotesk vs the sans fallback differs noticeably in x-height and advance widths at hero sizes (clamp up to 5.2rem with white-space: nowrap on .hero h1), and .hero__lead max-width is in ch units, so line wrapping changes on swap. No @font-face fallback overrides (size-adjust, ascent-override, descent-override, line-gap-override) are defined anywhere in the CSS.
+
+**Suggested fix:** Add metric-tuned local fallbacks, e.g. `@font-face { font-family: "Inter-fallback"; src: local("Arial"); size-adjust: 107%; ascent-override: 90%; ... }` (values via the fontaine/capsize tooling) and put them after the web font in --font-body/--font-display/--font-mono. Combined with preloads this makes the swap visually near-lossless.
+
+**Verifier:** CONFIRMED — fonts.css:6/14/22 use font-display: swap with no size-adjust/ascent-override fallbacks anywhere, no font preloads, and hero styles (nowrap clamp headline, 46ch lead) make the first-visit swap a genuine reflow/CLS source exactly as claimed.
+
+### 86. [MINOR] src/styles/fonts.css:7 — Full weight-range variable fonts are shipped for all three families (Inter 100-900 = 48.3 KB, JetBrains Mono 100-800 = 40.4 KB) while the page uses only weights 400-700, a subsetting/instancing opportunity worth ~30-40% of the 110.9 KB font payload.
+
+**Why (evidence):** dist/_astro ships inter-latin-wght-normal (48,256 B, wght 100-900), jetbrains-mono-latin-wght-normal (40,404 B, wght 100-800), and space-grotesk-latin-wght-normal (22,288 B, wght 300-700). Grepping the CSS, the only weights actually used are 400 (default), 500, 600, and 700 across all families; nothing uses thin/light/extra-bold. The latin-only subset is already good (full unicode-range is NOT shipped — the @fontsource files are latin subsets), but the wght axis is carried in full. Fonts are 110.9 KB of the ~180 KB critical payload, so trimming the axis (or dropping the variable axis for JetBrains Mono, which is only ever used at a couple of weights for small UI labels) is the single biggest byte win available.
+
+**Suggested fix:** Either instance the variable fonts to the used range (fonttools varLib.instancer: `fonttools varLib.instancer font.woff2 wght=400:700`) and self-host the result in src/assets, or switch JetBrains Mono to two static weights (400/600, ~15 KB each subset). Alternatively adopt Astro's Fonts API with `weights: ["400 700"]` style subsetting if/when supported.
+
+**Verifier:** CONFIRMED — Verified: src/styles/fonts.css declares full variable-weight ranges (Inter 100-900, JetBrains Mono 100-800) and dist/_astro ships exactly the claimed file sizes (48,256 B + 40,404 B + 22,288 B = 110.9 KB), while every font-weight used anywhere in src/ (global.css and components) is 400, 500, 600, or 700 — nothing below 400 or above 700 — so instancing the wght axis to 400:700 is a real, unhandled byte-reduction opportunity.
+
+### 87. [MINOR] src/styles/global.css:199 — Scroll progress drives layout properties every scroll frame: .signal-rail__fill animates height and .signal-rail__node animates top via --scrollp, forcing style-recalc + layout + paint on the fixed rail for every scrolled frame on desktop.
+
+**Why (evidence):** Layout.astro:146-168 sets --scrollp on document.documentElement inside a rAF-throttled scroll handler (good), but the consumers are `height: calc(var(--scrollp,0) * 100%)` (global.css:199) and `top: calc(var(--scrollp,0) * 100%)` (global.css:200) — both layout-inducing properties — plus `transform: translateY(calc(var(--scrollp,0) * -60px))` on the full-viewport .circuit SVG (global.css:444). Changing a custom property on the root also invalidates computed style for every element referencing it. Net effect: on ≥1100px viewports every scroll frame does root style recalc + layout + repaint of the rail instead of a compositor-only update.
+
+**Suggested fix:** Make the rail transform-only: give .signal-rail__fill a fixed 100% height with `transform: scaleY(var(--scrollp)); transform-origin: top;` and move the node with `transform: translateY(calc(var(--scrollp) * <railheight>))` — or set --scrollp on .signal-rail itself instead of the root so invalidation is scoped.
+
+**Verifier:** CONFIRMED — global.css:199-200 do drive height/top from --scrollp set on the root each rAF scroll frame (Layout.astro:149), and the reduced-motion block at global.css:513 only neutralizes the .circuit transform, not the rail's layout-inducing properties, so the issue is real (though low-cost given the 2px rail).
+
+### 88. [MINOR] src/styles/global.css:452 — The cursor glow repaints a full-viewport fixed layer's radial-gradient background on every mousemove frame by moving --mx/--my on the root element, instead of translating a small pre-painted element.
+
+**Why (evidence):** Layout.astro:264-268 writes --mx/--my to document.documentElement once per rAF while the pointer moves; .cursor-glow (global.css:452) is position:fixed inset:0 with `background: radial-gradient(440px circle at var(--mx) var(--my), ...)`. Changing the gradient origin regenerates and repaints the gradient (paint, not composite) every frame the mouse moves, and setting the custom properties at :root scope forces a wider style invalidation than needed. On low-end machines this competes with the hero canvas rAF loop that runs in the same region.
+
+**Suggested fix:** Make .cursor-glow a fixed ~880px element with the gradient painted once (centered) and move it with `transform: translate3d(var(--mx), var(--my), 0)` (compositor-only), setting the variables on the element itself, not the root.
+
+**Verifier:** CONFIRMED — Premise verified: global.css:452 paints a full-viewport fixed radial-gradient repositioned via --mx/--my set on document.documentElement per rAF in Layout.astro:263-268; existing guards (pointer:fine, reduced-motion display:none at global.css:524, rAF throttle) gate the effect but do not avoid the per-frame gradient repaint, and no cascade rule applies the transform-based fix.
+
+### 89. [MINOR] src/styles/global.css:483 — The shimmer effect runs an infinite 7s background-position animation on every section title (6 h2s) with background-clip:text, keeping paint-invalidating animations alive for the whole session on elements that are mostly off-screen.
+
+**Why (evidence):** .section-head__title (global.css:483) animates `background-position` (a paint-triggering property; the clipped-text gradient must be re-rastered each frame) with `animation: shimmer 7s linear infinite` applied unconditionally to all six section headings. CSS animations keep ticking style/animation timelines even when the element is outside the viewport (browsers skip the paint but not the animation bookkeeping), and whenever any title is on screen it repaints continuously. This is pure decoration duplicated 6x for the lifetime of the page.
+
+**Suggested fix:** Trigger the shimmer once on .in-view (the reveal IO already adds this class): `animation: shimmer 1.6s ease-out 1` on `.section-head.in-view .section-head__title`, or keep it infinite but only while hovered. If kept infinite, at least it should be gated to the in-view state.
+
+**Verifier:** CONFIRMED — global.css:483 applies `animation: shimmer 7s linear infinite` (animating background-position on background-clip:text) unconditionally to all six section h2s; only print and prefers-reduced-motion disable it — no in-view or hover gating exists anywhere in the cascade.
+
+### 90. [POLISH] src/components/Hero.astro:113 — The hero canvas link pass is O(n²) with Math.hypot and a separate beginPath/stroke per segment — up to 2,850 pair checks and ~hundreds of individual stroke calls per frame at up to 76 nodes.
+
+**Why (evidence):** Hero.astro:112-122: nested i/j loops over up to 76 nodes (count = min(76, area/13000)) computing Math.hypot per pair each frame, and each link within 124px issues its own ctx.beginPath()+stroke() because strokeStyle changes per-link alpha. On a large hero (e.g. 1600x900 = 76 nodes) that's 2,850 hypot calls plus typically 100-200 individual stroke operations per frame, in the same frames as the cursor glow and magnetic-button work. It runs fine on modern hardware and correctly pauses off-screen, but is the dominant scripted per-frame cost of the page.
+
+**Suggested fix:** Use squared-distance comparison (avoid hypot until a pair passes d² < LINK²), and bucket link alphas into ~4 quantized levels so segments can be batched into a few path objects per level (one beginPath/stroke per bucket). Optionally drop node count on devicePixelRatio>1 mobile.
+
+**Verifier:** CONFIRMED — Hero.astro:112-122 is exactly as described — O(n²) Math.hypot per pair and per-segment beginPath/stroke with node count capped at 76 (line 86), with no batching or squared-distance guard anywhere; the reduced-motion and IntersectionObserver mitigations the finding cites are the only ones present.
+
+### 91. [POLISH] src/layouts/Layout.astro:147 — updateScrollProgress reads document.documentElement.scrollHeight and window.innerHeight on every scroll frame; both are cheap-ish but the scrollHeight read can force layout when preceded by same-frame style writes on this page.
+
+**Why (evidence):** Layout.astro:146-159 runs inside rAF (good) but performs layout reads (scrollHeight twice, innerHeight twice, scrollY) after other rAF callbacks (cursor glow, magnetic buttons) may have written styles in the same frame, risking an occasional forced synchronous layout. The page height is static after load (no images, no dynamic content except <details> toggles), so scrollHeight - innerHeight only changes on resize or details open/close.
+
+**Suggested fix:** Cache `max = scrollHeight - innerHeight` once and recompute only on resize and on <details> toggle events, leaving only the scrollY read per frame.
+
+**Verifier:** PLAUSIBLE — The factual premise is accurate — Layout.astro:146-159 reads scrollHeight and innerHeight twice each (lines 147, 152) plus scrollY inside the scroll rAF, and other same-frame rAF/pointermove handlers do write styles (cursor glow --mx/--my at lines 264-268, magnetic buttons at 291-292, which themselves also call getBoundingClientRect); however, the writes are CSS custom properties used only in paint-level effects (gradients/transforms), so a forced *layout* is speculative rather than demonstrated, making the caching suggestion a reasonable but judgment-call micro-optimization on a static-height page.
+
+### 92. [POLISH] src/styles/fonts.css:8 — src uses the legacy format("woff2-variations") string only; any browser that doesn't recognize this legacy keyword skips the src entirely and silently falls back to system fonts.
+
+**Why (evidence):** All three @font-face rules (fonts.css:8,16,24, propagated to dist CSS) declare `format("woff2-variations")` with no modern `format("woff2") tech("variations")` alternative and no plain woff2 fallback src. woff2-variations is a non-standard legacy keyword; it happens to be recognized by current Chrome/Firefox/Safari, but the standards-track syntax is `format("woff2") tech("variations")`, and a plain `format("woff2")` src would be accepted universally since the files are valid woff2 regardless of variation support. As written, the whole 110.9 KB font strategy hinges on continued legacy-keyword support.
+
+**Suggested fix:** Use `src: url(...) format("woff2") tech("variations"), url(...) format("woff2");` — or simply `format("woff2")` alone, which every woff2-capable browser accepts and which still activates the variable axes.
+
+**Verifier:** CONFIRMED — All three @font-face rules in src/styles/fonts.css (lines 8, 16, 24) and the built dist/_astro/index.CdjYdy0X.css use only the non-standard legacy format("woff2-variations") with no format("woff2") fallback src anywhere in the cascade, so any browser not recognizing that keyword skips the src and falls back to system fonts — the finding's premise and behavior are accurate, appropriately rated as polish since current major browsers do accept the legacy keyword.
+
+### 93. [POLISH] src/styles/global.css:64 — No content-visibility on the six below-fold sections: the full ~48.5 KB DOM (projects grid, timeline, skills badges) is styled/laid out/painted up front even though only the hero is visible at load.
+
+**Why (evidence):** dist/index.html is 48,548 B with hundreds of badge/spec/card elements below the fold. All sections are laid out during initial render. `content-visibility: auto` with `contain-intrinsic-size` on .section would let the browser skip layout+paint of off-screen sections, cutting first-render work; this is a static single page where the feature is low-risk (anchor navigation still works — the browser lays out the target on scroll/jump).
+
+**Suggested fix:** Add `.section { content-visibility: auto; contain-intrinsic-block-size: auto 800px; }` (keep the hero excluded). Verify scroll-spy IO and #hash jumps behave, since IntersectionObserver plays well with c-v: auto.
+
+**Verifier:** PLAUSIBLE — Premise verified — no content-visibility/contain-intrinsic anywhere in the codebase, .section at src/styles/global.css:64 lacks it, and dist/index.html is exactly 48,548 B — but adding it to a small static page is a discretionary polish optimization with its own scroll-jump tradeoffs, not a defect.
+
+### 94. [POLISH] src/styles/global.css:203 — Half a dozen additional infinite CSS animations run for the entire session (ping on the always-visible fixed rail node, blink caret in the footer, breathe LEDs, pulse-dot pills, nudge scroll hint), an aggregate idle CPU/battery cost.
+
+**Why (evidence):** Inventory of `infinite` animations besides the circuit pulses and shimmer: @keyframes ping (global.css:203) on .signal-rail__node::after — the node is position:fixed and thus always in-viewport on desktop, animating transform+opacity forever; blink (245) on two .caret elements; breathe (190) on .led__dot instances in hero/contact/footer; pulse-dot (148) on deployed/production pills and the active timeline node; nudge (274) on the hero scroll hint. Each is compositor-friendly (transform/opacity) and individually cheap, but collectively they prevent the page from ever reaching a fully idle rendering state — relevant for battery on laptops/mobile since the compositor must produce frames continuously. Reduced-motion users are correctly exempted (global.css:513-527).
+
+**Suggested fix:** Keep the effects but reduce always-running count: pause .signal-rail__node::after ping while --scrollp is unchanged (toggle a class from the existing scroll handler), and let breathe/pulse-dot run a finite iteration count that restarts on section in-view. Alternatively accept the cost — flagged for completeness.
+
+**Verifier:** PLAUSIBLE — Every cited infinite animation exists exactly as described (ping global.css:203 on the fixed rail node, blink:245, breathe:190, pulse-dot:148/348, nudge:274) and reduced-motion is already exempted at 513-527, but the aggregate idle-battery cost of individually cheap compositor animations is a polish-level tradeoff, not an objective defect.
+
+### 95. [POLISH] src/styles/global.css:208 — The sticky nav's backdrop-filter: saturate(140%) blur(10px) forces the browser to re-filter the 60px strip of backdrop on every scrolled frame for the entire session.
+
+**Why (evidence):** global.css:208: .nav is position:sticky at top:0 with a semi-transparent background and backdrop-filter. Because the content behind it changes every scroll frame, the blur must be re-computed continuously while scrolling — one of the more expensive per-frame effects on low-end/integrated GPUs, compounding with the scroll-progress work and circuit animation already running. This is a common, accepted pattern, but on this page it stacks with several other per-frame costs.
+
+**Suggested fix:** Reduce blur radius (10px -> 6px is visually near-identical over a dark page) or drop backdrop-filter on (max-width: 720px) / low-end targets via @media (prefers-reduced-transparency) or a solid --bg background, as already done for the @supports-not fallback.
+
+**Verifier:** PLAUSIBLE — Code at global.css:208 is exactly as described and no media query or cascade rule disables the backdrop blur on supporting browsers (only the @supports-not fallback at line 209), but whether the 10px blur is a real per-frame cost worth reducing is a performance judgment call.
+
+### 96. [POLISH] src/styles/tokens.css:10 — Dead design tokens ship in the 34.8 KB stylesheet: --elevated, --elevated-hover, --scrim, --silkscreen, --danger, --accent-2, --shadow-sm, --shadow-lg, --space-1, --space-10, --fs-h1 are never referenced by any rule in the built CSS.
+
+**Why (evidence):** Verified against dist/_astro/index.CdjYdy0X.css: `grep -c 'var(--elevated)'` etc. returns 0 for all eleven tokens listed (--fs-h1 defined at tokens.css:96 is unused because the hero uses --fs-hero and sections use --fs-h2). Individually tiny, but tokens.css is inlined into the critical stylesheet and these are pure dead bytes plus maintenance noise suggesting styles that were removed without their tokens.
+
+**Suggested fix:** Delete the unused custom properties from src/styles/tokens.css (or annotate intentionally-reserved ones). ~0.5 KB saved and the token file stays an honest single source of truth.
+
+**Verifier:** PLAUSIBLE — Verified: all eleven tokens are defined in src/styles/tokens.css (e.g. --elevated at line 10, --fs-h1 at line 96) and never referenced via var() anywhere in src/, dist/, or public/ — but keeping a complete reserved token scale is a legitimate design-system choice, so deleting them is a judgment call, not a defect.
+
+
+## SEO / metadata / social — 16 findings
+
+### 97. [MAJOR] src/pages/index.astro:0 — No custom 404 page: src/pages contains only index.astro, so dist/ has no 404.html and GitHub Pages serves its unbranded default 404 for any bad URL.
+
+**Why (evidence):** ls dist/ shows only index.html plus assets — no 404.html. GitHub Pages requires a top-level 404.html for a custom not-found page; without it, mistyped or stale shared links (e.g. /projects, old resume paths) land on GitHub's generic 404 with no navigation back to the site, losing visitors and any crawl-equity recovery path.
+
+**Suggested fix:** Add src/pages/404.astro using the same Layout (with a noindex meta and a link back to /), so the build emits dist/404.html that GitHub Pages picks up automatically.
+
+**Verifier:** CONFIRMED — src/pages/ holds only index.astro and neither dist/ nor public/ contains a 404.html, so this GitHub Pages site (ramuroy.github.io) falls back to GitHub's generic 404 exactly as claimed.
+
+### 98. [MINOR] src/components/Hero.astro:15 — The page's single h1 contains only "Ramu Roy" with no role/skill keywords; the job title lives in a non-heading <p> above it.
+
+**Why (evidence):** dist/index.html contains exactly one h1: <h1><span class="hero__name" data-text="Ramu Roy">Ramu Roy</span>...</h1>. "embedded systems engineer" appears only in p.hero__eyebrow and h2s. For a portfolio competing on "Ramu Roy embedded systems engineer" queries, the primary heading carries none of the descriptive keywords, weakening on-page relevance signals for the role terms.
+
+**Suggested fix:** Include the role in the h1 (e.g. <h1>Ramu Roy<span class="visually-hidden"> — Embedded Systems Engineer</span></h1>, or restructure so the eyebrow text is part of the h1 with existing styling preserved).
+
+**Verifier:** PLAUSIBLE — Premise verified — src/components/Hero.astro:15 is the page's only h1 and contains just "Ramu Roy"; "embedded systems engineer" lives in the p.hero__eyebrow (src/data/site.ts:58) — but the SEO impact of a name-only h1 is a subjective weighting call, not a defect.
+
+### 99. [MINOR] src/data/site.ts:26 — Title tag is 85 characters — well beyond the ~60-character SERP display limit, so Google truncates it mid-keyword-list.
+
+**Why (evidence):** seo.title = "Ramu Roy — Embedded Systems Engineer | Hardware, Firmware, Yocto Linux & On-Device ML" measures 85 chars (verified with node). Google displays roughly 50–60 chars / 600px; everything after "...Hardware, Firmw…" is cut, so the Yocto/ML keywords in the tail contribute little to the visible snippet and the title looks clipped in results and browser tabs.
+
+**Suggested fix:** Shorten to ≤60 chars keeping the highest-value terms first, e.g. "Ramu Roy — Embedded Systems Engineer | Yocto, Firmware, ML"; move the rest into the meta description.
+
+**Verifier:** PLAUSIBLE — Premise verified: seo.title at src/data/site.ts:26 is exactly 85 chars and is emitted unmodified as the page <title> in src/layouts/Layout.astro:37, so SERP truncation past ~60 chars is real; severity/whether to shorten is an SEO best-practice judgment.
+
+### 100. [MINOR] src/data/site.ts:28 — Meta description is 178 characters — over the ~155–160 char limit Google displays, so it gets truncated.
+
+**Why (evidence):** seo.description measures 178 chars (verified with node). Google truncates descriptions around 155–160 chars / 920px, so the ending "...and on-device ML & voice in Rust." — arguably the most distinctive claim — is likely cut to an ellipsis in search results.
+
+**Suggested fix:** Tighten the description to ~150–155 chars, e.g. drop "(eOS)" and one list item, keeping name, role, Yocto Linux, ESP32/STM32, and on-device ML within the first 155 chars.
+
+**Verifier:** PLAUSIBLE — Premise verified: seo.description at src/data/site.ts:28 is exactly 178 characters and is emitted verbatim as the meta description in src/layouts/Layout.astro:38 with no truncation elsewhere; whether Google's ~155-160 char display cutoff makes this worth tightening is an SEO best-practice judgment, not a code defect.
+
+### 101. [MINOR] src/layouts/Layout.astro:14 — JSON-LD has a Person schema but no WebSite schema, so the site itself has no structured-data identity.
+
+**Why (evidence):** The only ld+json block in dist/index.html is the Person object. A companion WebSite node (name, url, author linking to the Person) is what Google uses for site-name display in results; without it the site name shown in SERPs is inferred. The Person schema itself is otherwise good (jobTitle, alumniOf, knowsAbout, sameAs with GitHub+LinkedIn all present and valid).
+
+**Suggested fix:** Emit an @graph with the existing Person plus a WebSite node ({"@type":"WebSite","name":"Ramu Roy — Portfolio","url":canonical,"author":{"@id":personId}}), giving the Person an @id both reference.
+
+**Verifier:** CONFIRMED — src/layouts/Layout.astro:14 defines only a Person JSON-LD (emitted at line 65); grep of src/ and dist/index.html shows no WebSite schema anywhere, so the minor SEO gap is real as described.
+
+### 102. [MINOR] src/layouts/Layout.astro:47 — No web app manifest: neither public/ nor the head declares a site.webmanifest.
+
+**Why (evidence):** public/ contains only favicons, og.png, resume, robots.txt — no manifest file, and Layout.astro head has no <link rel="manifest">. Without it, Android add-to-home-screen falls back to a screenshot-style icon/name, and Lighthouse/PWA audits flag the gap. The audit dimension explicitly checks manifest presence.
+
+**Suggested fix:** Add public/site.webmanifest with name, short_name, theme_color "#0A0E14", background_color, and icons (192px and 512px PNGs), and declare <link rel="manifest" href="/site.webmanifest"> in the head.
+
+**Verifier:** PLAUSIBLE — Premise verified — public/ has no manifest file and src/layouts/Layout.astro:44-47 has icon/canonical links but no <link rel="manifest"> — but whether a static portfolio site needs a PWA manifest is a judgment call, not a defect.
+
+### 103. [MINOR] src/layouts/Layout.astro:55 — og:image and twitter:image URLs are built by string-concatenating og.png onto the canonical URL, which silently breaks on any future non-root page.
+
+**Why (evidence):** Line 55: content={`${canonical}og.png`} (same pattern line 63). It only yields a correct URL because the sole page's canonical is "https://ramuroy.github.io/" with a trailing slash. If a second page is ever added (e.g. /projects) or trailingSlash behavior changes, the tag becomes "https://ramuroy.github.io/projectsog.png" — a 404 social image. The JSON-LD on line 21 already does it correctly with new URL("/og.png", canonical).href, so the two constructions are inconsistent.
+
+**Suggested fix:** Compute const ogImage = new URL("/og.png", Astro.site).href once in frontmatter and use it for og:image, twitter:image, and the JSON-LD image.
+
+**Verifier:** CONFIRMED — Lines 55 and 63 do string-concatenate og.png onto the canonical while line 21's JSON-LD uses new URL(); output is correct today only because the sole page's canonical ends in "/", so the fragility and inconsistency are real (minor, latent).
+
+### 104. [MINOR] src/layouts/Layout.astro:63 — Twitter card block lacks twitter:image:alt (and any twitter:site/creator attribution).
+
+**Why (evidence):** Lines 59–63 emit twitter:card, twitter:title, twitter:description, twitter:image — but no twitter:image:alt, so screen-reader users on X get no alt text for the card image (X does not fall back to og:image:alt, which is set on line 58). twitter:site/twitter:creator are also absent, so shares are not attributed to an account (only relevant if the owner has a handle).
+
+**Suggested fix:** Add <meta name="twitter:image:alt" content={`${profile.name} — ${profile.role}`} /> next to twitter:image; optionally add twitter:creator if a handle exists.
+
+**Verifier:** PLAUSIBLE — Premise verified: src/layouts/Layout.astro:60-63 has no twitter:image:alt/site/creator while og:image:alt exists on line 58, but the impact (X's og fallback behavior is undocumented, handle may not exist) makes this a minor judgment-call enhancement rather than a confirmed defect.
+
+### 105. [POLISH] astro.config.mjs:11 — Sitemap entries carry no lastmod, so crawlers get no freshness signal.
+
+**Why (evidence):** dist/sitemap-0.xml contains a single <url><loc>https://ramuroy.github.io/</loc></url> with no <lastmod>. The sitemap chain is otherwise correct (sitemap-index.xml → sitemap-0.xml, referenced from robots.txt, loc matches the canonical). lastmod is the one field Google says it actually uses from sitemaps.
+
+**Suggested fix:** Pass a date to the integration: sitemap({ lastmod: new Date() }) (build-time stamp is honest for a fully static rebuild-on-deploy site).
+
+**Verifier:** CONFIRMED — astro.config.mjs:11 calls sitemap() with no options and dist/sitemap-0.xml indeed has a single <url> entry with no <lastmod>; the integration supports a lastmod option so the suggested fix is accurate (severity correctly noted as polish).
+
+### 106. [POLISH] public/og.png:0 — og.png tagline drops "hardware" from the stack chain that the site's hero and Person description lead with.
+
+**Why (evidence):** The card reads "bare-metal firmware → custom Linux → on-device ML & voice", while the hero h1 lead and JSON-LD description say "hardware → firmware → custom Linux → on-device ML" and PCB/hardware design is a stated pillar (whole Hardware/PCB project category, KiCad skills). Dimensions (1200x630) and branding otherwise match the current design. Minor message drift between the share card and the page it advertises.
+
+**Suggested fix:** Regenerate og.png with the full chain "hardware → firmware → custom Linux → on-device ML & voice" so the social card matches the hero tagline.
+
+**Verifier:** CONFIRMED — Rendered public/og.png reads "bare-metal firmware → custom Linux → on-device ML & voice" while the hero/description strings in src/data/site.ts:10,28-30 lead with "hardware →", so the share card really does drop the hardware link — a genuine (polish-level) message drift.
+
+### 107. [POLISH] src/components/Certifications.astro:25 — Two certification links share the identical generic text "view certificate" while pointing at different documents.
+
+**Why (evidence):** Both cert cards render <a class="cert__link" ...>view certificate ↗</a> to two different Google Drive URLs. Identical non-descriptive anchor text on different destinations is weak for SEO (no context for the target) and fails WCAG 2.4.4-in-spirit for link-purpose distinction in link lists.
+
+**Suggested fix:** Add differentiating hidden text, e.g. view certificate<span class="visually-hidden"> — {c.title}</span>, or set aria-label={`View certificate: ${c.title}`}.
+
+**Verifier:** PLAUSIBLE — Premise verified — both cert cards (src/components/Certifications.astro:24-26, data at src/data/site.ts:299-300) render identical "view certificate" anchors to two different Drive URLs with no aria-label or visually-hidden differentiation anywhere; however, WCAG 2.4.4 (Link Purpose in Context) is arguably satisfied by the enclosing card's cert title, so treating it as a defect is a judgment-call polish item, as the auditor's own "in-spirit" phrasing concedes.
+
+### 108. [POLISH] src/layouts/Layout.astro:21 — Person JSON-LD uses the 1200x630 og.png social card as the person's image, not a portrait.
+
+**Why (evidence):** Line 21 sets image: new URL("/og.png", canonical).href. Google's Person rich-result guidance expects image to depict the person; og.png is a branded text card (verified visually: name, taglines, badges — no photo). A knowledge-panel or rich result using it would show a text banner cropped to square/4:3.
+
+**Suggested fix:** Add a real headshot (e.g. /me.jpg) to public/ and point Person.image at it, or drop the image property from the Person schema.
+
+**Verifier:** CONFIRMED — Layout.astro:21 does set Person.image to /og.png, which is a 1200x630 branded text card with no photo of the person (verified visually), contrary to Person schema image expectations.
+
+### 109. [POLISH] src/layouts/Layout.astro:38 — No robots meta with max-image-preview:large, so Google limits image preview size in Discover/results.
+
+**Why (evidence):** The head has no <meta name="robots"> at all (correctly no noindex anywhere — verified in dist), but without max-image-preview:large Google defaults to standard-size image previews, reducing the visual footprint the 1200x630 og.png could earn in Google Discover and image-rich results.
+
+**Suggested fix:** Add <meta name="robots" content="index, follow, max-image-preview:large" /> to the head.
+
+**Verifier:** CONFIRMED — Verified: no robots meta exists anywhere (Layout.astro head lines 34-68, no per-page overrides, robots.txt has no such directive and GitHub Pages can't set X-Robots-Tag), and Google's Discover docs do require max-image-preview:large for large image previews, so the polish-level suggestion is factually sound.
+
+### 110. [POLISH] src/layouts/Layout.astro:39 — meta keywords tag is emitted with a 400+ character keyword list — ignored by every major search engine and a mild spam signal.
+
+**Why (evidence):** Line 39 renders seo.keywords (36 entries from site.ts lines 31–39, including bare geo terms "Hyderabad", "Telangana", "Andhra Pradesh") into <meta name="keywords">. Google has ignored this tag since 2009; Bing treats heavy keyword meta as a spam signal. It adds ~450 bytes to every page load for zero ranking benefit.
+
+**Suggested fix:** Delete the meta keywords line from Layout.astro (and the seo.keywords array if nothing else uses it); the terms already appear in real page copy where they count.
+
+**Verifier:** CONFIRMED — Layout.astro:39 does emit <meta name="keywords" content={seo.keywords.join(", ")}> from the site.ts:31-39 array (33 entries, ~440 chars joined, including bare geo terms "Hyderabad"/"Telangana"/"Andhra Pradesh"), and seo.keywords has no other consumer, so it can be deleted cleanly; the only inaccuracy is the entry count (33, not 36).
+
+### 111. [POLISH] src/layouts/Layout.astro:46 — Favicon set omits a 16x16 PNG and a Safari mask-icon; only svg + 32px png + 180px apple-touch-icon are declared.
+
+**Why (evidence):** Head declares favicon.svg, favicon-32.png (verified 32x32), and apple-touch-icon.png (verified 180x180) — a solid modern baseline. Missing: 16x16 PNG for legacy tab rendering and <link rel="mask-icon"> for older Safari pinned tabs. Both are low-impact in 2026 (SVG covers modern browsers, mask-icon is deprecated in current Safari) but were explicitly in the audit checklist.
+
+**Suggested fix:** Optionally add public/favicon-16.png with <link rel="icon" type="image/png" sizes="16x16">; skip mask-icon unless old-Safari support matters.
+
+**Verifier:** PLAUSIBLE — Layout.astro lines 45-47 indeed declare only svg + 32px png + apple-touch-icon (no 16x16 PNG or mask-icon exists in public/ or elsewhere), but adding them is an optional 2026-era judgment call, not a real defect.
+
+### 112. [POLISH] src/layouts/Layout.astro:50 — Open Graph block is missing og:locale.
+
+**Why (evidence):** The OG block (lines 49–58) has type/title/description/url/site_name/image+dimensions+alt but no og:locale. Facebook/LinkedIn default to en_US, which is acceptable, but explicit locale removes ambiguity for an India-based site and completes the OG set.
+
+**Suggested fix:** Add <meta property="og:locale" content="en_US" /> (or en_IN) alongside og:type.
+
+**Verifier:** PLAUSIBLE — src/layouts/Layout.astro:50-58 genuinely omits og:locale, but the OG protocol defaults to en_US so this is an optional-completeness suggestion rather than a factual defect.
+
+
+## Motion & animation quality — 31 findings
+
+### 113. [MAJOR] src/layouts/Layout.astro:107 — Reveal gating is applied by an external deferred module, not before first paint, so on slow loads all above-fold content paints visible, then fades OUT (520ms) / the rule shrinks / gauges collapse, then re-plays its entrance.
+
+**Why (evidence):** The head inline script (line 67, comment: 'Enable JS-gated styles before paint (avoids reveal flash)') only adds `.js`, but every hiding rule requires `.js.reveal-ready` (global.css 99-103, 120, 395, 433, 437). `reveal-ready` is added at line 107 inside the main script, which Astro bundles to an external `type=module` file (verified: dist/_astro/Layout.astro_astro_type_script_index_0_lang.DIpWoDw8.js). Module scripts do not block rendering, so on a slow connection or cold cache the browser paints the fully-visible static page first; when the module later executes, adding `reveal-ready` starts an opacity 1→0 transition over var(--t-slow) (the transition is declared in the same rule, so it animates), `.section-head .rule` shrinks scaleX over 520ms, and `.gauge__fill` collapses width over 700ms — then IO callbacks fire a frame or two later and everything animates back in. The whole above-fold does a visible dip-and-replay.
+
+**Suggested fix:** Move the gating decision into the head inline script so it runs before paint: `if (!matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) document.documentElement.classList.add('js','reveal-ready'); else document.documentElement.classList.add('js');` — both checks are synchronous. The body module then only needs to observe and add .in-view.
+
+**Verifier:** CONFIRMED — Premise verified: head inline script (Layout.astro:67) only adds "js" while "reveal-ready" is added at line 107 inside a script Astro emits as a non-blocking external type=module (confirmed in dist/index.html), and all hiding rules in global.css (99, 102, 120, 395, 433, 437) require .js.reveal-ready with transitions declared in the hidden-state/base rules, so on slow loads content paints visible then animates toward hidden and replays; the BootIntro overlay (first-visit only, ~1.6s) and reduced-motion overrides do not cover the slow-load/repeat-visit case.
+
+### 114. [MAJOR] src/styles/global.css:102 — The `.js.reveal-ready .fade` transition shorthand permanently overrides the hover transitions of .pcard and .gcard, so card hover lift/border/shadow snap with no animation whenever JS is enabled.
+
+**Why (evidence):** `.js.reveal-ready .fade { transition: opacity var(--t-slow) var(--ease-out); transition-delay: calc(var(--i,0)*60ms); }` has specificity (0,3,0) and beats `.pcard { transition: transform var(--t) var(--ease-std), border-color var(--t), box-shadow var(--t); }` (line 298) and `.gcard { transition: transform var(--t-fast) ... }` (line 330), both (0,1,0). Because `transition` is a shorthand, it resets transition-property to `opacity` only. Every flagship card and grid card carries class `fade` (Projects.astro lines 16, 106, 108), and the `js`/`reveal-ready`/`fade` classes are never removed, so for the entire life of the page on a JS-enabled, non-reduced-motion browser: hovering a .pcard snaps translateY(-3px)/border/glow instantly (while its .ticked corner pseudo-elements still transition smoothly — a visibly inconsistent mix), and .gcard hover snaps too. The intent comment on line 101 ('opacity-only entrance for elements that own their own transform') shows the shorthand-reset side effect was missed. Ironically the designed hover motion only works when JS is off or reduced-motion strips it anyway. The lingering `transition-delay: i*60ms` also stays applied forever.
+
+**Suggested fix:** Drive the entrance with an animation instead of a transition so the element's own transition list is untouched: `.js.reveal-ready .fade { opacity: 0; } .js.reveal-ready .fade.in-view { opacity: 1; animation: fade-in var(--t-slow) var(--ease-out) backwards; animation-delay: calc(var(--i,0)*60ms); }` with `@keyframes fade-in { from { opacity: 0 } }`. Alternatively enumerate transitions: `transition: opacity var(--t-slow) var(--ease-out) calc(var(--i,0)*60ms), transform var(--t) var(--ease-std), border-color var(--t), box-shadow var(--t);` — but the animation approach also fixes the persistent delay.
+
+**Verifier:** CONFIRMED — Line 102's `.js.reveal-ready .fade` transition shorthand (specificity 0,3,0) does permanently reset transition-property to opacity-only on .pcard/.gcard (both 0,1,0, and both tagged `fade` in Projects.astro); no script removes the classes and no later cascade rule restores the hover transitions except in print/reduced-motion media queries.
+
+### 115. [MAJOR] src/styles/global.css:217 — Nav scroll-spy active state is completely dead: JS sets aria-current="location" but the CSS selects [aria-current="true"], so the active link color and underline never appear.
+
+**Why (evidence):** Layout.astro lines 135 and 156 do `link.setAttribute("aria-current", "location")`, while global.css lines 217-218 style `.nav__link[aria-current="true"]` and `.nav__link[aria-current="true"]::after`. Verified in dist: the bundled JS writes "location" and the built CSS only contains `[aria-current=true]`. Result: the entire scroll-spy IntersectionObserver (Layout.astro 128-142) plus the bottom-of-page force block (152-158) run for nothing — the accent underline scaleX transition designed for the active section never fires, and the nav shows no position feedback while scrolling.
+
+**Suggested fix:** Change the CSS selectors to `.nav__link[aria-current]` (or `[aria-current="location"]`), keeping the semantically correct ARIA token in JS. Add a quick manual check to the checklist: scroll the page and confirm one nav link is underlined.
+
+**Verifier:** CONFIRMED — JS (src/layouts/Layout.astro:135,156) sets aria-current="location" but the only matching CSS (src/styles/global.css:217-218) selects [aria-current="true"], with no other rule or fallback anywhere in src or dist, so the scroll-spy active color/underline can never render.
+
+### 116. [MINOR] src/components/BootIntro.astro:64 — Boot dismissal removes the overlay via a hardcoded 340ms setTimeout that shadows the 320ms CSS boot-wipe duration — two magic numbers that must be kept in sync manually.
+
+**Why (evidence):** global.css:239 declares `animation: boot-wipe 320ms var(--ease-wipe) forwards`; BootIntro.astro line 58-64 waits `window.setTimeout(..., 340)`. If either value is tuned later (e.g. the wipe lengthened to 500ms), the overlay is removed mid-wipe with a visible pop of the un-wiped region; if the timeout is shortened the wipe is truncated. There is no single source of truth and no animationend handshake. Also, the 320ms hardcoded duration ignores the --t-slow/--t-draw token scale (tokens.css 109-112).
+
+**Suggested fix:** Listen for `animationend` on the boot element (matching e.animationName === 'boot-wipe') with the setTimeout kept only as a safety fallback, and define the wipe duration as a token (e.g. --t-wipe) referenced by the keyframe rule.
+
+**Verifier:** CONFIRMED — BootIntro.astro:58-64 hardcodes a 340ms setTimeout with no animationend handshake while global.css:239 hardcodes the boot-wipe at 320ms with no shared token — the premise is exactly as claimed, though currently harmless since 340 > 320 (a minor latent-desync/maintainability issue).
+
+### 117. [MINOR] src/components/Hero.astro:90 — Constellation canvas physics are frame-rate dependent: node velocity (±0.28px) and mouse attraction (0.5px) are applied per rAF tick, so the animation runs 2-4x faster on 120/144/240Hz displays.
+
+**Why (evidence):** `step()` adds `n.vx`/`n.vy` once per requestAnimationFrame with no delta-time term (lines 104-109). On a 144Hz gaming monitor the drift is 2.4x the speed seen on 60Hz, and on a 240Hz panel 4x — the calm ambient constellation becomes visibly busy/agitated, and the mouse-attraction pull (0.5px/frame) yanks nodes toward the cursor much harder. The motion character of the hero therefore differs by hardware.
+
+**Suggested fix:** Compute `dt` from the rAF timestamp (`(t - last) / 16.667`, clamped to e.g. 3) and scale all displacement by it: `n.x += n.vx * dt`, attraction `0.5 * dt`. Keep velocities as-is so 60Hz behavior is the reference.
+
+**Verifier:** CONFIRMED — src/components/Hero.astro lines 105 and 109 apply fixed per-frame displacements (vx/vy of ±0.28 from lines 90-91, mouse pull of 0.5) inside a requestAnimationFrame loop with no delta-time scaling, so animation speed genuinely scales with display refresh rate; no other code (reduced-motion guard or IntersectionObserver) compensates.
+
+### 118. [MINOR] src/components/Hero.astro:141 — The canvas resize handler re-randomizes every constellation node on each resize event, so nodes teleport continuously while dragging the window or when the mobile URL bar collapses/expands.
+
+**Why (evidence):** `window.addEventListener("resize", resize)` fires per event (dozens per second during a drag), and `resize()` calls `init()` (line 99) which rebuilds `nodes` with fresh `Math.random()` positions. The whole field visibly re-scatters every frame during a resize — jarring, and unnecessary since existing node positions could simply be clamped/scaled to the new bounds. On mobile, scrolling can trigger visual-viewport-driven resizes (URL bar) in some browsers, randomly re-scattering the hero background mid-scroll.
+
+**Suggested fix:** Debounce the handler (~150ms) and, instead of re-randomizing, rescale existing node coordinates by newW/oldW, newH/oldH (or just clamp into bounds), only re-running init() when the node-count target changes materially.
+
+**Verifier:** CONFIRMED — src/components/Hero.astro:141 registers an undebounced resize listener whose handler (line 94) always calls init() (line 85), rebuilding all nodes with fresh Math.random() positions on every resize event — no dimension guard or rescaling exists, so the field visibly re-scatters during window drags.
+
+### 119. [MINOR] src/components/Hero.astro:171 — The name scramble mutates the live h1 text with proportional-width glyphs under white-space:nowrap, causing horizontal width jitter of the heading (and the trailing '.') every 42ms, plus screen-reader churn.
+
+**Why (evidence):** Scramble glyphs (`!<>-_\/[]{}...`) render in Space Grotesk (proportional), so 'Ramu Roy' vs '#]<_ {0}' have different widths; `.hero h1 { white-space: nowrap }` (global.css 465) means the `.end` period and the line's right edge shift every tick for ~1.4s (34 steps x 42ms), on load and again on every pointerenter. The effect also rewrites `nameEl.textContent`, so the accessible name of the page's h1 flickers through garbage strings — live-region-adjacent noise for AT users, and text selection is destroyed mid-hover.
+
+**Suggested fix:** Render the scramble in a visual-only layer: keep the real name in a `.sr-only` span (or leave textContent intact and scramble an `aria-hidden` overlay positioned on top), and stabilize width by wrapping each character in an inline-block span with `width: 1ch`-ish fixed width or using `font-variant-ligatures`/tabular tricks — or restrict scramble glyphs to the mono font in a same-metrics overlay.
+
+**Verifier:** CONFIRMED — Verified in src/components/Hero.astro:171-186 and global.css:465-466 — proportional Space Grotesk glyphs are written to the live h1 textContent every 42ms under white-space:nowrap with no width stabilization or aria-hidden overlay, so the width jitter and screen-reader churn are real; only prefers-reduced-motion is guarded.
+
+### 120. [MINOR] src/layouts/Layout.astro:115 — On first visit the hero lead underline draw plays entirely behind the opaque boot overlay and is already finished when the boot wipes away.
+
+**Why (evidence):** `hero.classList.add("lead-drawn")` fires on the first requestAnimationFrame after the module runs, starting the 500ms draw-underline animations at delays 600/760/920/1080ms (line 114 + global.css 266). The boot overlay is fully opaque (z-index 300, background var(--bg-deep)) and auto-dismisses at 1300ms + 340ms wipe ≈ 1640ms. So on every first visit the choreographed underline cascade (finishing at ~1580ms) is invisible; users see static underlines after the wipe. The name scramble was correctly deferred via the `rr:boot-done` event (Hero.astro 181-185) but the underline draw was not, breaking the intended load orchestration.
+
+**Suggested fix:** Mirror the scramble's gating: if `document.querySelector('.boot.is-active')` exists, add `lead-drawn` on the `rr:boot-done` event (plus ~150ms), else on rAF as now. Consider also shortening the base 600ms delay in the post-boot case since the wipe already provides sequencing.
+
+**Verifier:** CONFIRMED — Layout.astro:115 adds lead-drawn on rAF while the opaque .boot overlay (z-index 300, bg var(--bg-deep)) persists until ~1640ms (1300ms timer + 340ms wipe, BootIntro.astro:57-74), so the 600-1580ms underline cascade (global.css:266) plays unseen on first visit; the scramble in Hero.astro:181-185 is gated on rr:boot-done but the underline draw is not, and no other code re-triggers it.
+
+### 121. [MINOR] src/layouts/Layout.astro:277 — Per-card spotlight (--cx/--cy) writes styles directly in every pointermove event without rAF coalescing, unlike the document-level glow which is correctly throttled.
+
+**Why (evidence):** The document cursor-glow handler (lines 257-271) coalesces via requestAnimationFrame, but the `.pcard` handler (274-284) calls `getBoundingClientRect()` and two `style.setProperty` per raw pointermove. High-report-rate mice (500-1000Hz) deliver many events per frame, producing redundant style recalcs and a forced-layout read (gBCR) per event while hovering a card — measurable main-thread churn on exactly the element that is simultaneously running a hover transform transition.
+
+**Suggested fix:** Cache the rect on pointerenter (refresh on scroll/resize) and coalesce writes with the same rAF pattern used for --mx/--my; or read `e.offsetX/offsetY` relative math to avoid gBCR entirely.
+
+**Verifier:** PLAUSIBLE — Premise verified: Layout.astro:274-284 does run gBCR + two setProperty per raw pointermove without rAF (unlike the coalesced --mx/--my handler at 257-271, and the .btn handlers at 286-295 share the pattern), but the real-world perf impact is a judgment call since custom-property writes only trigger style recalc, not layout.
+
+### 122. [MINOR] src/layouts/Layout.astro:332 — Count-up numbers are desynchronized from their surrounding entrance motion: counters start while the stat/cert is still transparent, and the cert gauge fill (700ms) finishes 300ms before its counting value (1000ms).
+
+**Why (evidence):** The counter IO (threshold 0.6) fires independently of the reveal IO (threshold 0.15, -10% rootMargin), and the stat tiles carry reveal delays of 0-180ms plus a 520ms opacity fade — so digits are already ticking behind ~0 opacity, wasting the most dynamic part of the count. In Certifications, `.gauge__fill` animates width over var(--t-draw)=700ms ease-out while the adjacent `data-count` value runs the JS easing over a hardcoded 1000ms — the bar lands and the number keeps rolling for 300ms, breaking the 'gauge + readout' pairing. Digit-count change (0→2 digits) also nudges centered stat labels since only the glyphs are tabular, not the string length.
+
+**Suggested fix:** Drive both from one trigger: start runCount from the same .in-view classification with a delay equal to the element's reveal delay, and set the JS duration to 700ms (or read `getComputedStyle(el).getPropertyValue('--t-draw')`) so bar and number land together. Reserve width with `min-width: 2ch` on the count span.
+
+**Verifier:** PLAUSIBLE — Every factual premise verified — independent IOs (Layout.astro:104 vs :332), hardcoded 1000ms counter (Layout.astro:313) vs 700ms --t-draw gauge fill (global.css:394, tokens.css:112), 0-180ms reveal delays + 520ms fade, and no width reservation on count spans — but whether the resulting desync matters is a motion-quality judgment call.
+
+### 123. [MINOR] src/styles/global.css:99 — Reveal stagger delays are static and permanent: late items always reveal 60-180ms late even when they enter the viewport alone, and the gcard/skills modulo indices (--i: i%4, i%3) don't match the actual responsive column count.
+
+**Why (evidence):** transition-delay: calc(var(--i)*60ms) lives on the base .reveal/.fade rules, so it applies whenever the element eventually intersects — an experience item with --i:2 revealed by itself on scroll still waits 120ms after crossing the threshold for no orchestration reason. Projects.astro:106 assigns `--i: i%4` assuming 4 grid columns, but `.pgrid` is auto-fill minmax(258px,1fr): at tablet widths it lays out 2-3 columns, so delays 0/60/120/180 wrap mid-row and the cascade looks arbitrary rather than row-ordered; Skills.astro:11 has the same problem with i%3 vs auto-fit minmax(248px,1fr).
+
+**Suggested fix:** Assign delays at reveal time in the IO callback: within one callback invocation, iterate intersecting entries and set `entry.target.style.transitionDelay = `${idx*60}ms`` (clearing it after transitionend). This staggers exactly the batch that appears together, works for any column count, and removes solitary-item lag.
+
+**Verifier:** PLAUSIBLE — Premise fully accurate — static delays on base .reveal/.fade rules (global.css:99,102), never cleared by the IO script (Layout.astro:95-107), and i%4/i%3 modulos (Projects.astro:106, Skills.astro:11) don't match the auto-fill/auto-fit column counts (global.css:329,374) — but whether the resulting lag/ordering is objectionable is a motion-quality judgment call.
+
+### 124. [MINOR] src/styles/global.css:130 — Button press feedback (:active scale 0.97) inherits the 240ms ease-out transform transition tuned for the magnetic follow, making the press feel laggy.
+
+**Why (evidence):** `.btn` declares `transition: ... transform var(--t) var(--ease-out)` (line 127), correct for the elastic magnetic-cursor follow. But `.btn-primary:active { transform: translate(...) scale(0.97) }` reuses that same 240ms curve, so the press-down takes a quarter second to reach 0.97 — by the time it registers, a quick click has already released. Press feedback should be near-instant (~80-120ms, ease-out down / ease-in-out up).
+
+**Suggested fix:** Add `.btn:active { transition-duration: 90ms; }` (transform only, e.g. `transition: transform 90ms var(--ease-std)` scoped via a more specific rule) so press-in is snappy while the release and magnetic follow keep var(--t).
+
+**Verifier:** PLAUSIBLE — Factual premise verified — global.css:127 gives .btn a `transform var(--t) var(--ease-out)` transition with --t: 240ms (tokens.css:110), line 130's :active scale(0.97) inherits it with no faster override in the cascade — but "the press feels laggy" is a motion-quality judgment.
+
+### 125. [MINOR] src/styles/global.css:167 — `.spec__row.hoverable` hover states (dt color, dotted leader color, dd color) snap with no transition, unlike every neighboring hover in the system.
+
+**Why (evidence):** Lines 167-169 change three colors on hover but `.spec__row dt`, `dt::after`, and `dd` declare no transition, so the state flips instantly. These rows appear in six places (hero key-specs, about glance, both flagship param grids, languages card, contact panel), all sitting inside cards whose other hover effects (.ticked corners, .link underlines, copy-btn) animate over var(--t-fast)/var(--t). The mixed instant-vs-eased feedback within a single card reads as unfinished.
+
+**Suggested fix:** Add `transition: color var(--t-fast) var(--ease-std)` to `.spec__row dt` and `dd`, and `transition: border-color var(--t-fast) var(--ease-std)` alongside the existing declarations on `dt::after` (it already transitions transform-adjacent props nowhere — just add it).
+
+**Verifier:** PLAUSIBLE — Premise verified: global.css:167-169 hover states change three colors while the base rules at 163-165 (and nothing else in the cascade) declare no transition, so the flip is instant unlike sibling hovers (.ticked:179, .badge:154, .copy-btn:411); the severity/"unfinished" framing is a design judgment, hence PLAUSIBLE rather than CONFIRMED.
+
+### 126. [MINOR] src/styles/global.css:199 — Signal-rail progress animates layout properties (height on __fill, top on __node) from an unregistered custom property on <html>, forcing layout work on every scroll frame.
+
+**Why (evidence):** `.signal-rail__fill { height: calc(var(--scrollp,0) * 100%) }` and `.signal-rail__node { top: calc(var(--scrollp,0) * 100%) }` change geometry every scroll rAF (Layout.astro 146-168). Because `--scrollp` is set on documentElement and is unregistered/inherited, every element referencing it (rail fill, node, and `.circuit`'s parallax transform at line 444) is style-invalidated per frame, and height/top changes trigger layout, not just compositing. Combined with the circuit SVG's per-frame `stroke-dashoffset` + `filter: drop-shadow` repaints (line 448), this is the page's main scroll-jank budget risk on low-end devices.
+
+**Suggested fix:** Use transforms: `.signal-rail__fill { transform-origin: top; transform: scaleY(var(--scrollp)) }` and translateY for the node; register the property with `@property --scrollp { syntax: '<number>'; inherits: true; initial-value: 0 }`. Better: replace the JS entirely with a CSS scroll-driven animation — `animation: rail-fill linear both; animation-timeline: scroll(root)` — wrapped in `@media (prefers-reduced-motion: no-preference)` (reduced-motion users keep the static track, matching current behavior where the rail still functions as pure progress indication).
+
+**Verifier:** CONFIRMED — Verified: global.css:199-200 animate height/top from unregistered inherited --scrollp set on documentElement per scroll rAF (Layout.astro:149), .circuit at line 444 also consumes it, .circuit__pulse at 448 has the dashoffset+drop-shadow animation, and no @property registration or transform-based fallback exists anywhere in the cascade; reduced-motion only mitigates the circuit/pulse, not the rail.
+
+### 127. [MINOR] src/styles/global.css:299 — Hover motion is not gated behind @media (hover: hover), so on touch devices tapped cards stick in their lifted/glowing hover state.
+
+**Why (evidence):** pcard/gcard translateY lifts, glow shadows, .ticked corner accents, .badge glows, and .link underlines all use bare :hover. Mobile browsers emulate hover on tap: tapping a .gcard link navigates away (fine) but tapping a .pcard body (non-link) leaves it permanently raised with the cyan glow ring until the user taps elsewhere; same for badges and spec rows. The stylesheet already queries (pointer: coarse) for tap targets (line 489) but never scopes hover effects.
+
+**Suggested fix:** Wrap the transform/shadow hover rules in `@media (hover: hover) and (pointer: fine) { ... }` (color-only hovers can stay global). This also pairs correctly with the JS spotlight/magnetic effects that are already gated on pointer: fine.
+
+**Verifier:** CONFIRMED — All hover motion rules (.pcard:hover at global.css:299, .gcard:hover at 331, .ticked:hover at 182, .badge:hover at 156, .link:hover at 94, plus .pcard:hover .card-glow at 458) use bare :hover with no @media (hover: hover)/(any-hover) anywhere in src/, so touch browsers' emulated hover will leave tapped non-link cards stuck lifted/glowing; the stylesheet does query (pointer: coarse) at line 489 and Layout.astro:254 gates JS on (pointer: fine), exactly as the finding states.
+
+### 128. [MINOR] src/styles/global.css:331 — Hover behavior is inconsistent across the card family: pcard lifts -3px over 240ms, gcard -2px over 160ms with a different shadow language, cert cards and spec-cards don't respond at all.
+
+**Why (evidence):** .pcard:hover (line 299): translateY(-3px), var(--t)=240ms ease-std, cyan glow ring shadow (--shadow-card-hover). .gcard:hover (line 331): translateY(-2px), var(--t-fast)=160ms, plain dark --shadow-md. .cert (line 388) is the same surface/border/radius recipe rendered in the same grid rhythm but has zero hover response (no lift, no border change — only its child link animates). .spec-card only animates corner ticks. Some differentiation by importance is fine, but the duration split (240 vs 160) and shadow vocabulary split (glow vs plain shadow) between pcard and gcard are arbitrary rather than hierarchical, and cert cards containing an interactive 'view certificate' link feel dead next to them.
+
+**Suggested fix:** Define one card-hover recipe on a shared class or custom properties (--lift, --hover-shadow) with a single duration/easing (var(--t) var(--ease-std)); express hierarchy through lift distance and glow intensity only. Give .cert at minimum the border-color: var(--border-bright) hover step.
+
+**Verifier:** PLAUSIBLE — Every cited fact checks out (pcard -3px/240ms/glow at global.css:299, gcard -2px/160ms/--shadow-md at :331, .cert at :388 has no hover anywhere in the cascade, .spec-card only gets .ticked corner-tick hover at :182), but whether the split is inconsistent versus intentional hierarchy is a motion-design judgment call.
+
+### 129. [MINOR] src/styles/global.css:452 — Motion values leak outside the token scale: hardcoded durations (0.5s, 0.35s, 320ms, 0.4s, 0.5s, 1000ms, 42ms) and many transitions fall back to the UA default `ease` instead of the defined easing tokens.
+
+**Why (evidence):** tokens.css defines a clean scale (--t-fast/--t/--t-slow/--t-draw, --ease-out/--ease-std/--ease-wipe), but: .cursor-glow uses `opacity 0.5s ease` (452), .card-glow `0.35s ease` (456), boot-wipe 320ms (239), boot-line 0.4s (242), draw-underline 0.5s (266), via-in 0.4s + 0.5s delay (438), JS counter 1000ms (Layout.astro 313), scramble 42ms x 34 steps (Hero.astro 175). Meanwhile omitted easing (defaulting to `ease`) appears in .btn's color/border/box-shadow legs (127), .badge (154), .link's color leg (92), .nav__link (215), mobile .nav__links (223), .copy-btn (411), footer links (425), pcard's border/shadow legs (298). The result is three de-facto easing families (tokens, UA ease, keyword ease-in-out in loops) coexisting invisibly.
+
+**Suggested fix:** Do a pass adding an explicit token easing to every transition leg and converting the stray durations to the nearest token (0.35s/0.4s/0.5s → var(--t-slow) or a new --t-med; 320ms wipe → token shared with JS). Put the JS durations (counter 1000ms, boot 1300ms) in one exported constants block or read them from getComputedStyle custom properties.
+
+**Verifier:** PLAUSIBLE — Every cited location checks out (hardcoded 0.5s/0.35s/320ms/0.4s durations, missing easing legs defaulting to UA ease, JS 1000ms/42ms constants) and no cascade rule unifies them, but whether the mixed easing families are a real problem is a motion-consistency judgment call, not a functional defect.
+
+### 130. [MINOR] src/styles/global.css:483 — The section-title shimmer is an infinite 7s linear loop running in phase on all six titles forever, including offscreen ones — distracting as ambient motion and a constant paint cost.
+
+**Why (evidence):** `.section-head__title { animation: shimmer 7s linear infinite }` with a 220% background-position sweep on background-clip:text. All six h2s share the same phase (they all start at document load), so any two titles visible together shimmer in lockstep, which reads as a screen artifact rather than a designed accent. It never rests — an attention-pulling highlight sweeping over headings every 7 seconds for the life of the page violates the 'ambient motion should be calm and local' principle, and each sweep invalidates paint for gradient text even when the title is scrolled out of view. Reduced-motion is correctly handled (line 526).
+
+**Suggested fix:** Fire it once (or 2 iterations) when the section head gets .in-view: `.section-head.in-view .section-head__title { animation: shimmer 1.8s var(--ease-std) 1 both; }` — the reveal IO already targets .section-head. Alternatively keep it looping but bind it to visibility with `animation-timeline: view()` so it only sweeps while on screen and its phase is scroll-positional.
+
+**Verifier:** PLAUSIBLE — Premise verified — global.css:483 runs an infinite 7s shimmer on all six section titles with identical phase and no visibility/scroll gating anywhere in the cascade or scripts (reduced-motion is handled at line 526) — but whether the perpetual sweep is distracting is a motion-taste judgment, not an objective defect.
+
+### 131. [MINOR] src/styles/global.css:514 — The reduced-motion override zeroes animation-duration but not animation-delay, so under prefers-reduced-motion the hero lead underlines still pop in one-by-one between 600ms and 1240ms after load.
+
+**Why (evidence):** The RM block forces `animation-duration: 0.01ms` and `iteration-count: 1` but draw-underline keeps `animation-delay: var(--d)` (global.css 266, set to 600+i*160ms in Layout.astro 114). `lead-drawn` is added unconditionally (Layout.astro 115), so RM users watch four underlines appear sequentially over ~1.2s — not a transform animation, but still choreographed delayed appearance that the RM contract is supposed to remove. (via-in's 0.5s delay is masked by the `opacity: 1 !important` override at line 521, so only the hero path is affected.)
+
+**Suggested fix:** Add `animation-delay: 0s !important` to the RM universal rule (the standard companion to zeroing duration), or gate `lead-drawn` on !reduceMotion in JS and add `.hero__lead em::after { transform: scaleX(1) }` to the RM block.
+
+**Verifier:** CONFIRMED — RM block (global.css:514) zeroes animation-duration but not animation-delay; lead-drawn is added unguarded (Layout.astro:115) with inline --d delays (Layout.astro:114) that beat the 0ms reset at global.css:264, so RM users see four underlines pop in sequentially at 600–1080ms (finding's 1240ms end is a minor arithmetic slip).
+
+### 132. [POLISH] src/components/Hero.astro:6 — Missed opportunity: the hero content block has no entrance choreography — titleblock, h1, lead, CTAs and spec card all render statically (only the underlines and scramble animate).
+
+**Why (evidence):** Sections below the fold cascade in via the reveal system, but the most-viewed frame of the page appears as a static block (or, on first visit, is revealed by the boot wipe with nothing moving behind it). A brief cascade would establish the motion language immediately.
+
+**Suggested fix:** Element: .hero__titleblock → h1 → .hero__lead → .hero__ctas → .hero__spec. Trigger: first paint. Technique: pure CSS `@starting-style { opacity: 0; translate: 0 14px }` with `transition: opacity var(--t-slow) var(--ease-out), translate var(--t-slow) var(--ease-out)` and 80ms incremental delays — works with JS disabled (no-JS baseline still gets the entrance, and content is never left hidden since @starting-style only defines the first frame). Reduced-motion: the existing global RM rule zeroes the transition durations, yielding instant appearance. Coordinate delays with the boot wipe on first visits (add a class on rr:boot-done) or accept that it plays behind the overlay like today's underlines — fixing the underline finding covers both.
+
+**Verifier:** PLAUSIBLE — Premise verified — hero content (titleblock, h1, lead, CTAs, spec card) has no entrance animation anywhere in the cascade (only underline draw and name scramble animate), but adding one is a subjective motion-design choice, not a defect.
+
+### 133. [POLISH] src/components/Hero.astro:152 — The constellation canvas starts its rAF loop immediately even while hidden behind the opaque boot overlay, burning ~1.6s of O(n²) frames invisibly.
+
+**Why (evidence):** On first visit the boot overlay (z-index 300, opaque) covers the hero for ~1640ms while step() runs the 76-node, ~2850-pair link loop per frame. The scramble already listens for `rr:boot-done`; the canvas does not. Wasted main-thread work exactly when the boot-line animations are running.
+
+**Suggested fix:** If `.boot.is-active` exists, defer the first `requestAnimationFrame(step)` until the `rr:boot-done` event (also gives the constellation a nice 'power on with the wipe' beat; consider fading the canvas in with a 520ms opacity transition at that moment — RM users never see the boot, so no RM concern).
+
+**Verifier:** CONFIRMED — Hero.astro line 152 does start requestAnimationFrame(step) immediately with no rr:boot-done guard (unlike the scramble at line 181-182), while BootIntro.astro shows an opaque fixed overlay (global.css:236, z-index 300, background var(--bg-deep)) for ~1300ms + 340ms wipe = ~1640ms; the IntersectionObserver only pauses when the hero scrolls off-screen, not when it's covered, so the O(n²) link loop (up to 76 nodes) really does run invisibly during boot.
+
+### 134. [POLISH] src/components/Nav.astro:9 — Missed opportunity: the mobile menu ▾ glyph never rotates and menu items appear as one block; the panel also uses default `ease` for both open and close.
+
+**Why (evidence):** The menu button's ▾ is static across aria-expanded states; the panel slides -8px/fades over 160ms with UA ease in both directions (global.css 223-224). Exits should ease-in, entrances ease-out, and the caret is a free affordance.
+
+**Suggested fix:** Element: .nav__menu-btn span + .nav__links li. Trigger: [data-open] / aria-expanded=true. Technique: `.nav__menu-btn[aria-expanded="true"] span { transform: rotate(180deg) }` with transform transition var(--t-fast) var(--ease-std); give the panel var(--ease-out) on open and var(--ease-std) fallback on close; optionally stagger li entrances 30ms apart via transition-delay on [data-open] li. Reduced-motion: global RM rule already collapses all of it to instant — no extra work.
+
+**Verifier:** PLAUSIBLE — Premise accurate — Nav.astro:9 caret is static, global.css:223-224 uses default ease with no open/close easing distinction and no stagger — but this is a subjective polish call, and the finding's claim that a global reduced-motion rule already covers it is wrong (global.css:10 only resets scroll-behavior).
+
+### 135. [POLISH] src/components/SectionHeader.astro:10 — Missed opportunity: the giant faint section numeral is completely static — a natural candidate for a scroll-driven micro-parallax or opacity ramp.
+
+**Why (evidence):** The oversized .section-head__num (up to 7rem, color --faint) sits behind each heading and does nothing while the rule draws and the title shimmers next to it. A few pixels of scroll-linked drift would add depth to the datasheet motif for zero JS.
+
+**Suggested fix:** Element: .section-head__num. Trigger: section head crossing the viewport. Technique: CSS scroll-driven animation — `animation: num-drift linear both; animation-timeline: view(); animation-range: entry 0% cover 60%;` moving translateY 24px→0 and opacity 0.4→1, wrapped in `@media (prefers-reduced-motion: no-preference)` and `@supports (animation-timeline: view())`. Reduced-motion / unsupported browsers: numeral stays exactly as today (static, fully visible).
+
+**Verifier:** PLAUSIBLE — Premise verified: .section-head__num (SectionHeader.astro:10, styled at global.css:109-113) has no animation, transition, or scroll-timeline anywhere in the repo while the sibling rule animates — but adding parallax is a subjective enhancement, not a defect.
+
+### 136. [POLISH] src/components/Stats.astro:16 — Missed opportunity: the JS count-up could be replaced by a CSS-typed-counter animation, removing rAF work and the zero-out failure mode entirely.
+
+**Why (evidence):** Layout.astro zeroes the shipped values and re-counts them with rAF (lines 303-345); a CSS `@property --n { syntax: '<integer>' }` + `counter-reset: n calc(var(--n))` + `content: counter(n)` animation driven by the existing .in-view class (or animation-timeline: view()) achieves the same ease-out count with no JS mutation of shipped markup.
+
+**Suggested fix:** Element: .stat__value span and .gauge__val span. Trigger: .in-view (existing reveal IO) or animation-timeline: view(). Technique: registered custom property integer animation rendering via a ::after counter, keeping the real number in the DOM (visually hidden during the animation only when @supports passes) so no-JS/no-support users always see the true value. Reduced-motion: wrap in @media (prefers-reduced-motion: no-preference); RM and legacy users see the static real number instantly — strictly better than today's JS zero-out path.
+
+**Verifier:** PLAUSIBLE — Premise verified — Stats.astro:16 ships real values and Layout.astro:303-345 zeroes and rAF-counts them (zero-out at line 330 with IO threshold 0.6 is a real failure window) — but replacing it with a CSS typed-counter animation is a subjective polish suggestion, not a defect.
+
+### 137. [POLISH] src/styles/global.css:64 — Missed opportunity: anchor navigation gives no arrival feedback — the smooth scroll lands with nothing marking the target section.
+
+**Why (evidence):** Clicking a nav link smooth-scrolls (html scroll-behavior) but the destination section doesn't acknowledge arrival; the section-head rule only re-draws on first reveal. A one-shot arrival accent closes the loop of the navigation gesture.
+
+**Suggested fix:** Element: .section:target .section-head .rule (or the eyebrow). Trigger: :target after anchor navigation. Technique: a single 900ms keyframe re-sweeping the cyan rule (scaleX 0→1) or a brief box-shadow pulse on the eyebrow, `animation: arrive 0.9s var(--ease-out) 1`. Reduced-motion: global RM rule reduces it to an instant single frame — acceptable; or scope it inside @media (prefers-reduced-motion: no-preference).
+
+**Verifier:** PLAUSIBLE — Premise verified — smooth scroll at global.css:9, no :target rule anywhere, and the rule sweep (lines 115-121) only redraws on first IntersectionObserver reveal — but whether arrival feedback is needed is a subjective motion-design judgment, and the proposed fix is compatible with the existing reduced-motion block at lines 513-527.
+
+### 138. [POLISH] src/styles/global.css:248 — Boot 'skip intro' button hover snaps with no transition.
+
+**Why (evidence):** .boot__skip:hover changes color and border-color but the base rule (line 247) declares no transition, so the only interactive element during the 1.6s intro flips state instantly while every other button on the site eases over var(--t-fast).
+
+**Suggested fix:** Add `transition: color var(--t-fast) var(--ease-std), border-color var(--t-fast) var(--ease-std);` to .boot__skip.
+
+**Verifier:** PLAUSIBLE — Premise verified: .boot__skip (src/styles/global.css:247) has no transition anywhere in the cascade while its :hover (line 248) changes color/border-color and all comparable buttons (.btn, .copy-btn, .badge) transition over var(--t-fast); whether the instant hover snap is a problem is a motion-polish judgment.
+
+### 139. [POLISH] src/styles/global.css:272 — Missed opportunity: the 'scroll' cue keeps bouncing forever and never acknowledges that the user has scrolled.
+
+**Why (evidence):** The nudge loop (2s infinite) continues even when the user is halfway down the hero; polished implementations fade the affordance out as scrolling begins. Currently it only disappears when the hero leaves the viewport.
+
+**Suggested fix:** Element: .hero__scroll. Trigger: scroll position. Technique: scroll-driven `animation: cue-out linear both; animation-timeline: scroll(root); animation-range: 0 200px;` fading opacity 1→0 (progressive under @supports; fallback keeps current behavior). Reduced-motion: the nudge keyframe is already killed by the RM rule; the scroll-linked fade is position-mapped rather than time-based, so it can be kept — or hide the cue entirely under RM via the existing media query.
+
+**Verifier:** PLAUSIBLE — Factual premise verified — .hero__scroll::before at global.css:273 bounces infinitely with no scroll-driven fade in any CSS or script (only leaves view when the hero scrolls off) — but "should fade on scroll" is a design judgment, not a bug.
+
+### 140. [POLISH] src/styles/global.css:310 — 'Engineering detail' disclosure content snaps open/closed — only the ▸ marker animates.
+
+**Why (evidence):** `.pcard__details` has a 160ms rotate on summary::before but the revealed ul (up to 4 long bullets, several hundred px) appears instantly, jolting the card and everything below it. Closing snaps identically. Also, summary itself has no hover state (color stays --accent-text), the only interactive element in the card with zero hover feedback.
+
+**Suggested fix:** Modern CSS: `details { interpolate-size: allow-keywords } .pcard__details::details-content { block-size: 0; overflow: hidden; transition: block-size var(--t-slow) var(--ease-out), content-visibility var(--t-slow) allow-discrete; } .pcard__details[open]::details-content { block-size: auto; }` — progressive (unsupported browsers keep the snap), no JS, and the global reduced-motion rule collapses it to instant. Add `summary:hover { color: var(--accent-soft) }` with a var(--t-fast) transition.
+
+**Verifier:** PLAUSIBLE — Premise verified — global.css:310-316 only animates summary::before rotation (160ms), the details content has no open/close animation and summary has no hover state anywhere in the cascade; the snap-open critique itself is a subjective polish judgment.
+
+### 141. [POLISH] src/styles/global.css:394 — Cert gauge animates the layout property `width` instead of a compositable transform.
+
+**Why (evidence):** `.gauge__fill { width: var(--w); transition: width var(--t-draw) var(--ease-out) }` triggers layout+paint each frame for 700ms. It's a small element so impact is low, but it runs concurrently with the card's opacity reveal and the JS counter rAF, and it's the one non-transform entrance in the system.
+
+**Suggested fix:** Animate `transform: scaleX()` with transform-origin left on the fill (keep width: var(--w) as final state for no-JS), or use a clip-path inset transition to preserve the rounded cap.
+
+**Verifier:** PLAUSIBLE — The factual premise is accurate (global.css:394 transitions `width` over 700ms and it is the only non-transform entrance; reduced-motion at line 518 only covers opted-in users), but for an 8px bar the layout cost is negligible, making this a motion-polish judgment call rather than a confirmed defect.
+
+### 142. [POLISH] src/styles/global.css:411 — Copy button feedback swaps text 'copy' → 'copied ✓', changing the button width and shifting the contact row, then snapping back 1400ms later.
+
+**Why (evidence):** Layout.astro 205-215 replaces textContent; .copy-btn is inline with auto width next to the email/phone link inside a flex spec row, so the dotted leader and value re-flow twice per copy. The color/border change is transitioned (160ms) but the geometry change is an untransitioned layout jump.
+
+**Suggested fix:** Reserve space: put both labels in a grid-stacked span (`display: inline-grid; > * { grid-area: 1/1 }`) cross-fading opacity, or set `min-width` to the wider label. Optionally add a subtle success scale-tick (transform: scale(1.06)→1 over 200ms var(--ease-out), skipped under RM automatically by the global rule).
+
+**Verifier:** CONFIRMED — Layout.astro's click handler swaps btn.textContent "copy" → "copied ✓" for 1400ms, and .copy-btn at global.css:411 is an auto-width inline button (no min-width/grid-stacking anywhere in the cascade) inside a flex .spec__row whose dt::after dotted leader flexes, so the dd genuinely widens and the leader reflows twice per copy with only color/border transitioned.
+
+### 143. [POLISH] src/styles/tokens.css:106 — Missed opportunity: the easing scale has no spring/overshoot curve — the magnetic button release and card lifts settle on a plain cubic-bezier where a linear() spring would sell the physicality.
+
+**Why (evidence):** The magnetic follow (--tx/--ty reset on pointerleave) and pcard lift both use single-segment beziers, which cannot overshoot. The magnetic metaphor in particular implies a spring-back with one small oscillation on release.
+
+**Suggested fix:** Add `--ease-spring: linear(0, 0.3 7%, 0.7 15%, 1.05 30%, 1.02 45%, 0.99 60%, 1)` (or a generated damped-spring linear()) to tokens.css and apply it to the .btn transform transition and pcard hover-out. Reduced-motion: transitions are already zeroed by the RM block, so the spring never plays for RM users. Fallback: browsers without linear() ignore the invalid easing only if declared as an override — declare it as a second declaration after the bezier so unsupported browsers keep var(--ease-out).
+
+**Verifier:** PLAUSIBLE — Factual premise verified — tokens.css:106-108 has only single-segment beziers, .btn magnetic release (global.css:127, Layout.astro:297) and .pcard lift (global.css:298) use them with no spring/linear() anywhere — but adding an overshoot curve is a subjective motion-polish call, not a defect.
+
+
+## Responsive & adaptive behavior — 20 findings
+
+### 144. [MAJOR] src/styles/global.css:214 — Desktop nav overflows horizontally between 721px and ~820px viewport width (including iPad portrait 768px), clipping the Contact/GitHub links.
+
+**Why (evidence):** The mobile menu only activates at max-width:720px (line 221). Above that, .nav__inner holds the nowrap masthead 'RR // EMBEDDED SYSTEMS rev.2026' (~270px at fs-micro mono with 0.14em letter-spacing) plus 6 nav links with 5 gaps of 24px (~440px) = ~726px of min-content. At 721px viewport the container inner width is 721 - 2*36px gutter = ~649px; at 768px it is ~691px. Flex children cannot shrink (single-word links, nowrap masthead, no flex-wrap on .nav__links), so the link row extends past the right viewport edge and is clipped by body{overflow-x:hidden} (global.css:20) — the GitHub and Contact links become partially or fully unreachable on 768px tablets. Deficit only clears around ~820px.
+
+**Suggested fix:** Raise the mobile-menu breakpoint to at least 840px (change global.css:221 to max-width:840px and the matching JS matchMedia in src/layouts/Layout.astro:249 to min-width:841px), or shrink the desktop nav (hide .rev / reduce gap / allow masthead to shrink with min-width:0 + text-overflow) so its min-content width fits a 649px inner container.
+
+**Verifier:** CONFIRMED — Verified: only breakpoint is max-width:720px (global.css:221), nowrap masthead + 6-link non-wrapping flex row totals ~705-725px min-content vs ~649px inner width at 721px (gutter clamp 5vw), and body overflow-x:hidden (global.css:20) clips the trailing GitHub/Contact links; at exactly 768px the deficit is smaller (~15-25px, partial clipping) than the detail implies, but the 721-~800px overflow band is real and unhandled elsewhere.
+
+### 145. [MAJOR] src/styles/global.css:500 — Print stylesheet forces a white background but leaves near-white dark-theme text tokens in place, so most of the page prints as invisible/illegible text.
+
+**Why (evidence):** @media print sets body{color:#111;background:#fff} but almost every component sets an explicit color from the dark palette: .pcard__title, .tl-item__role, .cert__title use --text (#E6EDF3, contrast ~1.1:1 on white), .pcard__desc/.about__body p/.gcard__desc use --text-secondary (#A9B6C2), labels use --muted (#7C8B99), and accents use --accent-text (#5BE9F7) — e.g. .stat__value, .eyebrow, .annot, .tl-item__company, .gauge__val. Since browsers do not print the dark backgrounds by default, a recruiter printing/PDF-ing the page gets near-white and pale-cyan text on white paper: titles, stats, and company names are effectively invisible. Only .section-head__title is fixed (line 506).
+
+**Suggested fix:** Inside @media print, redefine the tokens once instead of chasing selectors: :root { --text:#111; --text-secondary:#333; --muted:#555; --label:#555; --faint:#777; --accent:#0a7a8a; --accent-text:#0a7a8a; --accent-soft:#0a7a8a; --border:#ccc; --surface:#fff; --code-bg:#f4f4f4; } and drop text-shadows (text-shadow:none).
+
+**Verifier:** CONFIRMED — The @media print block at src/styles/global.css:500-508 only fixes body and .section-head__title, while tokens.css has a single dark palette and components (.pcard__title:303, .tl-item__role:351, .cert__title:391, .stat__value:475, etc.) set explicit colors from it that override the body reset — nothing in the cascade remaps the tokens for print, so text prints near-white on white.
+
+### 146. [MINOR] src/components/Hero.astro:141 — Hero canvas re-randomizes all constellation nodes on every window resize, so mobile URL-bar show/hide makes the animation visibly jump.
+
+**Why (evidence):** resize() calls init(), which regenerates every node at new random positions. Mobile browsers fire resize when the address bar collapses/expands during scroll (even though the hero's 100svh height stays constant, the event still fires and on some browsers width/height rect changes by a fraction), and rotating a phone also discards the current state. The result is a full teleport of all points, which reads as a glitch on touch devices.
+
+**Suggested fix:** In resize(), bail out when the section rect dimensions are unchanged (compare new w/h to previous before reinitializing), and on real size changes rescale existing node coordinates (x *= newW/oldW) instead of re-randomizing.
+
+**Verifier:** CONFIRMED — src/components/Hero.astro:141 registers an unguarded resize handler whose resize() (lines 94-100) always calls init() (lines 85-93), re-randomizing all constellation nodes with no dimension-unchanged bail-out or coordinate rescaling anywhere in the file.
+
+### 147. [MINOR] src/components/Projects.astro:51 — Flagship project highlight bullets are hidden in closed <details> when the page is printed.
+
+**Why (evidence):** Each flagship card's four 'Engineering detail' bullets live inside <details class="pcard__details"> which defaults to closed. The print stylesheet (global.css:500) does not open them, so a recruiter printing or PDF-ing the portfolio loses the strongest technical content (the ESP32-S3 dual-core, Yocto recipe, and Rust voice-pipeline bullets) entirely.
+
+**Suggested fix:** Add to @media print: .pcard__details[open] summary::before { } is not needed — simply force content visible: .pcard__details > ul { display: flex !important; } together with details:not([open]) > ul { display: flex; } via `@media print { .pcard__details { display: block; } .pcard__details:not([open]) ul { display: flex; margin-top: var(--space-4); flex-direction: column; gap: var(--space-3); } }` (or set the open attribute via a beforeprint listener).
+
+**Verifier:** CONFIRMED — src/components/Projects.astro:51 uses a default-closed <details> with no open attribute, and neither the @media print block (src/styles/global.css:500-508) nor any beforeprint script forces it open, so the highlight bullets are omitted from printed/PDF output.
+
+### 148. [MINOR] src/styles/global.css:0 — Nine ad-hoc, mutually inconsistent width breakpoints; visually similar two-column grids collapse at four different widths.
+
+**Why (evidence):** Full @media inventory: min-width:1100px (signal-rail, line 196); max-width: 900px (hero grid, 276), 860px (projects flagship, 296), 820px (about grid, 289), 760px (exp-extra, 362), 720px (nav, 221), 700px (certs grid, 387), 640px (stats, 477), 600px (pcard params, 309), 420px (contact spec, 494); plus pointer:coarse (489), print (500), prefers-reduced-motion (10, 513). The four structurally identical two-column card grids (projects__flagship 860, about__grid 820, exp-extra 760, certs__grid 700) each collapse at a different arbitrary width, so between 700–860px the page alternates single/double column section by section, and there is no shared breakpoint scale.
+
+**Suggested fix:** Consolidate to a small token-documented scale (e.g. 480 / 720 / 900 / 1100) and collapse the four sibling two-column grids at the same breakpoint (e.g. 820px).
+
+**Verifier:** PLAUSIBLE — Every cited breakpoint and line number in src/styles/global.css checks out (four sibling two-column grids collapse at 860/820/760/700 with no shared scale in tokens.css), but whether the staggered collapse is a defect or intentional per-section tuning is a design judgment.
+
+### 149. [MINOR] src/styles/global.css:20 — body { overflow-x: hidden; } is a global escape hatch that silently masks horizontal-overflow bugs.
+
+**Why (evidence):** The blanket overflow-x:hidden on body hides real defects instead of preventing them: it is what clips the 721–820px nav overflow and would hide any future overflow (e.g. a longer hero name under the white-space:nowrap h1 at line 465). Nothing in the layout inherently needs it — backgrounds are position:fixed inset:0 and the circuit SVG is width:100%, so no element intentionally exceeds the viewport.
+
+**Suggested fix:** Remove overflow-x:hidden (or move it to a deliberate, commented guard), fix any overflow it currently hides, and rely on max-width containment; if a clip is truly wanted use overflow-x:clip on html so scrolling behavior is not affected.
+
+**Verifier:** PLAUSIBLE — Premise verified — global.css:20 has body overflow-x:hidden with no scoping/override elsewhere, and .hero h1 white-space:nowrap exists at line 465 — but treating a body-level overflow guard as a defect rather than a deliberate defensive pattern is a style judgment.
+
+### 150. [MINOR] src/styles/global.css:140 — .pill { white-space: nowrap } inside spec rows can overflow the hero spec card at 320px in the not-available state.
+
+**Why (evidence):** The hero 'Status' spec row (src/data/site.ts:80) renders 'NOT CURRENTLY AVAILABLE' inside a nowrap .pill when profile.available is false. At 320px the spec-card inner width is ~245px (280px container − 2×17.6px card padding); dt 'STATUS' + gaps + 1.5rem leader consume ~100px, leaving ~145px for a pill that measures ~170–185px (23 uppercase mono chars at ~7px + 0.10em tracking + padding). The dd is flex:0 1 auto but the nowrap pill sets its min-content width, so the row overflows the card border. The overflow-wrap:anywhere fix at line 494–498 only targets .contact__spec, not the hero/about spec cards.
+
+**Suggested fix:** Allow pills in spec rows to wrap (add .spec__row .pill { white-space: normal; text-align: left; }) or generalize the ≤420px fix to all .spec__row dd (min-width:0; overflow-wrap:anywhere).
+
+**Verifier:** CONFIRMED — Premise verified: .pill nowrap (global.css:140) plus the hero Status pill (Hero.astro:54, site.ts:80) yields ~200px unbreakable min-content in a ~243px spec-card at 320px, and the 494-497 overflow-wrap fix only covers .contact__spec — latent overflow whenever profile.available is set to false.
+
+### 151. [MINOR] src/styles/global.css:227 — Masthead shrinks to 0.66rem (10.56px) under 720px — the smallest text on the site, with wide letter-spacing on a mono face.
+
+**Why (evidence):** @media (max-width:720px) .masthead { font-size: 0.66rem; } yields 10.56px uppercase JetBrains Mono with 0.14em tracking. It is also a tap target (links to #main). 10.5px is below any accessibility guidance for functional text.
+
+**Suggested fix:** Keep the masthead at --fs-micro and shorten its content instead (the .rev span is already hidden at this width; also drop '// EMBEDDED SYSTEMS' to just 'RR //' below 480px if space demands).
+
+**Verifier:** CONFIRMED — global.css:227 does shrink .masthead to 0.66rem (10.56px at the default 16px root) under 720px with 0.14em-tracked uppercase mono, the masthead is a functional link (Nav.astro:6, href="#main"), and no other rule in tokens.css or the cascade counteracts it.
+
+### 152. [MINOR] src/styles/global.css:310 — The 'Engineering detail' <details> summary is a ~20px-tall tap target on touch devices.
+
+**Why (evidence):** .pcard__details summary uses --fs-micro (~11.5px on mobile) with padding 0.2rem 0, giving a hit area of roughly 18–22px height. It is the only way to reveal each flagship project's highlights, and it is not included in the @media (pointer:coarse) block at line 489, which only enlarges .copy-btn and .pcard__ref. WCAG 2.5.8/platform guidelines want ≥24px (ideally 44px).
+
+**Suggested fix:** Add .pcard__details summary { min-height: 44px; display: flex; align-items: center; } to the (pointer:coarse) block, or give the summary padding-block: 0.6rem unconditionally.
+
+**Verifier:** CONFIRMED — Verified: summary at global.css:310 uses ~12px --fs-micro with 0.2rem vertical padding (~20px tall), and the pointer:coarse block at line 489 enlarges only .copy-btn and .pcard__ref — no cascade rule elsewhere fixes the summary's tap target.
+
+### 153. [MINOR] src/styles/global.css:465 — .hero h1 { white-space: nowrap; } is a horizontal-overflow trap at narrow widths.
+
+**Why (evidence):** At 320px the content column is ~280px (320 − 2×20px gutter) and 'Ramu Roy.' at the clamp floor of --fs-hero (2.9rem = 46.4px; preferred 1.9rem+4.4vw = 44.5px at 320, so the floor wins) measures roughly 235–250px in Space Grotesk 700 — it fits with ~30px to spare, but any longer name, a translated string, or the mid-scramble glitch glyphs from Hero.astro (which substitute random-width characters) can exceed the column. Because the h1 cannot wrap and body overflow-x is hidden, the overflow would be invisibly clipped rather than reported.
+
+**Suggested fix:** Drop white-space:nowrap and instead prevent mid-word breaks on the name span (.hero__name { white-space: nowrap } only), letting the h1 wrap between words; or lower the --fs-hero clamp floor (e.g. 2.4rem) so long names fit 280px.
+
+**Verifier:** PLAUSIBLE — Every factual claim checks out (nowrap at global.css:465 with no override, overflow-x:hidden at :20, 2.9rem clamp floor in tokens.css:97, ~280px column at 320px, scramble glyph substitution in Hero.astro:159-173), but the actual name fits with ~30px to spare, so this is a hypothetical/robustness concern rather than a reproducible overflow.
+
+### 154. [MINOR] src/styles/global.css:489 — The coarse-pointer touch-target rule misses several small interactive elements: footer links, cert links, mobile nav links, and the boot 'skip intro' button.
+
+**Why (evidence):** @media (pointer:coarse) enlarges only .copy-btn and .pcard__ref. Left out: .footer__links a (11.5px text, no min-height — four adjacent links with 24px gaps), .cert__link (~16px tall), .boot__skip (~26px tall, the only way to dismiss the intro early on touch), the .masthead link, and .nav__link in the mobile dropdown (padding-block 0.8rem + 13px text ≈ 39–40px, just under 44px).
+
+**Suggested fix:** Extend the (pointer:coarse) block: .footer__links a, .cert__link, .boot__skip, .masthead { min-height: 44px; display: inline-flex; align-items: center; } and bump mobile .nav__link padding-block to 1rem.
+
+**Verifier:** CONFIRMED — The @media (pointer: coarse) block at global.css:489-492 only enlarges .copy-btn and .pcard__ref; .footer__links a (line 425, --fs-micro text, no min-height/padding), .cert__link (line 398), .boot__skip (line 247, ~26px tall), .masthead (line 211), and mobile .nav__link (line 225, 0.8rem padding-block + fs-small ≈ 39px) all lack 44px tap-target sizing, with no fallback in tokens.css or the component .astro files (only .nav__menu-btn at line 222 gets min-height: 44px).
+
+### 155. [MINOR] src/styles/tokens.css:90 — --fs-micro and --fs-eyebrow compute to ~11.5px on a 320px phone — below the 14px readability floor — and are used for dense informational text.
+
+**Why (evidence):** clamp(0.72rem, 0.70rem + 0.10vw, 0.78rem) at 320px = max(11.52px, 11.2+0.32=11.52) = 11.52px; even at 2560px it caps at 12.48px. This token styles content users must actually read on mobile: project dates (.gcard__date), spec keys (.spec__row dt), pills, badges, timeline dates/locations (.tl-item__date/__loc), cert issuers, footer links, the ticker, and the copy buttons. Combined with 0.10–0.14em letter-spacing and uppercase, 11.5px mono is hard to read on small screens. (For reference, --fs-eyebrow at line 89 has the same 11.52px floor.)
+
+**Suggested fix:** Raise the clamp floor to at least 0.75–0.8125rem (12–13px) for --fs-micro/--fs-eyebrow, e.g. clamp(0.78rem, 0.74rem + 0.2vw, 0.82rem), and reserve sub-12px sizes for purely decorative labels.
+
+**Verifier:** PLAUSIBLE — Math and usages verified exactly as claimed (tokens.css:89-90 compute to 11.52px at 320px; no media query or cascade override raises them, and global.css:227 even drops .masthead to 0.66rem on mobile), but the 14px floor is a design heuristic, not a spec requirement, so the severity is a judgment call.
+
+### 156. [MINOR] src/styles/tokens.css:91 — --fs-small is 13.1px at 320px and styles primary reading content (experience summaries/highlights, project detail bullets, nav links).
+
+**Why (evidence):** clamp(0.82rem, 0.79rem + 0.14vw, 0.875rem) at 320px: preferred = 12.64 + 0.448 = 13.09px, floor 13.12px → 13.12px. It is applied to .tl-item__summary, .tl-item__hl li, .pcard__details li, .cert__title, .spec__row dd, .nav__link and both button variants — i.e. the bulk of the résumé content a recruiter reads on a phone sits below 14px.
+
+**Suggested fix:** Raise the floor to 0.875rem (14px) at small viewports, e.g. clamp(0.875rem, 0.84rem + 0.2vw, 0.9375rem), or switch long-form items (timeline highlights, pcard details) to --fs-body.
+
+**Verifier:** PLAUSIBLE — Math and usage verified: --fs-small resolves to 13.12px at 320px (tokens.css:91) and styles all listed reading-content selectors with no media-query or cascade override anywhere in global.css; whether sub-14px is acceptable is a design judgment, so premise-accurate but subjective.
+
+### 157. [POLISH] src/styles/global.css:197 — Signal-rail position uses 100vw, which includes the scrollbar width on desktop, shifting the rail ~7-8px right of its intended slot.
+
+**Why (evidence):** left: max(calc((100vw - var(--maxw)) / 2 + 0.5rem), 0.9rem) — with a classic (non-overlay) scrollbar, 100vw exceeds the layout viewport by the scrollbar width (~15px on Windows), so the computed left is ~7.5px greater than the true centered-container offset. Decorative-only impact (the rail sits within the container's 4rem gutter), but at widths just above 1196px it drifts toward the content edge.
+
+**Suggested fix:** Compute from the layout width instead: left: max(calc((100% - var(--maxw)) / 2 + 0.5rem), 0.9rem) on a full-width fixed element, or subtract the scrollbar via width: calc(100vw - (100vw - 100%)).
+
+**Verifier:** CONFIRMED — global.css:197 does use 100vw on the fixed .signal-rail while .container (global.css:62) centers against the layout viewport; no scrollbar-gutter or later rule compensates, so with a classic scrollbar the rail shifts right by ~half the scrollbar width — real but decorative-only, matching the stated polish severity.
+
+### 158. [POLISH] src/styles/global.css:223 — Mobile nav dropdown has no max-height or internal scrolling for very short landscape viewports.
+
+**Why (evidence):** The ≤720px .nav__links panel is absolutely positioned below the 60px nav and contains 6 links at ~40px each plus padding (~290px total). On a landscape phone (~320-375px viewport height) the last links extend below the fold, and since the panel itself doesn't scroll (and page scroll moves the sticky nav context), the Contact/GitHub items can be hard to reach.
+
+**Suggested fix:** Add max-height: calc(100dvh - var(--nav-h)); overflow-y: auto; to the ≤720px .nav__links rule.
+
+**Verifier:** CONFIRMED — The ≤720px .nav__links rule at src/styles/global.css:223 has no max-height/overflow, nothing elsewhere in the cascade or scripts handles it, and since the panel is absolutely positioned inside the sticky nav, the ~290px of 6 links is genuinely unreachable on ~320px-tall landscape viewports.
+
+### 159. [POLISH] src/styles/global.css:253 — min-height: 100svh has no fallback line for browsers without svh support.
+
+**Why (evidence):** .hero { min-height: 100svh; } — Safari <15.4 and Chrome <108 ignore the declaration entirely, leaving the hero with no min-height at all (it still renders because content gives it height, but the full-viewport intent is lost, and on short content the spec card could sit against the fold oddly).
+
+**Suggested fix:** Declare a fallback first: min-height: 100vh; min-height: 100svh;.
+
+**Verifier:** CONFIRMED — global.css:253 has min-height: 100svh with no vh fallback anywhere in the cascade (line 504 is print-only min-height: auto), so svh-unaware browsers get no min-height on the hero.
+
+### 160. [POLISH] src/styles/global.css:299 — Hover effects are not guarded by @media (hover: hover), causing sticky-hover artifacts on touch devices.
+
+**Why (evidence):** CSS :hover rules (.pcard:hover translateY(-3px)+glow at 299, .gcard:hover at 331, .badge:hover at 156, .ticked:hover at 182, .spec__row.hoverable:hover at 167-169, .btn hovers at 129/133) run on tap on touch screens and then stick until the next tap elsewhere. The JS spotlight/magnetic effects are correctly gated on (pointer:fine) in Layout.astro:254, but the CSS layer has no equivalent guard, so tapping a project card leaves it permanently lifted/glowing.
+
+**Suggested fix:** Wrap the purely-decorative :hover rules in @media (hover: hover) and (pointer: fine) { ... }.
+
+**Verifier:** CONFIRMED — All cited :hover rules exist unguarded at the claimed lines in /home/sena/ESPworkspace/ramuroy.github.io/src/styles/global.css, and a repo-wide grep finds no @media (hover)/(pointer) CSS guard anywhere — the only (pointer: fine) gate is the JS in Layout.astro:254, which does not prevent sticky CSS hover on touch devices.
+
+### 161. [POLISH] src/styles/global.css:394 — Certification gauge bars print as empty tracks because the fill is a background gradient.
+
+**Why (evidence):** .gauge__fill's only visual is background: linear-gradient(...), and browsers skip background printing by default, so on paper each certification shows an empty pill next to '85%'/'88%'. Minor since the numeric value still prints, but the empty bar looks broken.
+
+**Suggested fix:** In @media print, give the fill a printable style: .gauge__fill { background: #444 !important; print-color-adjust: exact; } or hide .gauge__track entirely when printing.
+
+**Verifier:** CONFIRMED — .gauge__fill (global.css:394) relies solely on a background gradient and the @media print block (lines 500-508) contains no print-color-adjust or fallback for it, so bars print as empty tracks; additionally the .js.reveal-ready width:0 state (line 395) is not reset in print.
+
+### 162. [POLISH] src/styles/global.css:504 — break-inside: avoid on entire multi-page sections is ineffective and can produce large blank gaps in print.
+
+**Why (evidence):** @media print applies break-inside:avoid to .section and .hero, but the Projects and Experience sections are far taller than one page, so the avoid hint is either ignored or (in some engines) forces a page break before the section, leaving a mostly blank page. The useful granularity is the card/timeline-item level, which has no break rules.
+
+**Suggested fix:** Move the rule to atomic units: .pcard, .gcard, .tl-item, .cert, .spec-card, .stat { break-inside: avoid; } and remove it from .section/.hero.
+
+**Verifier:** CONFIRMED — global.css:504 does apply break-inside:avoid to .section/.hero in @media print, it is the only break rule in the repo, and the Projects (~7 pcards + gcards) and Experience (8+ tl-items) sections exceed one page, so the avoid hint is unsatisfiable while individual cards remain splittable.
+
+### 163. [POLISH] src/styles/global.css:507 — Printed page underlines links but never reveals their URLs, so GitHub/LinkedIn/repo references are dead ends on paper.
+
+**Why (evidence):** @media print sets a { text-decoration: underline; } but there is no a[href^="http"]::after { content: " (" attr(href) ")" } rule. A recruiter reading the printout sees 'github.com/ramuroy' in a couple of places (contact spec, pcard refs) but the flagship 'view certificate' links, gcard repo cards (whole-card anchors with no visible URL), and LinkedIn label print with no usable address.
+
+**Suggested fix:** Add @media print { a[href^="http"]:not(.pcard__ref):not(.link)::after { content: " (" attr(href) ")"; font-size: 0.75em; word-break: break-all; } } (scope to the links whose text is not already a URL).
+
+**Verifier:** PLAUSIBLE — Premise verified: global.css:507 is the only print rule for anchors (a { text-decoration: underline; }) and no attr(href)::after rule exists anywhere in src/, while non-URL-text external links exist (e.g. "view certificate" in src/components/Certifications.astro:25); whether printouts should expose URLs is a polish/judgment call rather than a defect.
+
+
+## Visual design & polish — 34 findings
+
+### 164. [MAJOR] src/components/Hero.astro:8 — First viewport repeats the same identity string 3-4 times: nav masthead, hero titleblock, hero eyebrow, and spec card all say embedded-systems/Hyderabad.
+
+**Why (evidence):** The sticky nav shows "RR // EMBEDDED SYSTEMS rev.2026" (Nav.astro:7); ~60px below it the hero titleblock repeats "RR // EMBEDDED SYSTEMS · rev.2026 · HYD-IN" (Hero.astro:8); the eyebrow then says "embedded systems engineer · hyderabad, india" (site.ts:58); and the spec card's first row is "Location: Hyderabad, IN" (site.ts:76). In the first 5 seconds a recruiter reads the same role+location four times, which reads as filler and wastes the most valuable screen real estate on the page.
+
+**Suggested fix:** Delete the hero__titleblock line entirely (the nav masthead already carries it), and drop "Location" from keySpecs since the eyebrow states it — use the reclaimed spec row for a differentiator (e.g. "Deployed: Tata Steel BlueScope" is already there; add years of hands-on stack coverage or availability date).
+
+**Verifier:** PLAUSIBLE — All four cited strings exist exactly as claimed (Nav.astro:7, Hero.astro:8, site.ts:58, site.ts:76) and all render in the first viewport, but whether the repetition is wasteful filler or deliberate styling is a design judgment.
+
+### 165. [MAJOR] src/components/Stats.astro:5 — Stats band leads with vanity metrics (19 repos, 18 projects, 12 protocols, 5 languages) instead of the site's one memorable fact.
+
+**Why (evidence):** The stats are counts of things, not outcomes: "GitHub repos" and "Projects" are near-duplicates of each other (19 vs 18), and "Protocols: 12" / "Programming languages: 5" are resume-keyword filler rendered at the largest, most glowing type on the page (stat__value, clamp up to 3.4rem with text-shadow). Meanwhile the genuinely memorable differentiator — a safety-critical system deployed in production at Tata Steel BlueScope — is buried in FIG. 02 and in the About body. The band is the first thing after the hero; it currently anchors the recruiter's memory on "19 repos".
+
+**Suggested fix:** Replace at least two stats with outcome-shaped facts, e.g. "1 system live at Tata Steel BlueScope", "100% on-device voice pipeline", "A/B OTA custom Linux distro". Keep at most one count-style metric.
+
+**Verifier:** PLAUSIBLE — Premise is accurate — Stats.astro:5-10 shows exactly the four count metrics (19 repos / 18 projects / protocols / languages) rendered first after the hero at the largest glowing type (global.css:475), while the Tata Steel BlueScope deployment lives only in About/project data (site.ts:88, 147-163) — but replacing counts with outcome facts is a subjective design/content call, not a factual code defect.
+
+### 166. [MAJOR] src/styles/global.css:0 — Accent cyan is sprayed across nearly every element with no hierarchy, so nothing is actually emphasized.
+
+**Why (evidence):** Accent (#00E5FF family) appears on: eyebrows (l.82), section rules (116), nav underlines (216), all four stat values with glow (475), badge hover (156), pill--production, buttons, hero arrows (261), hero em underlines (263), about .annot spans (288), spec is-active values (166), skill-group squares (376), timeline bullets (316/358), trace-div vias (436), signal rail, circuit pulses, gauge fills, cert links, footer accent, masthead b, ticked hover corners (182). When ~20 different element classes carry the signature color, the eye has no priority order — the "is-active" spec rows and deployed pills (the rows that matter) no longer stand out. The secondary accent --accent-2 (#7C8CFF) exists in tokens (tokens.css:31) but is never used via var() anywhere.
+
+**Suggested fix:** Define a 3-tier rule: full accent only for interactive/current things (links, active nav, deployed pills, is-active values); desaturated accent-deep for structural strokes (rules, rail, trace vias); neutrals for decorations (skill squares, list bullets, stat values → --text with one accent stat max). Consider using --accent-2 for one secondary family (e.g. ML/voice-related tags) to create an actual color hierarchy.
+
+**Verifier:** PLAUSIBLE — Factual premise verified — accent appears on all ~20 cited element classes in src/styles/global.css and --accent-2 (tokens.css:31) is never referenced via var() anywhere — but "nothing is emphasized" is a design-taste judgment, not an objective defect.
+
+### 167. [MAJOR] src/styles/global.css:217 — Nav scroll-spy active state never renders: CSS targets aria-current="true" but JS sets aria-current="location".
+
+**Why (evidence):** Layout.astro:135 and :156 set link.setAttribute("aria-current", "location"), but global.css:217-218 style .nav__link[aria-current="true"]. Confirmed in dist/_astro/index.CdjYdy0X.css: only [aria-current=true] selectors exist. Result: the accent color + underline for the current section never appears while scrolling — the entire scroll-spy feature (an intentional design affordance) is visually dead. A recruiter scrolling the page gets no wayfinding feedback in the nav.
+
+**Suggested fix:** Change the CSS selectors to .nav__link[aria-current="location"] (or a substring match [aria-current]), or have the JS set aria-current="true". Verify the underline animates on scroll after the fix.
+
+**Verifier:** CONFIRMED — global.css:217-218 select .nav__link[aria-current="true"] but Layout.astro:135/156 set aria-current="location" and no other CSS rule or class toggle covers the active state, so the scroll-spy highlight never appears.
+
+### 168. [MAJOR] src/styles/global.css:305 — pcard__desc has no max-width, so the full-width eOS card's description runs ~120+ characters per line at 1440px.
+
+**Why (evidence):** .pcard__desc has no measure constraint, and the eOS card is .card-full (grid-column: 1 / -1, global.css:295), so inside the 1180px container its two-sentence description (site.ts:123-124) spans roughly 1080px — far past the 68ch --measure token the design system defines (tokens.css:79, itself never applied anywhere: the .measure utility at global.css:65 is unused, confirmed absent from dist/index.html). Long lines at fs-body noticeably hurt readability on the single most important project card.
+
+**Suggested fix:** Add max-width: var(--measure) (or ~70ch) to .pcard__desc, and consider a two-column internal layout for .card-full so the spec list sits beside the description instead of below it.
+
+**Verifier:** PLAUSIBLE — Factual premise fully verified — .pcard__desc (global.css:305) has no width constraint, the eOS card is full-width (global.css:295, site.ts:141) inside the 1180px container, and the 68ch --measure token/.measure utility is defined but never used — but the severity of the resulting ~120ch line length is a design-polish judgment call.
+
+### 169. [MAJOR] src/styles/global.css:483 — Every section title runs an infinite 7s shimmer animation forever, which is distracting and cheapens the headings.
+
+**Why (evidence):** .section-head__title has `animation: shimmer 7s linear infinite` sweeping accent-soft through the gradient text. Six headings shimmer perpetually for the whole visit; combined with the pulsing LEDs, pinging rail node, blinking caret, nudging scroll cue, and circuit pulses, there are 5+ infinite animations concurrently visible. Perpetual motion on primary headings pulls the eye away from content and reads as template flash rather than intent. It also costs continuous paint on gradient text.
+
+**Suggested fix:** Run the shimmer once when the heading enters the viewport (reuse the existing .in-view hook: animate on .section-head.in-view with `forwards`, no infinite), or restrict it to hover.
+
+**Verifier:** PLAUSIBLE — The factual premise is accurate — src/styles/global.css:483 does apply `animation: shimmer 7s linear infinite` to all .section-head__title elements, disabled only under prefers-reduced-motion (line 526) and print (line 506), and at least seven other infinite animations coexist in the default experience — but whether perpetual shimmer on headings is distracting/cheap is a design judgment, not an objective defect.
+
+### 170. [MINOR] src/components/About.astro:6 — Auto-highlighting 11 terms in the About copy produces ~14 cyan dotted-underline spans in three paragraphs — over-highlighting that dilutes emphasis.
+
+**Why (evidence):** The TERMS regex marks every occurrence of 11 strings (including generic repeats like 'Yocto', 'Rust', 'ESP-IDF') with .annot (accent color + dotted underline, global.css:288). Paragraph 3 alone highlights eOS, Elipse-adjacent terms, Yocto, Raspberry Pi 5, RAUC, tract, Rust — the paragraph becomes a cyan measles pattern and the genuinely important phrases (Tata Steel BlueScope, deployed in production) carry no more weight than 'Rust'.
+
+**Suggested fix:** Cap highlights to 1-2 per paragraph and choose them editorially (proper nouns proving impact: 'Tata Steel BlueScope', 'eOS'); drop generic tech names — they are already badges elsewhere.
+
+**Verifier:** PLAUSIBLE — Premise verified — About.astro:6-15 highlights all occurrences of 11 terms (~13-14 .annot spans, 8 in paragraph 3 alone, including "Rust" matched inside "pure-Rust"/"async-Rust"), styled identically to key phrases via global.css:288 with no cascade mitigation; but whether this dilutes emphasis is a design judgment.
+
+### 171. [MINOR] src/components/About.astro:45 — TraceDivider usage is inconsistent — end of About, middle of Projects, top of Footer, absent everywhere else — and it distorts section rhythm.
+
+**Why (evidence):** The PCB divider appears at About's end (About.astro:45), between flagship and grid inside Projects (Projects.astro:72), and atop the Footer (Footer.astro:7); Experience, Skills, Certifications, and Contact get none. Because .trace-div carries margin-block: var(--space-7) (global.css:431), the About→Projects boundary gains ~3rem+24px over the uniform --section-gap, so section spacing is visibly unequal (About→Projects larger than Projects→Experience). A divider that appears 3 times in 7 boundaries reads as leftover decoration rather than a system.
+
+**Suggested fix:** Pick a rule and apply it: either a trace divider between every pair of sections (move it into a layout-level loop) or only as an intra-section separator (keep the Projects usage, drop About's). Also reduce/remove its margin-block so section gaps stay uniform.
+
+**Verifier:** PLAUSIBLE — Premise verified — TraceDivider appears only at About.astro:45, Projects.astro:72, Footer.astro:7 and .trace-div's margin-block: var(--space-7) (3rem, global.css:431) does add extra space beyond the uniform --section-gap at the About→Projects boundary — but whether the 3-of-7 usage reads as inconsistent decoration is a design judgment call.
+
+### 172. [MINOR] src/components/Footer.astro:6 — Footer (and Certifications/Contact) use the 720px .spine container while nav and other sections use 1180px, so the footer no longer aligns with the nav masthead and the page column visibly jumps.
+
+**Why (evidence):** Certifications.astro:6, Contact.astro:7, and Footer.astro:6 all add .spine (max-width: 720px, global.css:63). At 1440px the page narrows abruptly after Skills and the footer's copyright/links sit ~230px inboard of the nav masthead above them. A width change can be an intentional taper, but the full-width footer background bar with a centered narrow content column reads as misalignment rather than rhythm, especially against the left signal-rail which is positioned off --maxw (1180px).
+
+**Suggested fix:** Keep the spine for Certifications/Contact if the taper is intended, but let the footer use the standard .container so its edges align with the nav; alternatively left-align the spine (remove auto margins) so the left edge stays on the 1180px grid.
+
+**Verifier:** PLAUSIBLE — Factual premise verified — Footer.astro:6, Certifications.astro:6, Contact.astro:7 use .spine (720px, tokens.css:77/global.css:63) vs 1180px .container in Nav and other sections, giving a ~230px inset at 1440px with the signal-rail keyed to --maxw — but whether the width taper reads as misalignment versus intentional rhythm is a design judgment.
+
+### 173. [MINOR] src/data/site.ts:74 — Hero ticker leads with 'cgpa 8.3', and CGPA is repeated in four places on the page.
+
+**Why (evidence):** The ticker's first item is 'cgpa 8.3' (site.ts:74); CGPA also appears in hero keySpecs 'B.Tech ECE (CGPA 8.3)' (l.77), About glance (l.94), and Education (l.304). Leading the hero's status ticker with a grade is a weak first signal for an engineer with a production deployment, and the 4x repetition reads as padding. '19 repos' in the ticker likewise duplicates the Stats band directly below the hero.
+
+**Suggested fix:** Reorder the ticker to lead with the strongest proof (e.g. 'live @ tata steel', 'yocto', 'rust', 'esp-idf v5.2') and keep CGPA only in Education and the hero spec card.
+
+**Verifier:** PLAUSIBLE — Premise verified: ticker at src/data/site.ts:74 leads with "cgpa 8.3" and CGPA is repeated at lines 77, 94, and 304, but the reordering/repetition concern is a content-taste judgment call, not a defect.
+
+### 174. [MINOR] src/data/site.ts:285 — Tech keywords repeat as badges across three sections (flagship cards, experience tags, skills groups), creating badge-wall density and diluting the Skills section.
+
+**Why (evidence):** Yocto, BitBake, RAUC, Rust, ESP-IDF, D-Bus, MQTT, SQLite, Qt6/QML, STM32, FreeRTOS each appear as .badge chips 3-5 times: in flagship tech arrays (site.ts:132/157/182), experience tags (l.252/268/281), and skillGroups items (l.286-293) plus the protocols line. On a full read the recruiter encounters ~120 chips; the Skills section adds little new information by the time it is reached, and each individual badge loses signal.
+
+**Suggested fix:** Trim flagship tech arrays to 5-6 chips (the params spec rows already carry detail), cap experience tags at ~6, and let Skills be the single exhaustive inventory; alternatively differentiate the Skills badges visually (core vs rest is already modeled via badge--core — make the non-core ones plain text).
+
+**Verifier:** PLAUSIBLE — Premise verified — the listed keywords each appear 3-5 times as .badge chips across Projects.astro:37/91, Experience.astro:27, and Skills.astro:16 (data at site.ts:132/157/182, :252/268/281, :285-296), totaling 120+ chips — but badge-wall density/dilution is a design judgment call, not an objective defect.
+
+### 175. [MINOR] src/layouts/Layout.astro:253 — Effect stack is over-provisioned: cursor glow + per-card spotlight + magnetic buttons + constellation canvas + name scramble + shimmer + boot intro + circuit pulses + signal rail compete instead of compounding.
+
+**Why (evidence):** Nine distinct motion/hover systems run on one page (Layout.astro:253-301, Hero.astro:74-187, BootIntro, shimmer at global.css:483, circuit pulses at 448, rail ping at 201). Individually each is well-built (reduced-motion and no-JS paths are handled), but together they push the site from 'premium datasheet' toward 'effects demo' — e.g. hovering a flagship card simultaneously triggers lift, border glow, spotlight tracking, corner-tick recolor, and the page-level cursor glow beneath. The strongest, most on-theme pieces are the datasheet motifs (spec leaders, FIG numbering, trace divider, boot POST); the generic ones (magnetic buttons, constellation, cursor glow) are the least differentiated from template portfolios.
+
+**Suggested fix:** Cut two or three generic effects — magnetic buttons and the page-level cursor glow are the best candidates (the constellation canvas is defensible as the hero moment). Keep card spotlight OR lift+ring, not both.
+
+**Verifier:** PLAUSIBLE — Every factual premise checks out (all nine effects exist at the cited locations in Layout.astro:253-301, Hero.astro:74-187, and global.css:201/448/483, with reduced-motion/no-JS handled as claimed), but whether the combined effect stack is excessive is a design taste call, not a defect.
+
+### 176. [MINOR] src/styles/fonts.css:3 — Decorative glyphs (▣ ▸ ▾ ▼ › → ↗ ↑ ↓ ★ ·) fall outside the bundled Latin font subsets and render in inconsistent OS fallback fonts; the arrow language itself mixes 5+ families.
+
+**Why (evidence):** Only latin-wght subsets of Inter/JetBrains Mono/Space Grotesk are self-hosted, so symbols like ▣ (U+25A3, Hero.astro:47), ▼ (global.css:273), ▸ (Hero glyphs, pcard summary l.312), ▾ (Nav.astro:9), ★ (l.323), ↗/↑/↓/→ come from whatever system fallback has them — different weights, widths, and baselines per OS, visibly off against the mono labels they sit inside. Separately, the site uses at least five distinct 'arrow' glyphs for similar meanings: › (ghost btn/bullets), ▸ (primary CTA/summary), → (repo ref), ↗ (external), ↓ (download), with no consistent semantic mapping.
+
+**Suggested fix:** Replace decorative glyph characters with tiny inline SVGs (consistent 1.5px stroke, currentColor, aligned via vertical-align) or at minimum standardize on JetBrains Mono-covered characters; define one glyph per meaning: internal-jump, external-link, download, disclosure.
+
+**Verifier:** CONFIRMED — Verified with fontTools against the actual bundled woff2 files: ▣ ▸ ▾ ▼ → ↗ ★ are absent from all three latin subsets (src/styles/fonts.css declares no other @font-face and no unicode-range, and no fallback exists in tokens.css/global.css), so they render in OS fallback fonts as claimed; the finding only slightly overstates by listing › ↑ ↓ ·, which ARE present in all three subsets, and the "5+ arrow glyphs for similar meanings" premise is factually accurate (› ▸ → ↗ ↓ all in use).
+
+### 177. [MINOR] src/styles/global.css:132 — Ghost buttons are double-ornamented: a '›' prefix from CSS plus a trailing glyph from markup.
+
+**Why (evidence):** .btn-ghost::before injects '›' (global.css:132), while every ghost button also ships a trailing glyph in markup: '› DOWNLOAD CV ↓' (Hero.astro:33-35, Contact.astro:48) and '› VIEW ALL ON GITHUB ↗' (Projects.astro:77-79). Two decorative glyphs per button is cluttered and the leading '›' duplicates the same character used as list bullets (pcard__details li::before, tl-item__hl li::before), muddying its meaning.
+
+**Suggested fix:** Remove the .btn-ghost::before rule and keep only the trailing directional glyph, which actually communicates the action (download vs external).
+
+**Verifier:** PLAUSIBLE — Premise verified: .btn-ghost::before injects '›' (global.css:132) and every ghost button also has a trailing glyph in markup (Hero.astro:33-35, Contact.astro:48, Projects.astro:77-79), with '›' reused as list bullets (global.css:316, 358); whether the double ornamentation is cluttered is a design judgment.
+
+### 178. [MINOR] src/styles/global.css:161 — Spacing scale exists in tokens but several rules use off-scale literals (0.55rem, 0.2rem, 0.35rem, -0.4rem, 0.7rem/1.15rem).
+
+**Why (evidence):** Despite --space-1..10: .spec gap 0.55rem (l.161), .pcard__params.cols gap 0.55rem (l.307), .pcard__tagline margin-top -0.4rem negative hack against the parent's flex gap (l.304), .edu-row gap 0.2rem (l.363), .skill-group__name margin-bottom 0.35rem (l.375), .btn padding 0.7rem 1.15rem (l.127). Each is close to an existing token (space-2=0.5rem, space-1=0.25rem) but not on it, so vertical rhythm drifts by a few px between adjacent components.
+
+**Suggested fix:** Snap to tokens: 0.55rem→var(--space-2), 0.2rem/0.35rem→var(--space-1), replace the -0.4rem tagline hack by wrapping title+tagline in a block with its own smaller gap; tokenize button padding.
+
+**Verifier:** PLAUSIBLE — All cited off-scale literals exist exactly as claimed at the stated lines and the --space-1..10 token scale exists in tokens.css, but whether these near-token values are drift or deliberate optical tuning is a design judgment call.
+
+### 179. [MINOR] src/styles/global.css:272 — Uppercase mono labels use five different letter-spacing values (0.04, 0.10, 0.12, 0.14, 0.2em) with no system.
+
+**Why (evidence):** Tracking on uppercase/mono text varies: .eyebrow/.masthead/.spec-card__label/.pcard__fig/.stat__label/.protocols__label = 0.14em; .led/.boot__skip/.pcard__details summary/.nav__menu-btn/.spec dt = 0.12em; .pill = 0.10em; .btn/.ticker = 0.04em; .hero__scroll = 0.2em (l.272). These are all the same voice (small mono caps) rendered with five trackings, which shows up as subtly mismatched texture when labels sit near each other (e.g. pill next to spec dt inside the hero card).
+
+**Suggested fix:** Collapse to two tokens: --track-caps: 0.12em for all small uppercase mono labels, and --track-btn: 0.04em for button-sized mono text; replace the literals.
+
+**Verifier:** PLAUSIBLE — Premise verified: five hardcoded letter-spacing values (0.04/0.10/0.12/0.14/0.2em) on small mono/uppercase labels in global.css with no tokens or cascade normalization (hero__scroll at l.272 as cited), but whether that inconsistency is a defect is a design taste call.
+
+### 180. [MINOR] src/styles/global.css:330 — Card surfaces are five ad-hoc variants (pcard/gcard/cert/spec-card/contact__panel) differing in radius, padding, and hover for no discernible reason.
+
+**Why (evidence):** All five share background: var(--surface) + 1px var(--border), but: .pcard = radius-lg, padding clamp(1.25rem,3vw,2rem), hover lift -3px + glow ring (l.298-299); .gcard = radius-md (the only md card), padding space-5, hover lift -2px + shadow-md no glow (l.330-331); .cert = radius-lg, padding space-5, no hover at all (l.388); .spec-card = radius-lg, padding clamp(1.1rem,2.5vw,1.6rem) (l.172); .contact__panel = radius-lg, padding clamp(1.5rem,5vw,3rem) (l.406). Three different clamp() padding recipes and three hover behaviors is a system smell; the gcard's smaller radius next to flagship cards in the same section reads as an accident rather than hierarchy.
+
+**Suggested fix:** Define one .card base (surface, border, radius-lg, padding token) with size modifiers (--card-pad-sm/md/lg) and a single hover recipe for interactive cards; make radius differences intentional (e.g. gcard keeps radius-md only if documented as the 'compact' tier).
+
+**Verifier:** PLAUSIBLE — All cited selectors, line numbers, radii, paddings, and hover behaviors are factually accurate and no shared base class or cascade unification exists, but whether the five variants are an accident or intentional tiering is a design judgment call.
+
+### 181. [MINOR] src/styles/global.css:333 — Off-scale font sizes break the type scale: gcard__title 1rem, skill-group__name 1.05rem, masthead 0.66rem, stat__value one-off clamp.
+
+**Why (evidence):** tokens.css defines a full fluid scale (--fs-eyebrow/micro/small/body/lead/h3/h2/h1/hero/numeral) but global.css introduces raw values: .gcard__title { font-size: 1rem } (l.333), .skill-group__name { font-size: 1.05rem } (l.375), .masthead { font-size: 0.66rem } in the ≤720px block (l.227), and .stat__value uses an untokenized clamp(2.1rem, 1.4rem + 2.6vw, 3.4rem) (l.475). 1rem and 1.05rem are two nearly-identical ad-hoc steps sitting between --fs-body and --fs-h3. Additionally --fs-h1 (tokens.css:96) is never referenced anywhere, and --fs-eyebrow vs --fs-micro (tokens.css:89-90) differ only in max (0.80 vs 0.78rem) — a near-duplicate step.
+
+**Suggested fix:** Add one intermediate token (e.g. --fs-h4: clamp(1rem, ..., 1.1rem)) and use it for gcard__title and skill-group__name; tokenize the stat clamp as --fs-stat; merge --fs-eyebrow into --fs-micro; delete the unused --fs-h1.
+
+**Verifier:** PLAUSIBLE — Every cited value verified verbatim (global.css:333, 375, 227, 475; tokens.css:89-90, 96 with --fs-h1 unused and --fs-eyebrow/--fs-micro differing only in max 0.80 vs 0.78rem), but whether these off-scale one-offs are a defect is a design-consistency judgment call, not a functional bug.
+
+### 182. [MINOR] src/styles/global.css:357 — Multi-line bullet text uses --lh-snug (1.2) line-height, too tight for wrapping body copy.
+
+**Why (evidence):** .tl-item__hl li (l.357) and .pcard__details li (l.315) set line-height: var(--lh-snug) = 1.2 at --fs-small. The experience highlights (site.ts:245-250) are long sentences that wrap to 2-3 lines at container width; 1.2 leading on wrapped 0.85rem text is cramped and hurts scanability of exactly the content a recruiter reads most carefully. .skill-group__blurb (l.377) has the same issue at --fs-micro.
+
+**Suggested fix:** Use ~1.45-1.55 line-height (add a --lh-list token) for .tl-item__hl li, .pcard__details li, and .skill-group__blurb; reserve --lh-snug for headings/subheads that wrap at large sizes.
+
+**Verifier:** PLAUSIBLE — Premise verified: tokens.css defines --lh-snug: 1.2, and global.css applies it at l.357 (.tl-item__hl li), l.315 (.pcard__details li), and l.377 (.skill-group__blurb) on --fs-small/--fs-micro text with no later cascade or component-scoped override; site.ts highlights (l.245-250) are 150-220 char sentences that wrap 2-3 lines within the 82ch max-width — but whether 1.2 leading is "too tight" is a design judgment, not an objective defect.
+
+### 183. [POLISH] src/components/BootIntro.astro:74 — First-visit boot overlay blocks content for ~1.6s (1.3s timer + 340ms wipe) — friction precisely for the first-time recruiter visit.
+
+**Why (evidence):** The POST intro is well-engineered (session-gated, skippable, reduced-motion- and no-JS-safe) but its cost lands exclusively on the visitor who matters most: a recruiter's very first load waits ~1.6s before the hero, on top of network time. The three boot lines animate at 0.22s steps (global.css:242), so the last line barely finishes before the wipe starts.
+
+**Suggested fix:** Shorten to ~0.9s total (faster line stagger, 240ms wipe), or overlay it translucently over the already-rendering hero so content paints beneath and the wipe reveals rather than gates.
+
+**Verifier:** PLAUSIBLE — Factual premise verified — opaque fixed overlay (global.css:236) gates content for ~1.64s on first visit (1300ms timer at BootIntro.astro:74 + 340ms wipe at line 64, 0.22s line stagger at global.css:242) — but whether the skippable intro is unwanted friction versus intentional polish is a taste call.
+
+### 184. [POLISH] src/components/Certifications.astro:9 — Certifications is a full numbered section for only two cards — the sparsest section on the page relative to its ceremony.
+
+**Why (evidence):** The section carries the complete header apparatus (watermark numeral 05, eyebrow, rule, shimmer title) for two NPTEL cert cards in a 2-col grid inside the 720px spine. Between the dense Skills wall and the Contact panel it reads as under-filled, and its gauge bars are the page's only chart-like element, evoking the 'skill bar' cliché even though these are real exam scores.
+
+**Suggested fix:** Fold certifications into the Experience section's exp-extra grid (alongside Education, where NPTEL scores naturally belong) or into Skills as a compact row; if kept standalone, label the gauges explicitly ('exam score') so they are not misread as self-assessed skill levels.
+
+**Verifier:** PLAUSIBLE — Premise verified — only two cert cards (site.ts:298-301) under a full numbered header (num 05), gauges appear nowhere else and lack an explicit "exam score" label — but sparseness/skill-bar-cliché is a design judgment call.
+
+### 185. [POLISH] src/components/Contact.astro:14 — Contact's h2 skips the shimmer/gradient title treatment every other section title receives, and its SectionHeader renders eyebrow+rule with no title above the panel.
+
+**Why (evidence):** Contact passes no title to SectionHeader (Contact.astro:8), placing its h2 (.contact__title) inside the panel instead. It therefore misses .section-head__title's gradient/shimmer styling — the only section title on the page in flat --text. If deliberate, it is undocumented; visually it reads as the one heading the treatment forgot.
+
+**Suggested fix:** Either extend the title treatment class to .contact__title or (better, if the shimmer is toned down per the earlier finding) unify all titles as flat with a single accent element.
+
+**Verifier:** PLAUSIBLE — Premise verified — Contact.astro:8 uniquely omits the SectionHeader title, and .contact__title (global.css:407) is flat --text while .section-head__title gets the shimmer gradient (global.css:483) with no rule extending it; the fix itself is a design taste call.
+
+### 186. [POLISH] src/components/Contact.astro:46 — Contact reuses the class 'hero__ctas' for its button row — a naming leak that couples two unrelated sections' layout.
+
+**Why (evidence):** Contact.astro:46 uses <div class="hero__ctas"> to get the flex-gap layout defined for the hero (global.css:268, which also carries margin-bottom: var(--space-6) — dead weight as the last element of the contact panel, adding un-designed bottom space inside the panel above its padding).
+
+**Suggested fix:** Rename the utility to .cta-row (used by both hero and contact) and move the margin-bottom onto the hero-specific context; check the contact panel's bottom spacing after removal.
+
+**Verifier:** CONFIRMED — Contact.astro:46 does use class "hero__ctas", whose sole definition (global.css:268) includes margin-bottom: var(--space-6); no cascade rule (e.g., a :last-child reset on .contact__panel, global.css:406) zeroes it, so the hero-specific bottom margin genuinely leaks into the contact panel's last element.
+
+### 187. [POLISH] src/components/Footer.astro:9 — The availability LED + 'available for embedded roles' line appears three times (hero, contact panel, footer).
+
+**Why (evidence):** Hero.astro:11 (LED beside eyebrow), Contact.astro:11-13 (contact__led), and Footer.astro:9-11 render the same pulsing LED status. In the footer it sits directly below the contact panel's identical line, ~200px apart, so the repetition is visible in a single viewport at the end of the page.
+
+**Suggested fix:** Keep the LED in hero and contact; in the footer fold availability into the colophon text or drop it.
+
+**Verifier:** PLAUSIBLE — Contact.astro:11-13 and Footer.astro:9-11 render the identical LED + "available for embedded roles" line back-to-back and Hero.astro:11 repeats the LED motif (with different eyebrow text, not the availability line), so the factual premise holds with that minor overstatement; whether to fold it into the colophon is a design judgment.
+
+### 188. [POLISH] src/data/site.ts:42 — Certifications section has no nav entry, so it is unreachable from the nav and invisible to the scroll-spy.
+
+**Why (evidence):** nav (site.ts:42-48) lists About/Projects/Experience/Skills/Contact; the numbered section '05 — compliance & test' exists between Skills and Contact but never lights any nav state and cannot be jumped to. Once the aria-current bug is fixed, Skills will stay 'current' while the user reads Certifications — a small wayfinding gap.
+
+**Suggested fix:** Either add a 'Certs' nav item or accept the gap deliberately and map the certifications section to the Skills link in the scroll-spy.
+
+**Verifier:** PLAUSIBLE — Factually accurate — nav (site.ts:42-48) omits Certifications, the #certifications section exists (Certifications.astro:5), and the scroll-spy (Layout.astro:119-141) only observes nav-linked sections with no mapping for it — but adding a nav item vs. accepting the gap is a design judgment call.
+
+### 189. [POLISH] src/data/site.ts:72 — Primary CTA glyph '▸' conflicts with the same glyph's use as the details-disclosure marker, and CTA labels use three different verb styles.
+
+**Why (evidence):** 'VIEW PROJECTS ▸' (site.ts:72) uses the identical triangle that means 'expandable' on .pcard__details summaries (global.css:312) and 'skip intro ▸' (BootIntro.astro:5). In Contact the primary action is labeled 'OPEN MAILTO' (Contact.astro:47) — developer jargon ('mailto' is a URI scheme, not a recruiter-facing word) inconsistent with 'VIEW PROJECTS'/'DOWNLOAD CV'.
+
+**Suggested fix:** Give the primary CTA a ↓-flow-appropriate arrow (e.g. '↓' or '→') distinct from the disclosure triangle, and rename 'OPEN MAILTO' to 'EMAIL ME' or 'SEND EMAIL'.
+
+**Verifier:** PLAUSIBLE — Every factual premise checks out (▸ at site.ts:72, global.css:312, BootIntro.astro:5; "OPEN MAILTO ▸" at Contact.astro:47), but the glyph conflict and label-verb inconsistency are subjective design-polish calls rather than objective defects.
+
+### 190. [POLISH] src/data/site.ts:210 — Grid project metadata is ragged: six projects have empty date strings, and footer labels mix '★ n', '↗ repo', and 'local' inconsistently.
+
+**Why (evidence):** AC-to-DC (l.210), FreeRTOS LEDs (l.212), Object Detection (l.213), Digital Dice (l.217), Click Counter (l.218), Rain Detector (l.219) have date: "" so their top rows render title-only while neighbors show dates — the grid's right edge alignment is inconsistent card to card. In the foot, '↗ repo' (Projects.astro:98) is redundant because the entire card is already the repo link, while starred cards show '★ n' and unlinked cards show 'local' — three different vocabularies in one slot.
+
+**Suggested fix:** Backfill dates (or drop the date slot entirely for the grid), and reserve the foot slot for stars only; the card being an <a> already communicates 'repo'.
+
+**Verifier:** PLAUSIBLE — Premise is accurate in the data (six empty dates, three foot vocabularies, card-as-link makes '↗ repo' redundant), but the grid renders only featured projects so just two empty-date cards (FreeRTOS LEDs, Object Detection) actually appear and the 'local' branch never renders; the residual inconsistency is a design judgment call.
+
+### 191. [POLISH] src/data/site.ts:316 — Section numbers are printed twice in every section header — in the eyebrow text ('// 01 — overview') and in the giant background numeral ('01').
+
+**Why (evidence):** sections.*.eyebrow all embed the number (site.ts:316-321) while SectionHeader.astro:10 renders the same number as the oversized --fs-numeral watermark behind it. Reading '01' twice within 40px is redundant and slightly weakens the watermark motif.
+
+**Suggested fix:** Drop the number from the eyebrow strings ('// overview', '// selected work'), letting the watermark own the numbering.
+
+**Verifier:** PLAUSIBLE — Premise verified — eyebrow strings at site.ts:316-321 embed the number and SectionHeader.astro:10 renders the same num as a visible watermark (global.css:109-113, no rule hides it) — but the duplication being a problem is a design-taste judgment.
+
+### 192. [POLISH] src/styles/global.css:122 — No text-wrap: balance/pretty on headings and copy, risking orphan words in multi-line titles.
+
+**Why (evidence):** Titles like 'Shipped firmware, distros & deployed systems' (--fs-h2, max-width 22ch) and the contact title 'Let's build something close to the metal' (max-width 18ch) will wrap to 2-3 lines across the fluid range with no balancing, so single-word last lines ('systems', 'metal') are likely at common widths. Paragraph copy similarly lacks text-wrap: pretty.
+
+**Suggested fix:** Add text-wrap: balance to .section-head__title, .contact__title, .about__subhead and text-wrap: pretty to .about__body p, .pcard__desc, .tl-item__summary (both are safe progressive enhancements).
+
+**Verifier:** PLAUSIBLE — Premise verified — no text-wrap: balance/pretty exists anywhere in src/styles (confirmed for .section-head__title at global.css:122, .contact__title:407, .about__subhead:285, and the body-copy selectors) — but whether orphan words result at common widths is an untested typographic judgment, so it is a valid polish suggestion rather than a confirmed defect.
+
+### 193. [POLISH] src/styles/global.css:259 — The hero name's terminal '.' gets only a text-shadow glow in the same text color — the intended accent moment is nearly invisible.
+
+**Why (evidence):** .hero h1 .end { text-shadow: var(--glow-text) } applies an 18px cyan glow at 0.10 alpha to a white period (Hero.astro:15). Against #0A0E14 the glow is imperceptible at period size, so the designed 'signature full-stop' reads as nothing.
+
+**Suggested fix:** Color the period var(--accent) (keep the glow), or replace it with a blinking block cursor to echo the terminal motif already used in the footer.
+
+**Verifier:** PLAUSIBLE — Premise verified: global.css:259 is the only rule for .end (text-shadow: 0 0 18px rgba(0,229,255,0.10) via --glow-text/--glow-soft in tokens.css:38,60), the period inherits the h1's near-white --text (#E6EDF3) with no accent color anywhere in the cascade (Hero.astro:15 confirms the markup), so the facts hold — but whether a 0.10-alpha glow on a period reads as "nearly invisible" is a design judgment.
+
+### 194. [POLISH] src/styles/global.css:328 — Heading hierarchy visually inverted in Projects: the h3 '// selected on github' is styled as a tiny muted label while non-heading card titles below it are larger and brighter.
+
+**Why (evidence):** .projects__more-head h3 renders at --fs-micro muted mono (l.328) while .gcard__title spans (not headings) render at 1rem semi-bold --text (l.333). Visually the subsection label carries less weight than every item it labels; combined with the ghost 'VIEW ALL ON GITHUB' button beside it, the row reads as a footnote rather than a subsection break.
+
+**Suggested fix:** Either accept it as an eyebrow (then make it a <p class="eyebrow"> for semantic honesty and give the grid a real visually-hidden heading) or promote it to a small display-face h3 (~--fs-h3 * 0.8).
+
+**Verifier:** PLAUSIBLE — Premise verified — global.css:328 styles the h3 at --fs-micro muted mono while .gcard__title spans (global.css:333, Projects.astro:86) render 1rem/600/--text with no cascade override — but the eyebrow-label treatment is a deliberate-looking design pattern, so the "issue" is a judgment call.
+
+### 195. [POLISH] src/styles/global.css:355 — Duplicate .tl-item__hl selector declared twice on consecutive lines.
+
+**Why (evidence):** Line 355 sets .tl-item__hl { display:flex; flex-direction:column; gap: var(--space-2); margin-bottom: var(--space-4); } and line 356 separately sets .tl-item__hl { max-width: 82ch; }. Also note 82ch at --fs-small is the widest measure on the page (other copy is capped at 46-64ch) — inconsistent measure system.
+
+**Suggested fix:** Merge into one rule and tighten max-width to ~70ch to match the rest of the measure scale.
+
+**Verifier:** CONFIRMED — global.css lines 355-356 really do declare .tl-item__hl twice back-to-back, and grep confirms 82ch is the widest ch measure in the file (all other copy is 18-64ch), so the duplicate-selector premise and measure inconsistency are factually accurate.
+
+### 196. [POLISH] src/styles/global.css:475 — All four stat values carry a 24px accent glow text-shadow — glow applied uniformly stops signifying anything.
+
+**Why (evidence):** .stat__value { color: var(--accent-text); text-shadow: 0 0 24px var(--glow) } on every stat. Combined with the glowing rail node, LED, button rings and card hover rings, glow is the default state rather than an emphasis state, contributing to dark-theme glow fatigue.
+
+**Suggested fix:** Render stat values in --text and reserve accent+glow for a single hero stat (or the count-up moment only, removing the glow at rest).
+
+**Verifier:** PLAUSIBLE — Premise verified: global.css:475 applies accent color + 24px glow text-shadow to every .stat__value with no override elsewhere in the cascade, and the other cited glow surfaces (rail node, buttons, card rings, timeline node) exist too — but "glow fatigue" is a subjective design call, not a defect.
+
+### 197. [POLISH] src/styles/tokens.css:21 — Token hygiene: duplicate and dead tokens (--label==--muted, --led-on==--success, unused --shadow-sm/--shadow-lg/--space-10/--fs-h1/--measure/--accent-2).
+
+**Why (evidence):** --label (l.22) duplicates --muted (l.21) at #7C8B99; --led-on (l.41) duplicates --success (l.39). Grep of global.css + components shows --shadow-sm (l.55), --shadow-lg (l.57), --space-10 (l.72), --fs-h1 (l.96) are never referenced; --measure (l.79) is only referenced by the .measure utility (global.css:65) which appears in no markup (confirmed absent from dist/index.html); --accent-2 (l.31) is never used via var() — the one place using that hue hardcodes rgba(124,140,255,0.07) in body::after (global.css:56).
+
+**Suggested fix:** Delete dead tokens or wire them up: alias --label: var(--muted); replace the hardcoded rgba in body::after with color-mix on var(--accent-2); apply var(--measure) to .pcard__desc/.about__body p instead of scattered ch literals.
+
+**Verifier:** PLAUSIBLE — Every claimed fact verifies (duplicate values at tokens.css:21-22 and 39/41; --shadow-sm/--shadow-lg/--space-10/--fs-h1/--accent-2 never referenced; .measure utility absent from dist markup; global.css:56 hardcodes rgba(124,140,255,0.07)), but whether semantic aliases and spare tokens constitute a problem is a design-hygiene judgment call.
+
+
+## Build / CI / tooling — 25 findings
+
+### 198. [MAJOR] .github/workflows/deploy.yml:4 — No PR- or branch-triggered validation workflow exists; the verify gate only runs on push to main, so broken changes are caught after merge.
+
+**Why (evidence):** The only workflow triggers are `push: branches: [main]` and `workflow_dispatch`. The repo's own docs (docs/decisions.md D-001, README) describe working on feature branches like codex/site-hardening-20260713 and merging after review, but nothing runs `npm run verify` (astro check + build + check-build) on pull requests or non-main pushes. A PR that fails type-check or build validation merges green and only fails during the production deploy run, blocking deployment of main until a follow-up fix.
+
+**Suggested fix:** Add a `pull_request` (and optionally `push: branches-ignore: [main]`) trigger, either as a separate ci.yml job or by adding `pull_request: branches: [main]` to this workflow with an `if: github.event_name == 'push'` guard on the deploy job, so `npm run verify` gates merges.
+
+**Verifier:** CONFIRMED — deploy.yml is the only workflow and its triggers (lines 3-6) are exactly push to main and workflow_dispatch, so `npm run verify` (defined in package.json) never runs on PRs or feature branches despite docs/decisions.md D-001 documenting a feature-branch-then-merge workflow — broken changes would only fail during the post-merge deploy run.
+
+### 199. [MINOR] .github/dependabot.yml:0 — No dependabot or renovate configuration, so npm dependencies and GitHub Actions receive no automated update PRs.
+
+**Why (evidence):** .github/ contains only workflows/deploy.yml. docs/decisions.md D-002 records that the previous dependency graph accumulated security advisories precisely because nothing kept it current; without automation the same drift will recur, for both the five npm dependencies and the five action pins.
+
+**Suggested fix:** Add .github/dependabot.yml with weekly `npm` and `github-actions` ecosystems (the actions ecosystem also keeps SHA pins fresh if the SHA-pinning finding is adopted).
+
+**Verifier:** PLAUSIBLE — Premise verified: .github/ contains only workflows/deploy.yml with no dependabot.yml or renovate config anywhere in the repo, package.json has five runtime deps, and docs/decisions.md D-002 does record prior advisory drift — but whether to add update automation to a small static portfolio site is a maintenance-policy judgment call, not a defect in existing code.
+
+### 200. [MINOR] .github/workflows/deploy.yml:8 — Workflow-level permissions grant pages:write and id-token:write to the build job, which only needs contents:read.
+
+**Why (evidence):** The permissions block at lines 8-11 applies to both jobs. The build job (checkout, npm ci, npm run verify, artifact upload) runs third-party npm install scripts with a GITHUB_TOKEN that has pages:write and an OIDC id-token grant it never uses; only the deploy job needs those. Least-privilege for Pages workflows is to keep `contents: read` at the top level and move `pages: write` / `id-token: write` into the deploy job.
+
+**Suggested fix:** Set workflow-level `permissions: contents: read` and add `permissions: { pages: write, id-token: write }` on the deploy job only.
+
+**Verifier:** CONFIRMED — .github/workflows/deploy.yml:8-11 sets workflow-level pages:write and id-token:write with no job-level overrides, so the build job's npm ci/verify steps run with token scopes only the deploy job's actions/deploy-pages step needs.
+
+### 201. [MINOR] .github/workflows/deploy.yml:16 — concurrency uses cancel-in-progress: true, which can cancel an in-flight production deployment; GitHub's Pages starter explicitly recommends false.
+
+**Why (evidence):** The official GitHub Pages starter workflow uses `cancel-in-progress: false` with the comment 'do NOT cancel in-progress runs as we want to allow these production deployments to complete'. With true, a rapid second push can cancel the deploy job of the first run mid-deployment; skipping queued (not in-progress) runs is the recommended behavior. The comment on line 13 ('Allow one concurrent deployment, cancelling in-progress runs') documents the risky behavior as intended.
+
+**Suggested fix:** Change to `cancel-in-progress: false` (queued runs are still coalesced by the shared `pages` group), or split concurrency so only the build job cancels and the deploy job never does.
+
+**Verifier:** CONFIRMED — deploy.yml:16 does set cancel-in-progress: true on a single `pages` concurrency group covering the deploy job, so a rapid second push can cancel an in-flight actions/deploy-pages run — the divergence from GitHub's Pages starter (which uses false) is real and unmitigated.
+
+### 202. [MINOR] .github/workflows/deploy.yml:23 — All five actions are pinned to mutable major-version tags rather than immutable commit SHAs.
+
+**Why (evidence):** actions/checkout@v4 (line 23), actions/setup-node@v4 (line 25), actions/configure-pages@v5 (line 30), actions/upload-pages-artifact@v3 (line 36), and actions/deploy-pages@v4 (line 49) are all tag-pinned. Tags are mutable, so a compromised or bad release of any of these actions is picked up automatically; the workflow holds `id-token: write` and `pages: write`, so a malicious action version could deploy arbitrary content to the live site. These are first-party GitHub actions, which lowers but does not eliminate the risk.
+
+**Suggested fix:** Pin each `uses:` to a full 40-char commit SHA with a trailing version comment (e.g. `actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2`) and add a github-actions dependabot ecosystem to keep the SHAs updated.
+
+**Verifier:** PLAUSIBLE — Factually accurate — all five actions at .github/workflows/deploy.yml:23,25,30,36,49 are tag-pinned, the workflow holds pages:write/id-token:write, and no dependabot config exists — but SHA-pinning first-party GitHub actions is a supply-chain hardening recommendation, not a concrete defect.
+
+### 203. [MINOR] .github/workflows/deploy.yml:27 — Node version is hardcoded as 22.12.0 in the workflow instead of reading .nvmrc, creating three places that must stay in sync.
+
+**Why (evidence):** setup-node uses `node-version: 22.12.0` while the same version is independently declared in .nvmrc (`22.12.0`) and package.json engines (`>=22.12.0`). docs/decisions.md D-002 explicitly aims for 'a single explicit toolchain' but the pin is duplicated; bumping .nvmrc later will silently leave CI on the old version.
+
+**Suggested fix:** Replace `node-version: 22.12.0` with `node-version-file: .nvmrc` so the workflow always follows the repo's single source of truth.
+
+**Verifier:** CONFIRMED — deploy.yml:27 hardcodes `node-version: 22.12.0` while .nvmrc pins 22.12.0 and package.json engines requires >=22.12.0, so the version is duplicated and `node-version-file: .nvmrc` would make CI follow the single source of truth as suggested.
+
+### 204. [MINOR] LICENSE:0 — No LICENSE file (and no license field in package.json) for a public GitHub repository.
+
+**Why (evidence):** The repo is published publicly (it backs ramuroy.github.io), but contains no LICENSE and package.json omits the license field (it is private: true, which suppresses the npm warning but does not communicate reuse terms). Without a license, the code defaults to all-rights-reserved, which is fine if intended but currently undeclared; visitors cannot tell whether the code (as opposed to the content) may be reused.
+
+**Suggested fix:** Add a LICENSE file — e.g. MIT scoped to the code with a note that site content (text, resume, images) is copyright Ramu Roy — and mirror it in a package.json license field ("MIT" or "UNLICENSED").
+
+**Verifier:** PLAUSIBLE — Premise verified — no LICENSE file exists and package.json (private: true) omits the license field — but adding one is a policy/judgment call for a personal portfolio repo, not a code defect.
+
+### 205. [MINOR] package.json:7 — The engines field (node >=22.12.0) is not enforced — there is no .npmrc with engine-strict, so npm on Node 20 installs anyway and fails later with confusing Astro errors.
+
+**Why (evidence):** npm only warns on engines mismatch by default. The environment note for this repo itself confirms the failure mode: system node is v20 and 'will NOT work' with Astro 7. A contributor who skips `nvm use` gets a successful `npm ci` followed by an opaque runtime failure in astro build/check rather than a clear version error at install time.
+
+**Suggested fix:** Add a repo-root .npmrc containing `engine-strict=true` so npm refuses to install under an unsupported Node/npm version.
+
+**Verifier:** PLAUSIBLE — Premise verified — engines field exists at package.json:7-10, no .npmrc exists (only a .nvmrc, which requires opt-in `nvm use`), and npm only warns on engines mismatch by default; adding engine-strict is a reasonable but discretionary hardening choice, not a defect fix.
+
+### 206. [MINOR] package.json:12 — No formatting or linting toolchain: prettier 3.9.5 is already in node_modules (transitively) but there is no config, no prettier-plugin-astro, and no format/lint script or CI check.
+
+**Why (evidence):** The scripts block defines dev/build/check/verify only. Hand-written .astro/.css/.ts across ~20 files has no enforced style; prettier is present only as a transitive dependency (of astro tooling) so its version is unpinned from the project's perspective and there is no .prettierrc/.prettierignore. Style drift is currently caught by nothing in `npm run verify` or CI.
+
+**Suggested fix:** Add prettier and prettier-plugin-astro as devDependencies with a minimal .prettierrc, add `format` and `format:check` scripts, and include `format:check` in the verify script (or CI).
+
+**Verifier:** PLAUSIBLE — Premise verified (no format/lint scripts in package.json:12-20, no prettier config, prettier 3.9.5 only transitive, no CI format check), but adding a formatting toolchain to a small portfolio is a judgment call, not a defect.
+
+### 207. [MINOR] scripts/check-build.mjs:32 — The blanket /\b(undefined|NaN)\b/ scan over the whole HTML will false-fail on any legitimate use of `undefined` in inline scripts or prose.
+
+**Why (evidence):** dist/index.html contains three inline <script> blocks today that happen not to use the token `undefined`, but `typeof x === "undefined"`, `=== undefined`, or a default-parameter check is idiomatic JS; adding one to any component script would fail the release gate with the misleading message 'the built page contains an undefined or NaN value'. Prose containing the word 'undefined' (e.g. in a project description) triggers the same false failure.
+
+**Suggested fix:** Strip <script>...</script> bodies (except checking rendered text nodes) before running the regex, or narrow it to interpolation-shaped leaks such as />\s*undefined\s*</, ">undefined<", '="undefined"' patterns.
+
+**Verifier:** PLAUSIBLE — Line 32 does run the bare /\b(undefined|NaN)\b/ regex over the whole HTML including inline scripts, so the false-positive risk is real for is:inline scripts and prose; however processed component scripts are minified (undefined → void 0, as BootIntro.astro proves), the check passes today, and blanket strictness in a leak detector is a design tradeoff rather than a confirmed defect.
+
+### 208. [MINOR] scripts/check-build.mjs:40 — A bare href="#" (hash-only, common back-to-top idiom) would fail with a confusing 'internal link # has no matching target' error.
+
+**Why (evidence):** For target '#', slice(1) yields '' and idSet.has('') is false, so the script reports a broken internal link. No such href exists in dist today, but it is a latent trap: adding a conventional `href="#"` top-of-page link or a placeholder anchor would break the release gate with a message that does not explain the real rule.
+
+**Suggested fix:** Handle `target === "#"` explicitly — either allow it or emit a dedicated message ('use href="#main" instead of bare #') so the failure is actionable.
+
+**Verifier:** PLAUSIBLE — scripts/check-build.mjs:40 behaves exactly as claimed (href="#" would fail with a confusing message), but no such href exists today, so it is a latent ergonomics concern rather than a current defect.
+
+### 209. [MINOR] scripts/check-build.mjs:43 — Local-asset validation silently skips relative hrefs/srcs and absolute URLs to the site's own domain, so those broken links false-pass.
+
+**Why (evidence):** Line 43 `if (!target.startsWith("/") || target.startsWith("//")) continue;` skips every target that is not root-relative. That correctly skips mailto:/https:// external links, but it also skips (a) document-relative paths like `assets/foo.png` that an author could introduce, and (b) absolute URLs to the site itself — dist/index.html already contains `href="https://ramuroy.github.io/"`, and a typo'd own-domain URL like `https://ramuroy.github.io/resume.pdf` would never be checked against dist. The script's stated purpose (validate all local links) is therefore not fully met.
+
+**Suggested fix:** Before the startsWith('/') test, rewrite targets beginning with `https://ramuroy.github.io` (import the site constant) to their pathname and validate them; also flag or validate document-relative targets instead of skipping them.
+
+**Verifier:** PLAUSIBLE — Premise verified at scripts/check-build.mjs:43 — relative and own-domain absolute targets are indeed skipped and dist/index.html contains href="https://ramuroy.github.io/" — but no link is actually broken today, so whether the validator should cover these hypothetical cases is a scope judgment call.
+
+### 210. [MINOR] scripts/check-build.mjs:45 — Fragments on path-form internal links (e.g. /#projects) are never validated — only bare #fragment hrefs are checked against the ID set.
+
+**Why (evidence):** Line 40 handles targets starting with '#', but a link written as `/#projects` or `/index.html#does-not-exist` takes the file-existence branch: `new URL(target, base).pathname` drops the fragment, dist/index.html exists, and the check passes even though the anchor target may be missing. This is a realistic authoring style for a single-page site and would false-pass a broken section link.
+
+**Suggested fix:** Extract `url.hash` in the local-asset branch and, when the resolved file is dist/index.html, verify `idSet.has(url.hash.slice(1))` just like the bare-fragment branch.
+
+**Verifier:** CONFIRMED — scripts/check-build.mjs:45 — `new URL(target, base).pathname` drops the fragment, so path-form links like `/#projects` skip the idSet check on line 40 and only get a file-existence test; no other code validates such fragments.
+
+### 211. [MINOR] tsconfig.json:2 — tsconfig extends astro/tsconfigs/strict rather than strictest, leaving useful checks (noUncheckedIndexedAccess, noImplicitReturns, noUnusedLocals, etc.) off.
+
+**Why (evidence):** Astro ships a 'strictest' preset intended for exactly this kind of small greenfield codebase; the hardening docs emphasize maximal static guarantees, and `astro check` is already the first stage of the release gate, so the stricter preset is cheap to adopt now and expensive later.
+
+**Suggested fix:** Change extends to "astro/tsconfigs/strictest" and fix any resulting diagnostics.
+
+**Verifier:** PLAUSIBLE — tsconfig.json:2 does extend astro/tsconfigs/strict and the installed strictest preset would add the cited flags, but switching presets is a stylistic/policy judgment rather than a factual defect.
+
+### 212. [POLISH] .editorconfig:0 — No .editorconfig to normalize indentation, charset, and final-newline behavior across editors.
+
+**Why (evidence):** The repo mixes .astro, .ts, .css, .mjs, .yml, and .md files with hand-maintained formatting and no formatter enforcement (see the missing-prettier finding); an .editorconfig is the zero-dependency baseline that keeps contributors' editors consistent.
+
+**Suggested fix:** Add a root .editorconfig (root=true, utf-8, lf, insert_final_newline=true, indent_style=space, indent_size=2).
+
+**Verifier:** PLAUSIBLE — Factual premise verified — no .editorconfig or any formatter config exists in /home/sena/ESPworkspace/ramuroy.github.io — but adding one is a discretionary tooling-hygiene suggestion, not a concrete defect.
+
+### 213. [POLISH] .github/workflows/deploy.yml:19 — No timeout-minutes on either job and checkout does not set persist-credentials: false.
+
+**Why (evidence):** Both jobs default to the 360-minute job timeout, so a hung npm install or deploy burns runner minutes for 6 hours. actions/checkout also persists the GITHUB_TOKEN into .git/config by default, exposing it to the npm scripts run during `npm ci` (token is read-only for contents here, so impact is low).
+
+**Suggested fix:** Add `timeout-minutes: 10` to the build job and `timeout-minutes: 5` to the deploy job, and set `with: persist-credentials: false` on the checkout step.
+
+**Verifier:** CONFIRMED — deploy.yml has no timeout-minutes on either job and checkout@v4 uses default persist-credentials: true; impact is low since permissions grant only contents: read, exactly as the finding states.
+
+### 214. [POLISH] .gitignore:13 — .gitignore covers .env and .env.production but not .env.development or .env.local variants.
+
+**Why (evidence):** Lines 13-14 ignore only two specific env filenames. Astro/Vite also read .env.development, .env.local, and .env.[mode].local; a contributor creating .env.development with a secret would not be ignored (the `*.local` pattern on line 17 does catch .env.local, but not .env.development).
+
+**Suggested fix:** Replace the two entries with a `.env*` pattern (optionally re-including a committed `.env.example` via `!.env.example`).
+
+**Verifier:** CONFIRMED — .gitignore lines 13-14 ignore only .env and .env.production; *.local (line 17) covers .env.local variants but .env.development is genuinely unignored — a real, if minor, gap as claimed.
+
+### 215. [POLISH] astro.config.mjs:10 — Three config options restate Astro defaults: trailingSlash: 'ignore', build.inlineStylesheets: 'auto', and compressHTML: true.
+
+**Why (evidence):** All three values (lines 10, 33-35, 36) are the documented Astro defaults, so they add noise without changing behavior, and pinning defaults can mask intentional upstream default changes across major versions. The sitemap() integration is also called with no options; for a single-page site adding lastmod would give crawlers real signal, since dist/sitemap-0.xml currently contains only a bare <loc>.
+
+**Suggested fix:** Remove the redundant default-value options (or comment that they are deliberate pins), and consider `sitemap({ lastmod: new Date() })` or a fixed content date.
+
+**Verifier:** PLAUSIBLE — All three options at astro.config.mjs:10, 33-35, 36 do restate Astro defaults and sitemap-0.xml has only a bare <loc>, but removing redundant defaults vs. keeping them as explicit pins is a stylistic judgment call with no behavioral impact.
+
+### 216. [POLISH] package.json:6 — packageManager: npm@10.8.2 is inert and slightly inconsistent — corepack is not enabled in CI and Node 22.12.0 bundles npm 10.9.x.
+
+**Why (evidence):** The packageManager field only takes effect via corepack, which neither the workflow nor the README enables; CI actually runs the npm bundled with Node 22.12.0 (10.9.0), not 10.8.2. README says 'the intended package manager is recorded in package.json', but the recorded version is never the one used, so the pin gives false precision.
+
+**Suggested fix:** Either enable corepack in CI/docs (`corepack enable` before npm ci) to make the pin real, or change the field to the npm version actually shipped with the pinned Node (npm@10.9.0), or drop the patch pin.
+
+**Verifier:** CONFIRMED — package.json:6 pins packageManager npm@10.8.2 but deploy.yml never enables corepack (Node 22.12.0 setup runs its bundled npm 10.9.0), and README:26 points to the never-honored pin — the inconsistency is real, though severity is correctly just polish.
+
+### 217. [POLISH] scripts/check-build.mjs:20 — The id-extraction regex /\bid="([^"]+)"/ over-matches: it captures data-id/aria-*id attributes and id= strings inside inline scripts/JSON-LD.
+
+**Why (evidence):** Because '-' is a non-word character, \b matches inside `data-id="x"` and similar suffixed attributes, and the regex also runs over inline <script> bodies, so a JS string containing `id="main"` would both inflate the duplicate-ID count and satisfy required-ID checks without the element existing in the DOM. No such content exists in the current build, but the validator is regex-over-HTML and will drift as components change.
+
+**Suggested fix:** Use a negative lookbehind (/(?<![-\w])id="([^"]+)"/) and strip <script> elements from the HTML before scanning, or parse with a small HTML parser (e.g. node:html via linkedom/parse5) since this script already gates releases.
+
+**Verifier:** PLAUSIBLE — Premise verified: at scripts/check-build.mjs:20 the regex /\bid="([^"]+)"/g does match `data-id="a"` (word boundary after '-') and `id="main"` inside script-body strings (empirically tested in node), but the current dist/index.html contains only 9 plain `id="` attributes and no data-id/script false positives, so this is latent robustness polish rather than a live defect — a judgment call, as the finding itself concedes.
+
+### 218. [POLISH] scripts/check-build.mjs:27 — Several checks depend on exact attribute ordering/serialization (canonical link, <html lang>, main landmark, JSON-LD script tag) and will false-fail if Astro reorders attributes.
+
+**Why (evidence):** Lines 25-30 and 56 use exact-substring matches like `rel="canonical" href="https://ramuroy.github.io/"` and `<script type="application/ld+json">`. These pass against the current compressHTML output, but any attribute added or reordered by a future Astro version (e.g. `data-astro-*`, or `<html lang="en" dir="ltr">`) breaks the gate even though the page is semantically correct.
+
+**Suggested fix:** Match attributes independently (e.g. find the <link> tag containing both rel="canonical" and the href, in either order) or parse the HTML instead of substring matching.
+
+**Verifier:** PLAUSIBLE — Premise verified — lines 25-27 and 56 of scripts/check-build.mjs do use order-sensitive exact-substring matches with no looser fallback — but the checks currently pass and the brittleness only bites under hypothetical future Astro serialization changes, making it a polish/judgment call rather than a present defect.
+
+### 219. [POLISH] scripts/check-build.mjs:29 — og:image is only checked for presence, not that its content is an absolute URL pointing at an existing asset.
+
+**Why (evidence):** Line 29 checks `property="og:image"` exists and line 76 checks dist/og.png exists, but nothing ties them together: an og:image content of a relative path (invalid per the OG spec) or a typo'd filename would still pass both checks.
+
+**Suggested fix:** Extract the og:image content attribute, assert it starts with 'https://ramuroy.github.io/', and assert the referenced file exists in dist.
+
+**Verifier:** CONFIRMED — scripts/check-build.mjs:29 only tests for the substring property="og:image"; the href/src asset loop at line 38 skips meta content attributes, so a relative or typo'd og:image URL passes while dist/og.png is checked independently at line 76.
+
+### 220. [POLISH] scripts/check-build.mjs:48 — existsSync asset checks are case-insensitive on macOS/Windows dev machines, so a case-mismatched asset reference can pass locally and 404 on GitHub Pages.
+
+**Why (evidence):** GitHub Pages serves case-sensitively; `existsSync(join(dist, 'ramu_roy_resume.pdf'))` would return true on a default APFS/NTFS volume while the deployed URL 404s. This is fully mitigated pre-deploy because CI runs the same check on ubuntu-latest, but a developer relying on local `npm run verify` gets a false pass.
+
+**Suggested fix:** After existsSync succeeds, confirm the exact-case entry appears in readdirSync(dirname(localPath)) so the check is case-exact on every OS.
+
+**Verifier:** PLAUSIBLE — Premise is accurate — scripts/check-build.mjs:48 (and 76-78) use plain existsSync with no case-exact guard, so macOS/Windows local runs can false-pass a case-mismatched asset — but deploy.yml runs the same check on ubuntu-latest before publishing, so the impact is limited to local dev ergonomics, making the fix a judgment-call polish item.
+
+### 221. [POLISH] scripts/check-build.mjs:51 — target="_blank" tag regex [^>]* breaks on '>' inside attribute values, and links whose target attribute uses single quotes or no target at all are unexamined.
+
+**Why (evidence):** `/<a\b[^>]*target="_blank"[^>]*>/g` truncates the tag at the first '>' character even inside a quoted attribute value (e.g. aria-label="A > B"), which would make the rel= lookup miss and report a false noopener failure — or, truncated the other way, skip the tag entirely. All 16 current _blank links pass, but the regex is fragile against ordinary content.
+
+**Suggested fix:** Match tags with a quote-aware pattern (/<a\b(?:[^>"']|"[^"]*"|'[^']*')*>/g) and then test for target="_blank" and rel within each captured tag.
+
+**Verifier:** PLAUSIBLE — The regex at scripts/check-build.mjs:51 truncates/skips tags containing '>' in attribute values exactly as described, but all 16 current _blank links pass and Astro output never triggers the edge case, so it is a latent robustness concern rather than a present bug.
+
+### 222. [POLISH] tsconfig.json:3 — The include and exclude entries duplicate what astro/tsconfigs/base.json already declares via ${configDir}.
+
+**Why (evidence):** node_modules/astro/tsconfigs/base.json (extended through strict.json) already sets `"exclude": ["${configDir}/dist"]` and `"include": ["${configDir}/.astro/types.d.ts", "${configDir}/**/*"]`, which resolve to the project directory. The local copies at lines 3-4 override the base with identical values — harmless today, but they will mask future upstream changes to the Astro preset.
+
+**Suggested fix:** Delete the local include/exclude entries and rely on the inherited ${configDir}-based values, or add a comment explaining why they are pinned locally.
+
+**Verifier:** PLAUSIBLE — Factual premise verified — tsconfig.json:3-4 duplicate the ${configDir}-based include/exclude inherited from astro/tsconfigs/base.json — but removing them is a stylistic judgment call (Astro's own starter templates ship these exact lines), with no functional impact today.
+
+
+## Completeness-critic pass (cross-cutting) — 23 findings
+
+### 223. [MAJOR] src/styles/global.css:135 — Keyboard focus indicators disappear entirely in Windows High Contrast / forced-colors mode because the only focus style is outline:none + box-shadow.
+
+**Why (evidence):** The single global focus rule is `:where(a, button, input, [tabindex]):focus-visible { outline: none; box-shadow: var(--focus-ring); ... }` — the only `outline` declaration in the whole stylesheet. In forced-colors mode (Windows High Contrast, Edge/Chrome/Firefox) box-shadow is forced to none, and outline:none removes the UA default, so every link, button, and the skip link has no visible focus indicator at all. There is no @media (forced-colors: active) block anywhere in src/styles (grep confirms zero occurrences), so the mode also silently erases the gauge fills (background gradient), LED/status dots (background), and the .link / .nav__link underline affordances (background-image / ::after background). The forced-colors user state was never tested by any auditor.
+
+**Suggested fix:** Use a transparent outline that forced-colors can repaint: replace outline:none with `outline: 2px solid transparent; outline-offset: 2px;` (keeping the box-shadow ring for normal mode), and add an @media (forced-colors: active) block giving gauges/dots/underlines border- or currentColor-based fallbacks.
+
+**Verifier:** CONFIRMED — global.css:135 is the only outline declaration in src (grep confirms), no forced-colors media query exists anywhere, and forced-colors mode suppresses box-shadow while honoring outline:none — so focus indicators do vanish for High Contrast users exactly as claimed.
+
+### 224. [MAJOR] src/styles/global.css:223 — Without JavaScript the mobile nav menu can never be opened: nav links are unreachable at <=720px, violating the site's stated no-JS hard requirement.
+
+**Why (evidence):** Under @media (max-width: 720px), .nav__links is set to opacity:0; pointer-events:none; visibility:hidden and is only revealed by the [data-open] attribute, which is toggled exclusively by JS in Layout.astro (navList?.toggleAttribute("data-open")). The .nav__menu-btn is shown by pure CSS (no .js gating), so no-JS mobile users see a menu button that does nothing and have zero access to the About/Projects/Experience/Skills/Contact/GitHub links. This directly contradicts README.md line 83-85 ("content must remain visible and usable if JavaScript ... unavailable") and docs/architecture.md ("it is not required to read the content or follow the primary links"). The same dead-button state also occurs on slow connections until the deferred Layout module loads. No auditor flagged the no-JS path; only the 721-820px overflow was reported.
+
+**Suggested fix:** Provide a CSS-only fallback: gate the hidden state behind .js (e.g. .js .nav__links { ... }) so no-JS users get an always-visible link list, or implement the menu with a <details>/popover element that works natively; alternatively hide .nav__menu-btn when html:not(.js).
+
+**Verifier:** CONFIRMED — global.css:223 hides .nav__links at <=720px with no .js gating and the only reveal is the JS-toggled [data-open] attribute (Layout.astro:227); Nav.astro uses a plain button/ul with no native fallback, so no-JS mobile users cannot open the nav, violating the README lines 83-85 progressive-enhancement contract.
+
+### 225. [MINOR] src/components/BootIntro.astro:4 — The boot overlay is an aria-modal dialog with no focus containment: Tab moves focus into the invisible page behind the opaque overlay, and Escape only works while focus stays inside the dialog.
+
+**Why (evidence):** The overlay is role="dialog" aria-modal="true" and focuses .boot__skip, but nothing traps Tab: the next Tab lands on .skip-link, which is z-index 200 and rendered *under* the z-index 300 opaque .boot layer, so a keyboard user is focused on an element they cannot see; further Tabs walk the whole hidden page (body overflow:hidden only stops scrolling, not focus). The Escape handler is attached to the boot element itself (line 70), so once focus has escaped the dialog, Escape no longer dismisses it. Additionally the entire visible content (.boot__panel) is aria-hidden="true", so screen-reader users experience an unexplained modal containing only a "skip intro" button. aria-modal claims background inertness that is not actually implemented.
+
+**Suggested fix:** While the boot is active, set the inert attribute on .skip-link, .nav, main and footer (removing it on dismiss), move the Escape listener to document, and either un-hide the boot lines or give the dialog a description so aria-modal semantics match reality.
+
+**Verifier:** CONFIRMED — Verified: aria-modal dialog at BootIntro.astro:4 has no focus trap or inert siblings, Escape listener is scoped to the boot element (line 70), .boot__panel is aria-hidden (line 6), and .skip-link (z-index 200) sits under the opaque z-index-300 overlay per global.css:69/236; the 1300 ms auto-dismiss merely limits exposure, matching the minor severity.
+
+### 226. [MINOR] src/components/Contact.astro:21 — The two "copy" buttons render and are focusable without JavaScript but do nothing — a dead interactive control in the no-JS baseline.
+
+**Why (evidence):** The copy-btn <button> elements are server-rendered unconditionally; their only behavior comes from the deferred [data-copy] listener in Layout.astro. With JS disabled (or before the module loads on a slow connection), keyboard and screen-reader users encounter focusable buttons labelled "Copy email"/"Copy phone number" that silently do nothing when activated. Every other enhancement on the page (boot, reveals, counters) was made fail-open per docs/decisions.md D-006, but this one was missed.
+
+**Suggested fix:** Hide the buttons by default and reveal them via the existing html.js hook (e.g. `.copy-btn { display: none } .js .copy-btn { display: inline-flex }`), or inject the buttons from the script that wires them.
+
+**Verifier:** CONFIRMED — Contact.astro:21/28 render the copy buttons unconditionally, their only behavior is the deferred [data-copy] listener in Layout.astro:198, and no CSS (.js gating) or noscript rule hides them without JS — while other enhancements like .reveal are .js-gated in global.css:97.
+
+### 227. [MINOR] src/components/Skills.astro:27 — aria-hidden separator dots make the protocols line and hero ticker read as one concatenated word to screen readers ("UARTSPII²CCAN…", "cgpa 8.3esp-idf v5.2yocto…").
+
+**Why (evidence):** Both the protocols line (`{i > 0 && <b aria-hidden="true">·</b>}{p}`) and the hero ticker in Hero.astro line 40 hide the only separator between items with aria-hidden, and compressHTML leaves no whitespace between the items in the built HTML (`UART<b aria-hidden="true">·</b>SPI` — verified in dist/index.html). The accessibility tree therefore contains the items butted directly together with no boundary, so screen readers announce them as run-together nonsense words. Copy-paste of the line has the same defect.
+
+**Suggested fix:** Keep the visual dot but make the semantic boundary real: render the lists as <ul> with visually-styled separators, or put a visually-hidden comma/space (e.g. <span class="sr-only">, </span>) between items instead of aria-hiding the only delimiter.
+
+**Verifier:** CONFIRMED — Verified in source (Skills.astro:27, Hero.astro:40) and built dist/index.html: the only separator between items is aria-hidden and compressHTML leaves no whitespace, so the accessibility tree concatenates the items; nothing elsewhere mitigates it (minor caveat: copy-paste does retain the dot, just no spaces).
+
+### 228. [MINOR] src/layouts/Layout.astro:23 — Personal mobile number (and email) are published in machine-readable JSON-LD and plaintext HTML with zero obfuscation, maximizing spam/scraper harvesting.
+
+**Why (evidence):** The Person JSON-LD includes telephone: "+91 94936 52315" and email: "mailto:royramu694429@gmail.com"; the same phone appears as a tel: link plus data-copy attribute in Contact.astro, and the email appears in three mailto: hrefs. Structured data is specifically what bulk harvesters and SEO scrapers parse first, and Google can surface the phone number in knowledge panels. For a personal (not business) mobile number on a public site this is a meaningful privacy/spam exposure the privacy dimension never assessed. No other auditor covered the explicitly-requested email-obfuscation/harvesting angle.
+
+**Suggested fix:** Confirm the owner genuinely wants the personal mobile number crawlable; at minimum drop `telephone` from the JSON-LD Person block, and consider rendering the phone only behind the copy interaction or as an image/JS-assembled string while keeping the visible text for humans.
+
+**Verifier:** PLAUSIBLE — Factual premise fully verified — telephone/email in JSON-LD at Layout.astro:22-23, tel: link + data-copy in Contact.astro:27-28, three mailto: hrefs, zero obfuscation — but whether crawlable contact info on a personal portfolio's contact page is a defect is an owner-intent judgment call, not an objective bug.
+
+### 229. [MINOR] src/layouts/Layout.astro:205 — Double-clicking a copy button permanently sticks it on "copied ✓" (and aria-label "Copied") because the restore timeout captures the already-swapped text.
+
+**Why (evidence):** The click handler does `const prev = btn.textContent; btn.textContent = "copied ✓"; setTimeout(() => { btn.textContent = prev; ... }, 1400)` without clearing any pending timeout. Click twice within 1400ms: the second click captures prev="copied ✓" and prevLabel="Copied"; the first timeout restores "copy", then the second timeout fires and sets the text back to "copied ✓" and aria-label to "Copied" — and every subsequent click now captures the wrong values, so the button label and accessible name are wrong for the rest of the session. Concrete repro: on /#contact, click the email "copy" button twice quickly; after 3 seconds the button still reads "copied ✓".
+
+**Suggested fix:** Store the pristine label once (e.g. data-original-label at setup or a per-button WeakMap), clear the previous timeout with clearTimeout before starting a new one, and always restore from the stored original rather than the live textContent.
+
+**Verifier:** CONFIRMED — Layout.astro:205-215 captures prev from live textContent with no clearTimeout or stored original label, so a second click within 1400ms leaves the button stuck on "copied ✓"/aria-label "Copied" exactly as described.
+
+### 230. [MINOR] src/styles/fonts.css:8 — @font-face src URLs reach into node_modules internals via relative paths (../../node_modules/@fontsource-variable/...), bypassing the packages' public exports and coupling the build to npm's physical layout.
+
+**Why (evidence):** All three font declarations hardcode `url("../../node_modules/@fontsource-variable/<pkg>/files/<file>.woff2")`. This works only because Vite happens to resolve the relative path from src/styles and because npm hoists a flat node_modules; it breaks under pnpm/yarn PnP layouts, and silently breaks if the Fontsource packages rename their internal files/ directory (the path is not part of their export map, so no resolver or type check guards it — the failure mode is fonts quietly falling back at runtime). The supported pattern is importing the package's own CSS (e.g. `import '@fontsource-variable/inter'`) or using a Vite alias into the package.
+
+**Suggested fix:** Replace the hand-written @font-face blocks with the Fontsource-provided CSS imports (which also fixes the flagged legacy format() string), or reference the files through the package export map so resolution is validated at build time.
+
+**Verifier:** PLAUSIBLE — The premise is accurate — src/styles/fonts.css:8,16,24 do hardcode relative `../../node_modules/@fontsource-variable/.../files/*.woff2` paths that bypass module resolution and couple to npm's physical layout — but one detail is wrong (Fontsource's export map DOES expose "./files/*.woff2", so a bare-specifier url() would be resolver-validated; it's the relative path that skips it), the site builds fine today under Vite+npm, and the fix is a portability/maintainability judgment call rather than a current defect.
+
+### 231. [POLISH] astro.config.mjs:13 — No clickjacking protection is possible with the current delivery: frame-ancestors cannot be set in a meta CSP and GitHub Pages sends no X-Frame-Options, so the site is freely framable.
+
+**Why (evidence):** The CSP is emitted as a <meta http-equiv> tag (GitHub Pages cannot set response headers), and the frame-ancestors directive is explicitly ignored in meta-delivered policies, so any site can iframe https://ramuroy.github.io for overlay/UI-redress tricks against visitors. Low practical risk for a portfolio, but it is an unexamined, undocumented gap in an otherwise deliberately documented security posture (docs/decisions.md D-005 discusses the CSP without mentioning this limitation).
+
+**Suggested fix:** Record the accepted risk in docs/decisions.md, or if framing protection is wanted, move hosting behind a proxy that can send frame-ancestors/X-Frame-Options headers (e.g. Cloudflare Pages/Netlify in front of the same repo).
+
+**Verifier:** PLAUSIBLE — Premise fully accurate — CSP is meta-delivered (astro.config.mjs:12-28, confirmed in dist/index.html and scripts/check-build.mjs:30), frame-ancestors is spec-ignored in meta CSP, GitHub Pages sends no framing headers, and docs/decisions.md D-005 never mentions it — but for a static portfolio with no authenticated UI, treating this undocumented accepted risk as an issue is a judgment call.
+
+### 232. [POLISH] docs/audit-notes-wip.md:0 — Two untracked audit scratch files (docs/audit-notes-wip.md, docs/site-audit-2026-07-16.md) are sitting inside the tracked docs/ tree and will be swept into the next commit by any `git add docs/` or `git add -A`.
+
+**Why (evidence):** git status --porcelain shows `?? docs/audit-notes-wip.md` and `?? docs/site-audit-2026-07-16.md` (dated 2026-07-16, i.e. produced during this audit session). They are not covered by .gitignore, live next to the curated documentation set governed by docs/README.md's maintenance rules, and would publish internal audit notes to the public repository if committed accidentally.
+
+**Suggested fix:** Delete them or move them outside the repository (they are working notes, not project docs); if audit notes must live in-repo temporarily, add a docs/*-wip.md / scratch pattern to .gitignore.
+
+**Verifier:** CONFIRMED — git status --porcelain shows both `?? docs/audit-notes-wip.md` and `?? docs/site-audit-2026-07-16.md` as untracked, .gitignore (build/deps/editor patterns only, ending at `.design/`) does not cover them, and their contents are internal audit scratch notes (session-recovery paths, workflow IDs, WIP findings) that a `git add docs/` or `git add -A` would stage into the public repo exactly as claimed.
+
+### 233. [POLISH] public/Ramu_Roy_Resume.pdf:0 — The downloadable CV is an untagged PDF with empty Title/Author metadata, so it is inaccessible to screen readers and shows a blank title in browser tabs.
+
+**Why (evidence):** pdfinfo reports Tagged: no, Title: (empty), Author: (empty) (LaTeX/pdfTeX output). Untagged PDFs have no reading-order or structure information for assistive technology, and the missing document title means the primary artifact a recruiter downloads is the least accessible thing the site serves — on a site that otherwise treats accessibility as a requirement. No auditor examined the PDF at all.
+
+**Suggested fix:** Regenerate the resume with tagging and metadata (e.g. LaTeX: \usepackage[tagged]{accessibility} or lualatex-based tagging, plus \hypersetup{pdftitle={Ramu Roy — Embedded Systems Engineer}, pdfauthor={Ramu Roy}}).
+
+**Verifier:** CONFIRMED — pdfinfo on public/Ramu_Roy_Resume.pdf confirms Tagged: no and empty Title/Author (pdfTeX output), so the untagged/metadata-less PDF claim is factually accurate; only nuance is browsers show the filename, not a blank tab title.
+
+### 234. [POLISH] src/components/Footer.astro:17 — The copyright year "© 2026" is hardcoded in the footer and will silently go stale.
+
+**Why (evidence):** Footer.astro renders the literal string `© 2026 {profile.name}`. The project's own architecture doc (docs/architecture.md, 'Content model and derived values') mandates deriving values rather than duplicating literals, yet the year is a hardcoded literal that nobody flagged. In January 2027 the site advertises a stale year until someone remembers to edit it.
+
+**Suggested fix:** Compute it at build time in the frontmatter: `const year = new Date().getFullYear();` and render `© {year}` (the site rebuilds on every deploy, which is sufficient for a portfolio).
+
+**Verifier:** CONFIRMED — Footer.astro:17 does render the hardcoded literal `© 2026 {profile.name}` with no derived year anywhere in the frontmatter or data files, so the copyright will silently go stale.
+
+### 235. [POLISH] src/components/Hero.astro:19 — The hero lead's authored spaces are silently discarded: arrow segments render only the label, dropping seg.t (" "), so the text content is "hardware→firmware→custom Linux" with no spaces.
+
+**Why (evidence):** In site.ts the lead data models each arrow as { t: " ", arrow: true, label: "→" }, but the template branch `seg.arrow ? <span class="arrow">{seg.label}</span> : ...` never outputs seg.t. dist/index.html confirms `<em>hardware</em><span class="arrow">→</span><em>firmware</em>`. The visual gap is faked by padding-inline on .arrow, but selected/copied text and the accessibility-tree string have no word boundaries between the stack layers, and any future consumer of the data's spaces gets different output than authored.
+
+**Suggested fix:** Render the space too: `<Fragment>{seg.t !== " " ? seg.t : ""}<span class="arrow">{seg.label}</span> </Fragment>` or simply include literal spaces around the arrow span in the template.
+
+**Verifier:** CONFIRMED — Verified: src/data/site.ts:64/66/68 model arrows as { t: " ", arrow: true, label: "→" }, Hero.astro:19-20 renders only {seg.label} and drops seg.t, dist/index.html contains the space-less <em>hardware</em><span class="arrow">→</span><em>firmware</em>, and the visual gap comes solely from padding-inline: 0.15em at src/styles/global.css:261 — so copied/accessible text really has no word boundaries between layers.
+
+### 236. [POLISH] src/components/Hero.astro:52 — class={cond ? "is-active" : ""} emits valueless `<dd class>` attributes throughout the built HTML instead of omitting the attribute.
+
+**Why (evidence):** Hero.astro:52, About.astro:38, and Projects.astro:45 use the ternary-empty-string pattern, so dist/index.html contains a dozen `<dd class>` fragments (verified). It is parseable HTML but is serializer noise, defeats attribute-based tooling/diffing, and diverges from the class:list idiom used everywhere else in the codebase.
+
+**Suggested fix:** Use `class:list={[{ "is-active": s.active }]}` or `class={s.active ? "is-active" : undefined}` so Astro omits the attribute entirely.
+
+**Verifier:** CONFIRMED — Verified: the ternary-empty-string pattern is present at Hero.astro:52, About.astro:38, and Projects.astro:45, and dist/index.html contains 15 valueless `<dd class>` attributes, confirming Astro emits the bare attribute instead of omitting it (polish-level issue).
+
+### 237. [POLISH] src/components/Nav.astro:15 — Decorative glyphs are inconsistently exposed to screen readers: "GitHub ↗" (nav), "back to top ↑" (footer), and "skip intro ▸" (boot) announce raw arrow characters while identical glyphs elsewhere are aria-hidden.
+
+**Why (evidence):** Projects/Certifications/CTA arrows are wrapped in <span aria-hidden="true">, but the nav GitHub link (Nav.astro:15), footer back-to-top link (Footer.astro:22), and boot skip button (BootIntro.astro:5) embed ↗/↑/▸ directly in the accessible name, producing announcements like "GitHub north east arrow, link". Similarly the "//" prefixes in eyebrows, the contact/footer availability LEDs ("// available for embedded roles"), and the colophon "rr@embedded:~$" are all in accessible text and read aloud as slash-slash/tilde noise.
+
+**Suggested fix:** Wrap all decorative glyphs and "//"-style prefixes in aria-hidden spans (matching the pattern already used in Projects/Hero), keeping clean accessible names such as "GitHub", "Back to top", "Skip intro".
+
+**Verifier:** CONFIRMED — Verified: Nav.astro:15 (`GitHub ↗`), Footer.astro:22 (`back to top ↑`), and BootIntro.astro:5 (`skip intro ▸`) embed glyphs in accessible names, while Certifications.astro:25, Contact.astro:47, and Projects.astro:61/78 wrap the same glyphs in aria-hidden spans — the inconsistency and the `//`/colophon noise (Footer.astro:10,14) are real.
+
+### 238. [POLISH] src/components/Projects.astro:106 — Each grid project card is a single <a> wrapping the entire card, giving screen-reader users link names 25+ words long (title + date + description + badges + category + stars).
+
+**Why (evidence):** The gcard anchor wraps title, date, full description paragraph, all tech badges, category, and star count, so the accessible name of the link (computed from contents) is e.g. "Transformerless Power Supply Aug 2024 A 220V AC → 5V DC transformerless power supply designed in KiCad. KiCad PCB Hardware/PCB ★ 3". Links lists and Tab navigation become unwieldy, and every element inside loses independent selectability.
+
+**Suggested fix:** Use the standard card pattern: make only the title the link and expand its hit area with a ::after pseudo-element overlay (position:absolute; inset:0) on the card, or add aria-label={g.title} to the anchor.
+
+**Verifier:** CONFIRMED — Projects.astro:106 wraps title, date, description, badges, category, and stars in a single anchor with no aria-label, so the link's accessible name is the entire card content as claimed.
+
+### 239. [POLISH] src/data/site.ts:299 — Both certificate links point at Google Drive share URLs — an external dependency that can silently break, may demand a Google login, and undercuts the site's self-contained/no-trackers posture.
+
+**Why (evidence):** certifications[].url are drive.google.com/file/d/... links with usp=sharing/usp=drive_link tokens. Drive links rot when the owner's sharing settings, account, or file organization changes, load an interstitial viewer requiring Google cookies, and are the only off-github external resources on the page. Nobody verified they are world-readable. The SEO auditor flagged only the duplicate anchor text, not the hosting choice.
+
+**Suggested fix:** Export the two NPTEL certificates as PDFs into public/certs/ and link them same-origin (they are already public documents), keeping the Drive links as nothing more than a fallback.
+
+**Verifier:** PLAUSIBLE — src/data/site.ts:299-300 do link both NPTEL certifications to drive.google.com share URLs as claimed, but link-rot/self-hosting concerns are a polish-level judgment call, not a verifiable defect.
+
+### 240. [POLISH] src/layouts/Layout.astro:10 — The @ts-expect-error on Astro.csp.insertDirective will hard-fail `npm run check` (and thus every deploy) the moment Astro adds 'style-src-attr' to its directive union type.
+
+**Why (evidence):** @ts-expect-error errors when the following line stops producing a type error. Astro upgrading its CspDirective type to include style-src-attr (the comment says the union does not include it "yet") turns this line into an unused suppression, astro check reports it as an error, and the verify gate blocks all deployments after a routine `^7` minor upgrade — a time-bomb in the release path.
+
+**Suggested fix:** Replace @ts-expect-error with a type assertion that survives both states, e.g. `Astro.csp?.insertDirective("style-src-attr 'unsafe-inline'" as Parameters<NonNullable<typeof Astro.csp>["insertDirective"]>[0])` or a targeted `as never`/`as any` cast with the explanatory comment kept.
+
+**Verifier:** CONFIRMED — src/layouts/Layout.astro:10 has the @ts-expect-error as described, astro check runs in npm run verify which gates the GitHub Pages deploy workflow, so an Astro type-union widening would turn the suppression into a TS2578 error and block deploys after a lockfile bump.
+
+### 241. [POLISH] src/layouts/Layout.astro:86 — prefers-reduced-motion is sampled once at script evaluation and never observed, so toggling the OS setting mid-session leaves all animations running (or suppressed) until a full reload.
+
+**Why (evidence):** Layout.astro:86, Hero.astro:72, and BootIntro.astro:31 each read matchMedia("(prefers-reduced-motion: reduce)").matches into a const with no change listener. A user who enables reduce-motion while the page is open keeps the infinite canvas loop, scramble hover effect, count-ups and cursor glow (the CSS side updates live, the JS side does not) — an inconsistent half-reduced state on a site that names reduced-motion a hard requirement.
+
+**Suggested fix:** Keep a live MediaQueryList and register a change listener that stops the rAF loop, cancels scramble timers, and skips future JS-driven animation when matches becomes true.
+
+**Verifier:** CONFIRMED — All three cited locations read matchMedia("(prefers-reduced-motion: reduce)").matches once into a const with no change listener (the only MQL change listener is the 721px nav one at Layout.astro:249), while global.css handles the preference via live @media blocks — so a mid-session toggle really does leave JS-driven animations (Hero canvas loop, scramble, count-ups, cursor glow) in their page-load state.
+
+### 242. [POLISH] src/layouts/Layout.astro:210 — Repeated copies of the same value are never announced: the aria-live region is set to an identical string, which screen readers do not re-announce, and the region is never cleared.
+
+**Why (evidence):** copyStatus.textContent = `${prevLabel} copied to clipboard.` writes the same string on every successful copy of the same button. aria-live regions only announce on DOM mutation producing changed content; setting textContent to its current value is a no-op in most AT (NVDA/JAWS/VoiceOver), so the second press of "Copy email" gives a sighted user the "copied ✓" flash but a blind user silence. The stale message also lingers in the accessibility tree indefinitely.
+
+**Suggested fix:** Clear the region first and write on the next frame (copyStatus.textContent = ""; requestAnimationFrame(() => copyStatus.textContent = msg)), or append a zero-width variation/timestamped node, and clear the region after a few seconds.
+
+**Verifier:** PLAUSIBLE — Premise verified: Layout.astro:210 rewrites the identical string into the aria-live="polite" region (Contact.astro:44) and no code ever clears it, but whether AT actually skips re-announcing identical replaced text varies by screen reader/browser, so the silent-second-press outcome is likely rather than certain.
+
+### 243. [POLISH] src/styles/fonts.css:1 — Three OFL-licensed font files are redistributed in dist/_astro without any license/attribution notice anywhere in the repo or site.
+
+**Why (evidence):** Inter, JetBrains Mono, and Space Grotesk are SIL OFL 1.1; the built site serves the .woff2 binaries from its own origin. The OFL permits web-font use but expects the license and copyright notices to accompany redistributed font software where practical; the repo has no LICENSE file at all (flagged separately) and no font attribution in README, docs, or a colophon. Trivial to fix and eliminates any ambiguity for a public repo that redistributes the binaries.
+
+**Suggested fix:** Add a NOTICE/CREDITS section to README (or a licenses paragraph in the footer/colophon) naming the three typefaces, their copyright holders, and the SIL OFL 1.1, and include the OFL text alongside the repo's own LICENSE when it is added.
+
+**Verifier:** PLAUSIBLE — Premise checks out — src/styles/fonts.css self-hosts Inter, JetBrains Mono, and Space Grotesk (OFL 1.1) from Fontsource, and there is no LICENSE file or OFL/attribution notice anywhere in the repo, README, or site — but dist/ is not git-tracked (only the deployed site serves the binaries), woff2 files carry embedded copyright metadata, and the OFL FAQ explicitly permits @font-face web serving, so whether an external notice is required is a best-practice judgment call rather than a factual defect.
+
+### 244. [POLISH] src/styles/global.css:308 — display:contents on the <dl> inside .pcard__params risks stripping the definition-list semantics from the accessibility tree in some browsers.
+
+**Why (evidence):** `.pcard__params.cols .spec { display: contents; }` is applied to a <dl> so its .spec__row divs become grid items of the parent. display:contents has a long history of removing elements' implicit ARIA roles (list/table semantics) from the accessibility tree — fixed at different times across Chromium/WebKit/Gecko and still buggy for some roles in older-but-supported Safari versions — so the key/value pairs may be exposed as flat text without list structure.
+
+**Suggested fix:** Make the grid the <dl> itself (apply the two-column grid directly to .spec inside .cols and drop the wrapper), avoiding display:contents on a semantically meaningful element.
+
+**Verifier:** PLAUSIBLE — Premise verified — global.css:308 applies display:contents to the <dl class="spec"> in Projects.astro:41 with no ARIA role backstop or cascade override — but the role-stripping bug is fixed in current browsers, so the residual impact (older Safari, inconsistent SR handling of <dl> anyway) is a polish-level judgment call.
+
+### 245. [POLISH] src/styles/global.css:433 — Printing with JS enabled before scrolling the page yields invisible trace dividers (and same-pattern gaps): the print stylesheet resets .reveal/.fade opacity but not the JS-gated stroke-dashoffset/scaleX/width states.
+
+**Why (evidence):** `.js.reveal-ready .trace-div path { stroke-dashoffset: var(--len) }` hides the divider stroke until an in-view class arrives from IntersectionObserver. The @media print block (lines 500-508) forces opacity/transform for .reveal/.fade only; a user who opens the page and immediately prints (Ctrl+P without scrolling) gets .trace-div paths still at full dashoffset — and unlike the background-based gauge fills already flagged, SVG strokes DO print, so this is a distinct mechanism. .section-head .rule scaleX(0) and .gauge__fill width:0 have the same unreset JS-gated state.
+
+**Suggested fix:** In @media print add: `.js.reveal-ready .trace-div path { stroke-dashoffset: 0 !important } .js.reveal-ready .trace-div circle { opacity: 1 !important } .js.reveal-ready .section-head .rule { transform: none !important } .js.reveal-ready .gauge__fill { width: var(--w) !important }`.
+
+**Verifier:** CONFIRMED — Verified: global.css:433/437 (trace paths/circles), :120 (.rule scaleX(0)), :395 (.gauge__fill width:0) are all JS-gated hidden states not reset in the @media print block (lines 500-508, which only fixes .reveal/.fade), the resets at lines 517-521 live in the prefers-reduced-motion block not print, and Layout.astro has no beforeprint handler — so printing before elements scroll into view yields invisible dividers/rules/gauge fills.
+
+
+## Refuted claims (recorded so they are not re-reported)
+
+- `src/styles/global.css:135` — Global :focus-visible rule forces border-radius: var(--radius-sm) on every focusable element, visibly morphing elements that have a different radius.
+  - **Refutation:** The rule uses :where(), giving it specificity (0,1,0); .copy-btn (global.css:411) ties and comes later in source order so its radius-xs wins while focused, and .btn-primary:hover (0,2,0) outranks the focus rule so the glow-ring is not replaced — the claimed morphing cannot occur.

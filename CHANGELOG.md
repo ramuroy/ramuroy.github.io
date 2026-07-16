@@ -3,6 +3,42 @@
 This project follows a lightweight, date-based changelog. Entries describe changes
 that affect the source, generated site, development workflow, or deployment safety.
 
+## Unreleased — full-site audit documentation (2026-07-16)
+
+Branch: `codex/site-hardening-20260713` (documentation only; no site source changed)
+
+### Added
+
+- `docs/site-audit-2026-07-16.md` — complete audit report: 31 curated defects
+  (P1/P2/P3) with evidence and fixes, category critiques, a judge-ranked 3-tier
+  improvement roadmap, implementation phasing, and a full findings appendix.
+- `docs/audit-findings-full-2026-07-16.md` — every one of the 245 adversarially
+  verified findings, unabridged, with full evidence, suggested fix, and verifier
+  verdict/note.
+- `docs/audit-data-2026-07-16.json` — the same findings as machine-readable data,
+  plus the single refuted claim, the full enhancement roadmap, and all 45 raw
+  design-panel proposals.
+- `docs/checkpoints/2026-07-16-full-audit.md` — session handoff: what was done,
+  decisions made, user inputs still needed, and resume steps.
+- `docs/decisions.md` D-014 — record the audit in full before implementing any of
+  it.
+
+### Changed
+
+- Corrected `docs/architecture.md` and the 2026-07-13 checkpoint: the derived
+  statistic is the programming-language count, not spoken languages (audit
+  content-consistency findings).
+
+### Notable audit outcomes (details in the report)
+
+- Confirmed defects include: the emitted CSP blocks the boot-intro inline script
+  in production; the nav scroll-spy highlight has never rendered; card hover
+  transitions are overridden by the entrance rule; print output is illegible;
+  the mobile nav requires JavaScript.
+- Verified healthy: build gate, all external links, claimed statistics, WCAG AA
+  text contrast on every token pair, CSP/link-safety posture, no content drift
+  against the résumé beyond the itemized nits.
+
 ## Unreleased — hardening branch (2026-07-13)
 
 Branch: `codex/site-hardening-20260713`
