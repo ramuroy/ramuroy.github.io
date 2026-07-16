@@ -399,13 +399,16 @@ const personLdJson = JSON.stringify(personLd).replace(/</g, "\\u003c");
           };
           window.requestAnimationFrame(tick);
         };
+        const finalizeCounters = () =>
+          counters.forEach((el) => {
+            el.textContent = parseFloat(el.dataset.count || "0").toFixed(parseInt(el.dataset.dec || "0", 10));
+          });
         if (reduceMotion || !("IntersectionObserver" in window)) {
           counters.forEach(runCount);
         } else {
-          // Markup ships real values for no-JS and failure-safe rendering.
-          counters.forEach((el) => {
-            el.textContent = (0).toFixed(parseInt(el.dataset.dec || "0", 10));
-          });
+          // Markup keeps the real values until the moment the count-up starts,
+          // so a missed observation (zoom, tiny viewport) degrades to "no
+          // animation" — never to a value stuck at 0 (audit B7).
           const countIO = new IntersectionObserver(
             (entries) => {
               entries.forEach((e) => {
@@ -415,9 +418,15 @@ const personLdJson = JSON.stringify(personLd).replace(/</g, "\\u003c");
                 }
               });
             },
-            { threshold: 0.6 }
+            { threshold: 0.35 }
           );
           counters.forEach((el) => countIO.observe(el));
+          onMQChange(rmQuery, (e) => {
+            if (e.matches) {
+              countIO.disconnect();
+              finalizeCounters();
+            }
+          });
         }
       }
     </script>
