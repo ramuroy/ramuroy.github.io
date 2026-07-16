@@ -169,9 +169,14 @@ const personLdJson = JSON.stringify(personLd).replace(/</g, "\\u003c");
           (entries) => {
             entries.forEach((e) => {
               const link = sectionToLink.get(e.target);
-              if (link && e.isIntersecting) {
+              if (!link) return;
+              if (e.isIntersecting) {
                 navLinks.forEach((x) => x.removeAttribute("aria-current"));
                 link.setAttribute("aria-current", "location");
+              } else if (link.hasAttribute("aria-current")) {
+                // Scrolling back above the first section must clear the
+                // highlight, not leave a stale one on the last section seen.
+                link.removeAttribute("aria-current");
               }
             });
           },
