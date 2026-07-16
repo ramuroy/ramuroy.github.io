@@ -3,14 +3,14 @@
 This project follows a lightweight, date-based changelog. Entries describe changes
 that affect the source, generated site, development workflow, or deployment safety.
 
-## Unreleased — project grid: full catalogue, strength-ordered (2026-07-17)
+## Released 2026-07-17 — project grid: full catalogue, strength-ordered
 
 - All 15 grid projects render (previously the 7 `featured` ones), ordered
   strongest-first by the `gridProjects` array order; star-sorting removed and
   the `featured` flag retired (supersedes D-010, owner decision). The
   "18 Projects" statistic now matches what visitors can actually see.
 
-## Unreleased — Phase 0 defect sweep (2026-07-16)
+## Released 2026-07-17 — Phase 0 defect sweep (implemented 2026-07-16/17)
 
 Branch: `codex/site-hardening-20260713` — implements the P1/P2 defects (B1–B31)
 and hygiene items from `docs/site-audit-2026-07-16.md`, as individually
@@ -61,7 +61,7 @@ verifiable atomic commits. No visual redesign; all changes are fixes.
   tsconfig `strictest`, SHA-pinned actions — see the audit's §7/P3 and the
   roadmap for placement.
 
-## Unreleased — full-site audit documentation (2026-07-16)
+## Released 2026-07-17 — full-site audit documentation (written 2026-07-16)
 
 Branch: `codex/site-hardening-20260713` (documentation only; no site source changed)
 
@@ -97,12 +97,12 @@ Branch: `codex/site-hardening-20260713` (documentation only; no site source chan
   text contrast on every token pair, CSP/link-safety posture, no content drift
   against the résumé beyond the itemized nits.
 
-## Unreleased — hardening branch (2026-07-13)
+## Released 2026-07-17 — hardening branch (work of 2026-07-13)
 
 Branch: `codex/site-hardening-20260713`
 
-This work is intentionally unreleased. Pushing the branch does not change the live
-site because GitHub Pages deploys only from `main`.
+This work shipped to production on 2026-07-17 together with the audit and
+Phase 0 entries above, after the release checklist completed.
 
 ### Added
 

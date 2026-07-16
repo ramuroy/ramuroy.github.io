@@ -9,10 +9,6 @@ progressively enhanced client JavaScript.
 
 **Live site:** https://ramuroy.github.io
 
-> Current hardening work is isolated on `codex/site-hardening-20260713`. The live
-> deployment and `main` branch are intentionally unchanged until that branch is
-> reviewed and merged.
-
 ## Documentation
 
 - [Architecture and maintenance guide](docs/architecture.md)
