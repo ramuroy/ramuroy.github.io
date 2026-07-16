@@ -17,7 +17,7 @@ import { hero } from "../data/site";
       <p class="hero__lead">
         {hero.lead.map((seg) =>
           seg.arrow ? (
-            <span class="arrow">{seg.label}</span>
+            <Fragment>{" "}<span class="arrow" aria-hidden="true">{seg.label}</span>{" "}</Fragment>
           ) : seg.em ? (
             <em>{seg.t}</em>
           ) : (
@@ -37,7 +37,7 @@ import { hero } from "../data/site";
 
       <p class="ticker">
         {hero.ticker.map((t, i) => (
-          <Fragment>{i > 0 && <span aria-hidden="true">·</span>}{t}</Fragment>
+          <Fragment>{i > 0 && <Fragment>{" "}<span aria-hidden="true">·</span>{" "}</Fragment>}{t}</Fragment>
         ))}
       </p>
     </div>

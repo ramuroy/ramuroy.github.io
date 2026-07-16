@@ -24,7 +24,7 @@ import { skillGroups, protocols, sections } from "../data/site";
       <p class="protocols__label">// communication protocols</p>
       <p class="protocols__line">
         {protocols.map((p, i) => (
-          <Fragment>{i > 0 && <b aria-hidden="true">·</b>}{p}</Fragment>
+          <Fragment>{i > 0 && <Fragment>{" "}<b aria-hidden="true">·</b>{" "}</Fragment>}{p}</Fragment>
         ))}
       </p>
     </div>
