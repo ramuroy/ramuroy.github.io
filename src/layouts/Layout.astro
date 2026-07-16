@@ -474,6 +474,8 @@ const websiteLdJson = escapeLd(websiteLd);
               finalizeCounters();
             }
           });
+          // Paper must never show a mid-animation count
+          window.addEventListener("beforeprint", finalizeCounters);
         }
       }
     </script>
