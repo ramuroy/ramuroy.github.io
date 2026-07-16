@@ -27,6 +27,18 @@
   --accent-ink: #062A30;
   --trace: #16323D;
 
+  /* ---- Three-voice palette (T2.4) ----
+     copper  = static PCB scenery (traces, vias, pads, rails, tick corners)
+     cyan    = live signal & everything interactive (accent family above)
+     phosphor = terminal moments only (boot log, prompt carets) */
+  --copper: #B87333;
+  --copper-dim: #6E4A26;
+  --pad-gold: #D4A24E;
+  --phosphor: #3AFB77;
+  --phosphor-dim: #1E7A42;
+  --phosphor-glow: rgba(58, 251, 119, 0.25);
+  --silkscreen: #3A4956;
+
   /* ---- Glow / status ---- */
   --glow: rgba(0, 229, 255, 0.18);
   --glow-strong: rgba(0, 229, 255, 0.34);

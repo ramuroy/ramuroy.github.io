@@ -188,8 +188,8 @@ main:focus-visible { box-shadow: none; outline: none; }
    ===================================================================== */
 .ticked { position: relative; }
 .ticked::before, .ticked::after { content: ""; position: absolute; width: 10px; height: 10px; transition: border-color var(--t) var(--ease-std); pointer-events: none; }
-.ticked::before { top: 8px; left: 8px; border-top: 1px solid var(--border-bright); border-left: 1px solid var(--border-bright); }
-.ticked::after { bottom: 8px; right: 8px; border-bottom: 1px solid var(--border-bright); border-right: 1px solid var(--border-bright); }
+.ticked::before { top: 8px; left: 8px; border-top: 1px solid var(--copper-dim); border-left: 1px solid var(--copper-dim); }
+.ticked::after { bottom: 8px; right: 8px; border-bottom: 1px solid var(--copper-dim); border-right: 1px solid var(--copper-dim); }
 @media (hover: hover) {
   .ticked:hover::before, .ticked:hover::after { border-color: var(--accent); }
 }
@@ -267,9 +267,10 @@ main:focus-visible { box-shadow: none; outline: none; }
 @keyframes boot-wipe { to { clip-path: inset(0 0 100% 0); } }
 .boot__panel { font-family: var(--font-mono); font-size: var(--fs-small); color: var(--text-secondary); width: min(520px, 86vw); }
 .boot__line { opacity: 0; transform: translateY(6px); animation: boot-line 0.4s var(--ease-out) forwards; animation-delay: calc(var(--i) * 0.22s + 0.1s); white-space: pre-wrap; }
-.boot__line .ok { color: var(--accent); }
+.boot__line .ok { color: var(--phosphor); }
 @keyframes boot-line { to { opacity: 1; transform: none; } }
-.caret { display: inline-block; width: 0.6em; height: 1.05em; transform: translateY(0.18em); background: var(--accent); margin-left: 0.15em; animation: blink 1.06s steps(2, start) infinite; }
+/* Terminal carets speak phosphor, not signal-cyan (T2.4) */
+.caret { display: inline-block; width: 0.6em; height: 1.05em; transform: translateY(0.18em); background: var(--phosphor); margin-left: 0.15em; animation: blink 1.06s steps(2, start) infinite; box-shadow: 0 0 8px var(--phosphor-glow); }
 @keyframes blink { 50% { opacity: 0; } }
 .boot__skip { position: fixed; top: var(--space-5); right: var(--space-5); font-family: var(--font-mono); font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.4rem 0.7rem; }
 .boot__skip:hover { color: var(--accent-text); border-color: var(--border-bright); }
@@ -377,7 +378,7 @@ main:focus-visible { box-shadow: none; outline: none; }
 .timeline { display: flex; flex-direction: column; }
 .tl-item { position: relative; padding-left: var(--space-7); padding-bottom: var(--space-8); }
 .tl-item:last-child { padding-bottom: 0; }
-.tl-item::before { content: ""; position: absolute; left: 5px; top: 0.55rem; bottom: -0.3rem; width: 1px; background: var(--trace); }
+.tl-item::before { content: ""; position: absolute; left: 5px; top: 0.55rem; bottom: -0.3rem; width: 1px; background: var(--copper-dim); }
 .tl-item:last-child::before { display: none; }
 .tl-item__node { position: absolute; left: 0; top: 0.4rem; width: 11px; height: 11px; border-radius: 50%; background: var(--bg); border: 2px solid var(--border-bright); }
 .tl-item--active .tl-item__node { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px var(--glow-strong); animation: pulse-dot 2s ease-in-out infinite; }
@@ -456,6 +457,7 @@ html:not(.js) .copy-btn { display: none; }
 .footer__inner { display: flex; flex-direction: column; gap: var(--space-4); }
 .footer__row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
 .footer__colophon { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); }
+.footer__colophon .prompt { color: var(--phosphor-dim); }
 .footer__colophon .accent { color: var(--accent-text); }
 .footer__copy { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); }
 .footer__links { display: flex; gap: var(--space-5); flex-wrap: wrap; }
@@ -466,7 +468,7 @@ html:not(.js) .copy-btn { display: none; }
    PCB TRACE DIVIDER
    ===================================================================== */
 .trace-div { display: block; width: 100%; height: 24px; margin-block: var(--space-7); opacity: 0.6; }
-.trace-div path { stroke: var(--trace); stroke-width: 1; fill: none; stroke-dasharray: var(--len, 600); stroke-dashoffset: 0; }
+.trace-div path { stroke: var(--copper-dim); stroke-width: 1; fill: none; stroke-dasharray: var(--len, 600); stroke-dashoffset: 0; }
 .js.reveal-ready .trace-div path { stroke-dashoffset: var(--len, 600); }
 .trace-div.in-view path { animation: trace-draw var(--t-draw) var(--ease-out) forwards; }
 @keyframes trace-draw { to { stroke-dashoffset: 0; } }
@@ -479,9 +481,10 @@ html:not(.js) .copy-btn { display: none; }
    ANIMATED PCB CIRCUIT BACKGROUND
    ===================================================================== */
 .circuit { position: fixed; top: -6%; left: 0; width: 100%; height: 112%; z-index: -1; pointer-events: none; opacity: 0.45; transform: translateY(calc(var(--scrollp, 0) * -60px)); }
-.circuit__base path { fill: none; stroke: var(--trace); stroke-width: 1; }
-.circuit__via { fill: none; stroke: var(--trace); stroke-width: 1; }
-.circuit__pad { fill: var(--trace); }
+/* Static board scenery speaks copper; only the pulses stay cyan (T2.4) */
+.circuit__base path { fill: none; stroke: var(--copper-dim); stroke-width: 1; }
+.circuit__via { fill: none; stroke: var(--copper-dim); stroke-width: 1; }
+.circuit__pad { fill: var(--pad-gold); }
 .circuit__pulse { fill: none; stroke: var(--accent); stroke-width: 1.6; stroke-linecap: round; stroke-dasharray: 26 4000; stroke-dashoffset: 4000; filter: drop-shadow(0 0 5px var(--accent)); animation: flow var(--dur, 9s) linear var(--delay, 0s) infinite; }
 @keyframes flow { to { stroke-dashoffset: 0; } }
 
@@ -560,6 +563,9 @@ body.cursor-on .cursor-glow { opacity: 1; }
     --success: #333; --success-glow: transparent; --led-ring: transparent;
     --warn: #333; --shadow-md: none; --shadow-card-hover: none;
     --glow-ring: none; --glow-text: none; --focus-ring: none;
+    --copper: #888; --copper-dim: #aaa; --pad-gold: #888;
+    --phosphor: #333; --phosphor-dim: #555; --phosphor-glow: transparent;
+    --silkscreen: #777;
   }
   *, *::before, *::after { animation: none !important; transition: none !important; box-shadow: none !important; text-shadow: none !important; }
   .nav, .boot, .circuit, .cursor-glow, .signal-rail, .hero__canvas, .hero__scroll, .trace-div, .card-glow, .caret, .skip-link, .copy-btn { display: none !important; }
