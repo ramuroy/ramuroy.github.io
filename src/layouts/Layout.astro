@@ -209,6 +209,9 @@ const personLdJson = JSON.stringify(personLd).replace(/</g, "\\u003c");
         });
       };
       window.addEventListener("scroll", onScroll, { passive: true });
+      // Progress depends on viewport and content height too — recompute when
+      // geometry changes, not only on scroll.
+      window.addEventListener("resize", onScroll);
       updateScrollProgress();
 
       // ---- Copy to clipboard (with legacy fallback) ----
