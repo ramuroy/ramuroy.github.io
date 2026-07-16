@@ -1,0 +1,24 @@
+---
+/*
+  Partition/slot exhibit for flagship cards (T2.5) — flash layout told in the
+  visual language engineers whiteboard it in. Weights are display proportions
+  only; captions deliberately say "scheme"/"layout" and no sizes are claimed
+  (decision D-016).
+*/
+interface Props {
+  caption: string;
+  segments: { name: string; weight: number; note?: string; active?: boolean }[];
+}
+const { caption, segments } = Astro.props;
+---
+<figure class="pmap">
+  <div class="pmap__bar" role="img" aria-label={`${caption}: ${segments.map((s) => s.name + (s.note ? ` (${s.note})` : "")).join(", ")}`}>
+    {segments.map((s) => (
+      <div class:list={["pmap__seg", { "pmap__seg--active": s.active }]} style={`--w:${s.weight}`} aria-hidden="true">
+        <span class="pmap__name">{s.name}</span>
+        {s.note && <span class="pmap__note">{s.note}</span>}
+      </div>
+    ))}
+  </div>
+  <figcaption class="pmap__caption" aria-hidden="true">{caption}</figcaption>
+</figure>

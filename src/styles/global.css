@@ -357,6 +357,16 @@ main:focus-visible { box-shadow: none; outline: none; }
 .pcard__norepo { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); }
 .star { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--warn); display: inline-flex; align-items: center; gap: 0.3em; }
 
+/* Partition-map exhibit (T2.5) */
+.pmap { margin: 0; }
+.pmap__bar { display: flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--code-bg); }
+.pmap__seg { flex: var(--w, 1) 1 0; min-width: 0; padding: 0.4rem 0.5rem 0.45rem; display: flex; flex-direction: column; gap: 2px; border-right: 1px solid var(--border); font-family: var(--font-mono); }
+.pmap__seg:last-child { border-right: none; }
+.pmap__seg--active { box-shadow: inset 0 2px 0 var(--accent); background: transparent; background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.pmap__name { font-size: var(--fs-micro); color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pmap__note { font-size: 0.64rem; color: var(--accent-text); text-transform: uppercase; letter-spacing: 0.08em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pmap__caption { margin-top: 0.45rem; font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--silkscreen); letter-spacing: 0.08em; }
+
 /* Project grid (more on github) */
 .projects__more { margin-top: var(--space-8); }
 .projects__more-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-5); flex-wrap: wrap; }

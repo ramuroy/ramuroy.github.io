@@ -1,4 +1,5 @@
 ---
+import PartitionMap from "./PartitionMap.astro";
 import SectionHeader from "./SectionHeader.astro";
 import TraceDivider from "./TraceDivider.astro";
 import { flagship, gridProjects, sections } from "../data/site";
@@ -49,6 +50,8 @@ const showDot = (v: string) => v === "deployed" || v === "production";
               ))}
             </dl>
           </div>
+
+          {p.partitions && <PartitionMap {...p.partitions} />}
 
           <details class="pcard__details">
             <summary>Engineering detail</summary>

@@ -120,6 +120,12 @@ export type Flagship = {
   highlights: string[];
   tech: string[];
   params: { k: string; v: string; active?: boolean }[];
+  /** Partition/slot exhibit (T2.5). Weights are visual proportions only —
+      captions say "scheme"/"layout" deliberately; no sizes are claimed (D-016). */
+  partitions?: {
+    caption: string;
+    segments: { name: string; weight: number; note?: string; active?: boolean }[];
+  };
   repo?: string;
   stars?: number;
   noRepoNote?: string;
@@ -149,6 +155,16 @@ export const flagship: Flagship[] = [
       { k: "Bus", v: "MQTT · D-Bus" },
       { k: "Stack", v: "Rust · Qt6/QML · SQLite" },
     ],
+    partitions: {
+      caption: "rauc a/b slot layout (wic image)",
+      segments: [
+        { name: "boot", weight: 1.2 },
+        { name: "rootfs A", weight: 3, note: "booted · good", active: true },
+        { name: "rootfs B", weight: 3 },
+        { name: "appfs", weight: 2 },
+        { name: "data", weight: 2 },
+      ],
+    },
     noRepoNote: "Elipse · no public repo",
     full: true,
   },
@@ -174,6 +190,16 @@ export const flagship: Flagship[] = [
       { k: "I/O", v: "Masibus 8-ch relays" },
       { k: "Result", v: "Live @ Tata Steel BlueScope", active: true },
     ],
+    partitions: {
+      caption: "esp-idf ota partition scheme (two app slots)",
+      segments: [
+        { name: "nvs", weight: 1 },
+        { name: "otadata", weight: 1 },
+        { name: "phy", weight: 0.8 },
+        { name: "ota_0", weight: 3.4, note: "running", active: true },
+        { name: "ota_1", weight: 3.4 },
+      ],
+    },
     repo: "https://github.com/ramuroy/Industrial-Anti-Collision-System",
     stars: 1,
   },
