@@ -48,11 +48,11 @@ See CHANGELOG and the 2026-07-17 checkpoint.
 | T2.2 | Visual evidence: bench photos, KiCad renders, voice-pipeline SVG block diagram with latency annotations | L | blocked on I4 |
 | T2.3 | Protocol-decode trace dividers (correct UART/I²C/SPI frames computed at build time; replaces the stretching generic divider) | M | ready |
 | T2.4 | Three-voice palette: copper (static PCB), cyan (live signal), phosphor (terminal) — token surgery restoring accent hierarchy | M | ready |
-| T2.5 | Partition-map exhibits (RAUC A/B slots, ESP-IDF OTA table) as datasheet bars | M | ready |
-| T2.6 | Boot log reads like real bring-up (dmesg-style lines, 3 beats, ≤1.3 s budget) | S | ready |
-| T2.7 | Motion discipline: shimmer event-driven, retire rail ping, slow pill pulses, keep LED/circuit as status; scoped reduced-motion policy | S | ready |
-| T2.8 | Nav polish: center-origin underline hover, masthead one-shot blink | S | ready |
-| T2.9 | IC topmark under the hero name (chip-style silkscreen lines, pin-1 dot) | S | ready |
+| T2.5 | Partition-map exhibits | M | **done** (pending review) |
+| T2.6 | Boot log reads like real bring-up | S | **done** (pending review) |
+| T2.7 | Motion discipline (shimmer one-shot; no hover replay — deliberate) | S | **done** (pending review) |
+| T2.8 | Nav polish | S | **done** (pending review) |
+| T2.9 | IC topmark (absorbed ticker + hero titleblock) | S | **done** (pending review) |
 
 ## Tier 3 — stretch: interactive artifacts and platform craft
 
