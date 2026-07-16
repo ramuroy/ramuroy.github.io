@@ -520,13 +520,41 @@ body.cursor-on .cursor-glow { opacity: 1; }
 }
 
 @media print {
-  .nav, .boot, .circuit, .cursor-glow, .signal-rail, .hero__canvas, .hero__scroll { display: none !important; }
-  body { color: #111; background: #fff; }
+  /* Re-theme at the token level so every component prints dark-on-white
+     without per-selector overrides (audit B3). */
+  :root {
+    --bg: #fff; --bg-deep: #fff; --surface: #fff; --code-bg: #f4f4f4;
+    --border: #999; --border-bright: #777; --grid-line: transparent;
+    --text: #111; --text-secondary: #333; --muted: #555; --faint: #ccc;
+    --accent: #000; --accent-deep: #333; --accent-soft: #333;
+    --accent-text: #111; --accent-ink: #fff; --trace: #bbb;
+    --glow: transparent; --glow-strong: transparent; --glow-soft: transparent;
+    --success: #333; --success-glow: transparent; --led-ring: transparent;
+    --warn: #333; --shadow-md: none; --shadow-card-hover: none;
+    --glow-ring: none; --glow-text: none; --focus-ring: none;
+  }
+  *, *::before, *::after { animation: none !important; transition: none !important; box-shadow: none !important; text-shadow: none !important; }
+  .nav, .boot, .circuit, .cursor-glow, .signal-rail, .hero__canvas, .hero__scroll, .trace-div, .card-glow, .caret, .skip-link, .copy-btn { display: none !important; }
+  body { color: var(--text); background: #fff; }
   body::before, body::after { display: none; }
-  .section, .hero { min-height: auto; padding-block: 1.5rem; break-inside: avoid; }
+  .section, .hero { min-height: auto; padding-block: 1.5rem; }
+  /* Keep atomic blocks together instead of forcing whole sections onto one page */
+  .pcard, .gcard, .cert, .tl-item, .spec-card, .contact__panel { break-inside: avoid; }
   .js.reveal-ready :is(.reveal, .fade) { opacity: 1 !important; transform: none !important; }
-  .section-head__title { -webkit-text-fill-color: currentColor; color: #111; animation: none; }
+  .js.reveal-ready .section-head .rule { transform: scaleX(1) !important; }
+  .section-head__title { background: none; -webkit-text-fill-color: currentColor; color: var(--text); }
+  /* Certification gauges: numeric value carries the data; give the fill a
+     printable best-effort bar as well. */
+  .js.reveal-ready .gauge__fill { width: var(--w) !important; }
+  .gauge__fill { background: #111 !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  /* Engineering detail must not vanish inside closed disclosures on paper.
+     (Belt: modern engines; suspenders: the beforeprint handler opens them.) */
+  .pcard__details::details-content { content-visibility: visible !important; display: block !important; }
+  .pcard__details > ul { display: block !important; }
+  .pcard__details summary::before { content: none; }
+  /* Reference links are dead ends on paper without their URLs */
   a { text-decoration: underline; }
+  a[href^="https://"]:not(.btn)::after { content: " (" attr(href) ")"; font-family: var(--font-mono); font-size: 0.8em; color: var(--muted); overflow-wrap: anywhere; }
 }
 
 /* =====================================================================

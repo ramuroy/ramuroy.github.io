@@ -312,6 +312,20 @@ const personLdJson = JSON.stringify(personLd).replace(/</g, "\\u003c");
         });
       }
 
+      // ---- Print: closed disclosures must not hide content on paper ----
+      window.addEventListener("beforeprint", () => {
+        document.querySelectorAll<HTMLDetailsElement>("details:not([open])").forEach((d) => {
+          d.dataset.printOpened = "";
+          d.open = true;
+        });
+      });
+      window.addEventListener("afterprint", () => {
+        document.querySelectorAll<HTMLDetailsElement>("details[data-print-opened]").forEach((d) => {
+          delete d.dataset.printOpened;
+          d.open = false;
+        });
+      });
+
       // ---- Count-up numbers ----
       const counters = document.querySelectorAll<HTMLElement>("[data-count]");
       if (counters.length) {
