@@ -8,7 +8,14 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
   site: 'https://ramuroy.github.io',
   trailingSlash: 'ignore',
-  integrations: [sitemap()],
+  integrations: [
+    sitemap({
+      // The 404 page must never be crawled; lastmod gives crawlers a
+      // freshness signal (set per deploy).
+      filter: (page) => !page.includes('/404'),
+      lastmod: new Date(),
+    }),
+  ],
   security: {
     csp: {
       directives: [
