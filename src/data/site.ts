@@ -49,11 +49,19 @@ export const nav = [
   { label: "Contact", href: "#contact" },
 ];
 
-/* Boot / POST intro lines (first visit only) */
-export const bootLines = [
-  "rr@embedded:~$ boot --portfolio",
-  "[ ok ] mounting profile rev.2026 ...",
-  "[ ok ] signal acquired",
+/* Boot / POST intro lines (first visit only). dmesg-style bring-up (T2.6):
+   every line is grounded in the published stack (ESP32-S3 = dual-core Xtensa
+   LX7; RAUC A/B slots; KWS on tract; anti-collision live at Tata Steel
+   BlueScope). Lines land in `group` beats within the 1.3s dismiss budget. */
+export type BootLine = { ts: string; text: string; ok?: boolean; group: number };
+export const bootLines: BootLine[] = [
+  { ts: "", text: "rr@embedded:~$ boot --portfolio", group: 0 },
+  { ts: "0.012", text: "cpu: dual-core xtensa lx7 online", ok: true, group: 0 },
+  { ts: "0.184", text: "mounting profile rev.2026", ok: true, group: 1 },
+  { ts: "0.310", text: "rauc: booted slot A, marked good", ok: true, group: 1 },
+  { ts: "0.492", text: "eos-voice: kws model loaded (tract)", ok: true, group: 1 },
+  { ts: "0.771", text: "uwb: anti-collision live @ tata steel bluescope", ok: true, group: 2 },
+  { ts: "1.020", text: "signal acquired", group: 2 },
 ];
 
 export const hero = {

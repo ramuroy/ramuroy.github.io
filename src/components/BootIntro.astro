@@ -10,11 +10,10 @@ import { bootScript } from "../data/inline-scripts";
   <button class="boot__skip" type="button">skip intro <span aria-hidden="true">▸</span></button>
   <div class="boot__panel" aria-hidden="true">
     {bootLines.map((line, i) => {
-      const [before, after] = line.split("[ ok ]");
-      const hasStatus = after !== undefined;
       const isLast = i === bootLines.length - 1;
+      const gi = bootLines.slice(0, i).filter((l) => l.group === line.group).length;
       return (
-        <p class="boot__line" style={`--i:${i}`}>{hasStatus ? <Fragment>{before}[ <span class="ok">ok</span> ]{after}</Fragment> : line}{isLast && <span class="caret" aria-hidden="true"></span>}</p>
+        <p class="boot__line" style={`--g:${line.group}; --gi:${gi}`}>{line.ts && <Fragment><span class="ts">[ {line.ts} ]</span>{" "}</Fragment>}{line.text}{line.ok && <Fragment>{" "}<span class="ok">[ ok ]</span></Fragment>}{isLast && <span class="caret" aria-hidden="true"></span>}</p>
       );
     })}
   </div>

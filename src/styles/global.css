@@ -265,8 +265,10 @@ main:focus-visible { box-shadow: none; outline: none; }
 .boot.is-active { display: grid; }
 .boot.is-wiping { animation: boot-wipe 320ms var(--ease-wipe) forwards; }
 @keyframes boot-wipe { to { clip-path: inset(0 0 100% 0); } }
-.boot__panel { font-family: var(--font-mono); font-size: var(--fs-small); color: var(--text-secondary); width: min(520px, 86vw); }
-.boot__line { opacity: 0; transform: translateY(6px); animation: boot-line 0.4s var(--ease-out) forwards; animation-delay: calc(var(--i) * 0.22s + 0.1s); white-space: pre-wrap; }
+.boot__panel { font-family: var(--font-mono); font-size: var(--fs-small); color: var(--text-secondary); width: min(620px, 88vw); }
+/* Lines land in group beats (--g), with a small stagger inside each beat */
+.boot__line { opacity: 0; transform: translateY(6px); animation: boot-line 0.4s var(--ease-out) forwards; animation-delay: calc(var(--g) * 0.34s + var(--gi, 0) * 0.07s + 0.08s); white-space: pre-wrap; }
+.boot__line .ts { color: var(--muted); font-variant-numeric: tabular-nums; }
 .boot__line .ok { color: var(--phosphor); }
 @keyframes boot-line { to { opacity: 1; transform: none; } }
 /* Terminal carets speak phosphor, not signal-cyan (T2.4) */
