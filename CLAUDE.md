@@ -1,18 +1,23 @@
 # Repository rules for AI-assisted work
 
-## Commits
+## Commits — HARD RULES
 
-- **Make small, atomic commits — one commit per distinct change.** Never bundle
-  unrelated fixes into one commit; debugging and review depend on each commit
-  being individually understandable and revertable. A commit should answer one
-  question: "what single thing changed and why?"
+1. **Small, atomic commits — one commit per distinct change. Always.** Never
+   bundle unrelated fixes into one commit; debugging and review depend on each
+   commit being individually understandable and revertable. A commit should
+   answer one question: "what single thing changed and why?"
+2. **Never add AI co-author or contribution attribution to commits.** No
+   `Co-Authored-By: Claude`, no "Generated with", no AI credit of any kind, in
+   any part of the commit message or metadata. (A global commit hook also
+   rejects these — but the rule stands regardless of the hook.)
+
+## Commits — conventions
+
 - Reference audit finding IDs (e.g. `B14`) from `docs/site-audit-2026-07-16.md`
   in commit messages when a commit implements one, so the audit doubles as a
   work log.
 - Run `npm run verify` before every commit that touches `src/`, `public/`, or
   `scripts/` (Node >= 22.12 required; see `.nvmrc`).
-- No AI/co-author attribution in commit messages (a global commit hook rejects
-  it).
 
 ## Branch safety
 
