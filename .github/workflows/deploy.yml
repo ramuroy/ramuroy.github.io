@@ -10,21 +10,27 @@ permissions:
   pages: write
   id-token: write
 
-# Allow one concurrent deployment, cancelling in-progress runs.
+# Allow one concurrent deployment. Do NOT cancel in-progress runs: a killed
+# mid-flight production deployment can leave Pages in a bad state (audit B19);
+# queued runs simply wait, matching GitHub's Pages starter workflow.
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22.12.0
+          # Single source of truth for the Node version (audit B22)
+          node-version-file: .nvmrc
           cache: npm
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -40,6 +46,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
