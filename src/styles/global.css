@@ -534,6 +534,10 @@ body.cursor-on .cursor-glow { opacity: 1; }
 @media (pointer: coarse) {
   .copy-btn { min-height: 44px; display: inline-flex; align-items: center; padding: 0.5em 0.6em; }
   .pcard__ref { min-height: 44px; }
+  .pcard__details summary { min-height: 44px; }
+  .cert__link, .footer__links a { min-height: 44px; display: inline-flex; align-items: center; }
+  .boot__skip { min-height: 44px; }
+  .nav__link { min-height: 44px; display: flex; align-items: center; }
 }
 
 @media (max-width: 420px) {
