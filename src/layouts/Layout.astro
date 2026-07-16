@@ -95,15 +95,28 @@ const personLdJson = JSON.stringify(personLd).replace(/</g, "\\u003c");
     <Footer />
 
     <script>
-      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      // Reduced motion is observed live: toggling the OS setting mid-session
+      // stops JS-driven effects without a reload (audit B27). Safari <= 13
+      // lacks addEventListener on MediaQueryList — never abort the module
+      // over a change listener.
+      const rmQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+      let reduceMotion = rmQuery.matches;
+      const onMQChange = (mq: MediaQueryList, fn: (e: MediaQueryListEvent) => void) => {
+        if (typeof mq.addEventListener === "function") mq.addEventListener("change", fn);
+      };
 
       // ---- Scroll reveal ----
       const revealEls = document.querySelectorAll(
         ".reveal, .fade, .section-head, .trace-div, .cert"
       );
+      const revealAll = () => revealEls.forEach((el) => el.classList.add("in-view", "skip-entrance"));
       if (reduceMotion || !("IntersectionObserver" in window)) {
         revealEls.forEach((el) => el.classList.add("in-view"));
       } else {
+        // If this module executes late (slow network), content has already
+        // painted — hiding it and replaying entrances would blink the page
+        // (audit B6). Late + already-in-viewport elements skip the entrance.
+        const lateLoad = performance.now() > 1000;
         const io = new IntersectionObserver(
           (entries) => {
             for (const e of entries) {
@@ -115,8 +128,22 @@ const personLdJson = JSON.stringify(personLd).replace(/</g, "\\u003c");
           },
           { threshold: 0.15, rootMargin: "0px 0px -10% 0px" }
         );
-        revealEls.forEach((el) => io.observe(el));
+        revealEls.forEach((el) => {
+          const r = el.getBoundingClientRect();
+          if (lateLoad && r.top < window.innerHeight && r.bottom > 0) {
+            el.classList.add("in-view", "skip-entrance");
+          } else {
+            io.observe(el);
+          }
+        });
         document.documentElement.classList.add("reveal-ready");
+        onMQChange(rmQuery, (e) => {
+          if (e.matches) {
+            reduceMotion = true;
+            io.disconnect();
+            revealAll();
+          }
+        });
       }
 
       // ---- Hero underline draw on load ----

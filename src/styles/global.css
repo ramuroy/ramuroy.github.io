@@ -101,6 +101,13 @@ body::after {
 /* opacity-only entrance for elements that own their own transform (hover lift) */
 .js.reveal-ready .fade { opacity: 0; }
 .js.reveal-ready .fade.in-view { animation: fade-in var(--t-slow) var(--ease-out) calc(var(--i, 0) * 60ms) both; }
+/* Already-visible content on late loads keeps its state instead of replaying
+   an entrance (set by the reveal script — audit B6). */
+.js.reveal-ready :is(.reveal, .fade).skip-entrance { opacity: 1; animation: none; }
+.js.reveal-ready .section-head.skip-entrance .rule { transition: none; }
+.js.reveal-ready .trace-div.skip-entrance path { animation: none; stroke-dashoffset: 0; }
+.js.reveal-ready .trace-div.skip-entrance circle { animation: none; opacity: 1; }
+.js.reveal-ready .cert.skip-entrance .gauge__fill { transition: none; }
 
 /* =====================================================================
    SECTION HEADER (eyebrow + drawn cyan rule + faint numeral + title)
