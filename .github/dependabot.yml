@@ -1,0 +1,15 @@
+# Automated dependency update PRs (audit build-tooling). The verify workflow
+# runs the full release gate on every PR these open.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      npm-dependencies:
+        patterns: ["*"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
