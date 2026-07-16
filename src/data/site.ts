@@ -77,7 +77,7 @@ export const hero = {
     { k: "Location", v: "Hyderabad, IN" },
     { k: "Degree", v: "B.Tech ECE (CGPA 8.3)" },
     { k: "Core", v: "Yocto · ESP-IDF · STM32 · Rust", active: true },
-    { k: "Shipped", v: "Anti-Collision @ Tata Steel", active: true },
+    { k: "Shipped", v: "Anti-Collision @ Tata Steel BlueScope", active: true },
     { k: "Status", v: profile.available ? "AVAILABLE" : "NOT CURRENTLY AVAILABLE", status: true, available: profile.available },
   ],
 };
