@@ -257,3 +257,26 @@ user real oversight of what will be modified on their public professional site.
 yet fixed (B1–B31 in the report). Fixes should reference finding IDs so the audit
 documents double as a work log. The audit documents may be pruned or archived
 after the roadmap is executed.
+
+## D-015 — Keep a real-browser smoke suite alongside the build gate
+
+**Status:** Accepted (2026-07-17)
+
+**Context:** Phase 0 uncovered defect classes that build-time validation cannot
+see: the CSP silently blocking an inline script, an aria-modal overlay whose
+inert never applied because of parse timing, and a scroll-spy selector that
+never matched. `npm run verify` was green through all of them.
+
+**Decision:** Maintain `scripts/browser-smoke.mjs` — a Playwright/Chromium
+suite exercising the built site (CSP execution, boot lifecycle, scroll-spy,
+no-JS navigation, print re-theme, reduced motion, touch, 404) — run manually
+before releases and after changes to scripts, CSP, or navigation. Playwright
+stays an on-demand install, not a repository dependency.
+
+**Why:** Runtime behavior needs a runtime check; the one-page site keeps the
+suite fast (~1 min). Avoiding the dependency keeps `npm ci` lean and the
+supply-chain surface unchanged.
+
+**Consequences:** The suite is not wired into CI (hosted-runner browser
+downloads and flakiness are not worth it for a static page yet); releases
+follow the checklist in the current checkpoint, which includes running it.
