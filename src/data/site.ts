@@ -200,7 +200,6 @@ export type GridProject = {
   repo?: string;
   stars?: number;
   category: string;
-  featured?: boolean;
 };
 
 /* Ordered strongest → weakest by engineering depth; the grid renders in this

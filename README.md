@@ -67,8 +67,8 @@ The portfolio content has one primary source of truth: `src/data/site.ts`.
 | Skills and protocols | `skillGroups`, `protocols` |
 | Certifications and spoken languages | `certifications`, `spokenLanguages` |
 
-Set `featured: true` on a `gridProjects` entry to include it in the curated GitHub
-grid. Keep all projects in the data file: aggregate project statistics are derived
+All `gridProjects` entries render, in the array's order — strongest work first;
+re-rank a project by moving its line. Aggregate project statistics are derived
 from the full arrays rather than duplicated as hard-coded display values.
 
 The résumé download is `public/Ramu_Roy_Resume.pdf`. Social images, favicons, and

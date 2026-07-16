@@ -163,7 +163,11 @@ when repository visibility changes.
 
 ## D-010 — Curate projects with an explicit flag
 
-**Status:** Accepted
+**Status:** Superseded (2026-07-17) — the owner chose to render the full
+15-project catalogue, ranked strongest-first by the `gridProjects` array order
+in `src/data/site.ts`; the `featured` flag was removed. Star-sorting was also
+dropped (a starred hobby board must not outrank stronger firmware work).
+Original record kept below for history.
 
 **Context:** The site should retain the complete project catalogue while showing a
 smaller grid aligned with the public GitHub profile's selected work.
