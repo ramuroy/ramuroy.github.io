@@ -8,7 +8,12 @@ roadmap with full implementation sketches), `audit-data-2026-07-16.json`
 
 **Already done and shipped 2026-07-17:** all 31 curated defects B1–B31, CI
 verify workflow, branded 404, font preloads, dependabot, full 15-project
-strength-ordered grid. See CHANGELOG and the 2026-07-17 checkpoint.
+strength-ordered grid. **Tier 1 no-input items done 2026-07-17 (awaiting
+owner review before merge):** T1.2 (Projects-first order, one-paragraph
+About, ≤3 scope-honest experience bullets with FIG refs, proof-first ticker),
+T1.3 (+ decision D-016), T1.7 (title 57 / description 153 chars), T1.8
+(og.png regenerated from the committed scripts/og-card.html template).
+See CHANGELOG and the 2026-07-17 checkpoint.
 
 ## Blocked on owner inputs (needed for Tier 1)
 
@@ -27,13 +32,13 @@ strength-ordered grid. See CHANGELOG and the 2026-07-17 checkpoint.
 | # | Item | Effort | Status |
 |---|---|---|---|
 | T1.1 | Measured outcomes as datasheet tables on every flagship (`metrics[]` per project) | M | blocked on I1 |
-| T1.2 | Restructure for the 30-second screen: Projects above About; About cut to one paragraph; experience highlights ≤3 bullets, deduped against flagship cards | M | ready |
-| T1.3 | Scope-honest verbs: site must never outbid the résumé ("Contributing to"/"Own the X within eOS", not "Architected a distro"); codify rule in decisions.md | S | ready |
+| T1.2 | Restructure for the 30-second screen | M | **done** (pending review) |
+| T1.3 | Scope-honest verbs + D-016 rule | S | **done** (pending review) |
 | T1.4 | Contact conversion: EMAIL ME + CV in sticky nav, prefilled mailto subject, logistics rows in contact | S | partial (needs I2) |
 | T1.5 | Credibility sweep: hide ★ counts <10, rename "Object Detection over SPI"→IR presence detection, NPTEL verify links, retire score gauges | S | partial (needs I3) |
 | T1.6 | Proof stats under hero (production system · months live · stack layers · 0 cloud deps) replacing volume counts | S | blocked on I1 |
-| T1.7 | SERP trims: title ≤60 chars, description ≤155 (content wording = owner sign-off) | S | ready |
-| T1.8 | Regenerate og.png — current card drops the "hardware →" step the site leads with | S | ready |
+| T1.7 | SERP trims (title 57, description 153) | S | **done** (pending review) |
+| T1.8 | Regenerate og.png (template: scripts/og-card.html) | S | **done** (pending review) |
 
 ## Tier 2 — verifiable evidence and sharpened identity
 
