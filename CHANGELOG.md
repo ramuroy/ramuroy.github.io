@@ -3,6 +3,13 @@
 This project follows a lightweight, date-based changelog. Entries describe changes
 that affect the source, generated site, development workflow, or deployment safety.
 
+## Unreleased — project grid: full catalogue, strength-ordered (2026-07-17)
+
+- All 15 grid projects render (previously the 7 `featured` ones), ordered
+  strongest-first by the `gridProjects` array order; star-sorting removed and
+  the `featured` flag retired (supersedes D-010, owner decision). The
+  "18 Projects" statistic now matches what visitors can actually see.
+
 ## Unreleased — Phase 0 defect sweep (2026-07-16)
 
 Branch: `codex/site-hardening-20260713` — implements the P1/P2 defects (B1–B31)

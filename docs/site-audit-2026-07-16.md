@@ -639,4 +639,3 @@ These were raised by an auditor but did not survive adversarial verification —
 - **Nothing has been changed in the site's source.** Per the owner's instruction,
   this audit is read-only; implementation starts only on explicit go-ahead
   (decision D-014).
-
