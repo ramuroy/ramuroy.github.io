@@ -12,7 +12,9 @@ import { hero } from "../data/site";
         <span class="eyebrow">// {hero.eyebrow}</span>
       </p>
 
-      <h1><span class="hero__name" data-text={hero.name}>{hero.name}</span><span class="end" aria-hidden="true">.</span></h1>
+      {/* The scramble effect rewrites only the aria-hidden visual span; the
+          accessible name of the page's h1 stays stable (audit B10). */}
+      <h1><span class="hero__name"><span class="sr-only">{hero.name}</span><span class="hero__name-visual" aria-hidden="true" data-text={hero.name}>{hero.name}</span></span><span class="end" aria-hidden="true">.</span></h1>
 
       <p class="hero__lead">
         {hero.lead.map((seg) =>
@@ -153,7 +155,7 @@ import { hero } from "../data/site";
   }
 
   // ---- Glitch / scramble reveal on the name (on load + on hover) ----
-  const nameEl = document.querySelector<HTMLElement>(".hero__name");
+  const nameEl = document.querySelector<HTMLElement>(".hero__name-visual");
   if (nameEl && !reduce) {
     const finalText = nameEl.dataset.text || nameEl.textContent || "";
     const glyphs = "!<>-_\\/[]{}=+*^?#________01";
@@ -161,6 +163,10 @@ import { hero } from "../data/site";
     const scramble = () => {
       if (active) return;
       active = true;
+      // Lock the rendered width so proportional scramble glyphs don't make
+      // the heading jitter horizontally (audit B10).
+      nameEl.style.minWidth = `${nameEl.offsetWidth}px`;
+      nameEl.style.display = "inline-block";
       const steps = 34;
       let frame = 0;
       const tick = () => {
