@@ -24,8 +24,11 @@ export const bootScript = `(() => {
   try { seen = sessionStorage.getItem("rr_boot") === "1"; } catch { /* storage may be blocked */ }
   if (reduceMotion || seen) { boot.remove(); return; }
   try { sessionStorage.setItem("rr_boot", "1"); } catch { /* the intro may simply repeat later */ }
-  const inertTargets = Array.from(document.querySelectorAll("nav, main, footer, .skip-link"));
-  const setInert = (on) => inertTargets.forEach((el) => { el.inert = on; });
+  // Query at call time: this script executes during parsing, before nav/main/
+  // footer exist, so a snapshot here would always be empty.
+  const setInert = (on) => {
+    document.querySelectorAll("nav, main, footer, .skip-link").forEach((el) => { el.inert = on; });
+  };
   const skip = boot.querySelector(".boot__skip");
   let dismissed = false;
   let timer = 0;
@@ -47,8 +50,13 @@ export const bootScript = `(() => {
     window.setTimeout(finish, 700);
   };
   boot.classList.add("is-active");
-  setInert(true);
   document.body.style.overflow = "hidden";
+  // The rest of the page exists only after parsing completes — apply inert then.
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => { if (!dismissed) setInert(true); }, { once: true });
+  } else {
+    setInert(true);
+  }
   skip?.addEventListener("click", dismiss, { once: true });
   boot.addEventListener("keydown", (event) => {
     if (event.key === "Escape") dismiss();
