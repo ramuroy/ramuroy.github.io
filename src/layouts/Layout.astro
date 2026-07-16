@@ -242,24 +242,38 @@ const personLdJson = JSON.stringify(personLd).replace(/</g, "\\u003c");
         }
       };
       const copyStatus = document.getElementById("copy-status");
+      const announceCopy = (message: string) => {
+        if (!copyStatus) return;
+        // Clear first: identical strings are not re-announced by live regions.
+        copyStatus.textContent = "";
+        window.setTimeout(() => {
+          copyStatus.textContent = message;
+        }, 30);
+      };
       document.querySelectorAll<HTMLButtonElement>("[data-copy]").forEach((btn) => {
         btn.addEventListener("click", async () => {
           const ok = await copyText(btn.getAttribute("data-copy") || "");
           if (!ok) {
-            if (copyStatus) copyStatus.textContent = "Copy failed. Please select and copy the value manually.";
+            announceCopy("Copy failed. Please select and copy the value manually.");
             return;
           }
-          const prev = btn.textContent;
-          const prevLabel = btn.getAttribute("aria-label");
+          // Snapshot the original labels once — a re-click inside the feedback
+          // window must not capture "copied ✓" as the restore value (audit B13).
+          btn.dataset.label ??= btn.textContent || "copy";
+          btn.dataset.ariaLabel ??= btn.getAttribute("aria-label") || "";
+          window.clearTimeout(Number(btn.dataset.timer || 0));
           btn.textContent = "copied ✓";
           btn.setAttribute("aria-label", "Copied");
           btn.classList.add("copied");
-          if (copyStatus) copyStatus.textContent = `${prevLabel || "Value"} copied to clipboard.`;
-          window.setTimeout(() => {
-            btn.textContent = prev;
-            if (prevLabel) btn.setAttribute("aria-label", prevLabel);
-            btn.classList.remove("copied");
-          }, 1400);
+          const what = (btn.dataset.ariaLabel || "value").replace(/^Copy\s+/i, "");
+          announceCopy(`${what.charAt(0).toUpperCase()}${what.slice(1)} copied to clipboard.`);
+          btn.dataset.timer = String(
+            window.setTimeout(() => {
+              btn.textContent = btn.dataset.label || "copy";
+              if (btn.dataset.ariaLabel) btn.setAttribute("aria-label", btn.dataset.ariaLabel);
+              btn.classList.remove("copied");
+            }, 1400)
+          );
         });
       });
 
