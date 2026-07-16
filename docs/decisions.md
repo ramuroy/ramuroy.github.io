@@ -280,3 +280,26 @@ supply-chain surface unchanged.
 **Consequences:** The suite is not wired into CI (hosted-runner browser
 downloads and flakiness are not worth it for a static page yet); releases
 follow the checklist in the current checkpoint, which includes running it.
+
+## D-016 — The site must never outbid the résumé
+
+**Status:** Accepted (2026-07-17)
+
+**Context:** The audit's recruiter analysis found one credibility risk: the
+site claimed "Architected a Yocto/OpenEmbedded distro" for a role the résumé
+describes as "Contributing to" — screeners read both documents side by side,
+and a site that out-claims the résumé taints the genuinely strong verified
+material around it.
+
+**Decision:** Every claim on the site must be at or below the résumé's scope.
+Ownership language ("own the OTA/build pipeline, the sensor-fusion framework,
+the voice subsystem within eOS") is allowed where it is true; whole-system
+authorship verbs are not, unless the résumé says the same. When the résumé is
+updated, the site may follow — never lead.
+
+**Why:** Verifiability is this portfolio's core asset (deployed system, public
+repos, checkable stats). One inflated verb puts all of it in doubt.
+
+**Consequences:** Content edits in `src/data/site.ts` should be checked
+against `public/Ramu_Roy_Resume.pdf` before merging. Applied 2026-07-17 to
+the About paragraph, the Elipse experience entry, and the eOS flagship card.
