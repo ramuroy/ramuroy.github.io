@@ -4,7 +4,9 @@ import TraceDivider from "./TraceDivider.astro";
 import { flagship, gridProjects, sections } from "../data/site";
 
 const slug = (url?: string) => (url ? url.replace("https://github.com/", "github.com/") : "");
-const grid = gridProjects.filter((project) => project.featured).sort((a, b) => (b.stars || 0) - (a.stars || 0));
+// All projects render, in the data file's order (strongest first) — no
+// star-sorting: a starred hobby board must not outrank stronger firmware work.
+const grid = gridProjects;
 const showDot = (v: string) => v === "deployed" || v === "production";
 ---
 <section id="projects" class="section">

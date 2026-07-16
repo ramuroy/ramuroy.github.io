@@ -203,22 +203,24 @@ export type GridProject = {
   featured?: boolean;
 };
 
+/* Ordered strongest → weakest by engineering depth; the grid renders in this
+   exact order (top = most impressive to a recruiter). To re-rank, move lines. */
 export const gridProjects: GridProject[] = [
-  { title: "Transformerless Power Supply", description: "A 220V AC → 5V DC transformerless power supply designed in KiCad.", tech: ["KiCad", "PCB"], date: "Aug 2024", repo: "https://github.com/ramuroy/Transformerless-Power-Supply", stars: 3, category: "Hardware/PCB", featured: true },
-  { title: "LM2596 5V Buck Converter PCB", description: "An efficient switching regulator board built around the LM2596.", tech: ["KiCad", "LM2596", "PCB"], date: "Dec 2024", repo: "https://github.com/ramuroy/LM2596-5V-Buck-Converter-PCB-Design", category: "Hardware/PCB", featured: true },
+  { title: "RTOS Weather Logger", description: "An ESP32 weather logger using DHT11, FreeRTOS, and Blynk.", tech: ["ESP32", "FreeRTOS", "DHT11"], date: "Jan 2025", repo: "https://github.com/ramuroy/RTOS-Weather-Logger", category: "Firmware/RTOS" },
+  { title: "Solar Track", description: "Dual-axis sun tracker — four shaded LDRs steer two servos (azimuth + tilt) to keep a panel facing the sun.", tech: ["Arduino", "Servo", "LDR"], date: "Mar 2025", repo: "https://github.com/ramuroy/Solar-Track", category: "IoT" },
+  { title: "Object Detection over SPI", description: "Real-time object detection over SPI between ESP32 and Arduino with an IR sensor.", tech: ["ESP32", "Arduino", "SPI"], date: "", repo: "https://github.com/ramuroy/Real-Time-Object-Detection-using-SPI-Protocol-between-ESP32-and-Arduino", category: "IoT" },
+  { title: "Transformerless Power Supply", description: "A 220V AC → 5V DC transformerless power supply designed in KiCad.", tech: ["KiCad", "PCB"], date: "Aug 2024", repo: "https://github.com/ramuroy/Transformerless-Power-Supply", stars: 3, category: "Hardware/PCB" },
+  { title: "LM2596 5V Buck Converter PCB", description: "An efficient switching regulator board built around the LM2596.", tech: ["KiCad", "LM2596", "PCB"], date: "Dec 2024", repo: "https://github.com/ramuroy/LM2596-5V-Buck-Converter-PCB-Design", category: "Hardware/PCB" },
+  { title: "FreeRTOS Multitasking LEDs", description: "A C/FreeRTOS demo running concurrent LED tasks.", tech: ["C", "FreeRTOS"], date: "", repo: "https://github.com/ramuroy/FreeRTOS-Multitasking-LEDs", category: "Firmware/RTOS" },
   { title: "5V → 3.3V Voltage Regulator PCB", description: "A 5V → 3.3V regulator board based on the AMS1117-3.3.", tech: ["KiCad", "AMS1117", "PCB"], date: "Oct 2024", repo: "https://github.com/ramuroy/5V-to-3.3V-Voltage-Regulator-PCB-Design", category: "Hardware/PCB" },
   { title: "Servo Tester (NE555)", description: "An astable NE555-based PWM servo tester.", tech: ["NE555", "PWM", "PCB"], date: "Sep 2024", repo: "https://github.com/ramuroy/Servo-Tester-NE555", category: "Hardware/PCB" },
   { title: "AC-to-DC Converter PCB", description: "An AC-to-DC converter with KiCad schematics and gerbers.", tech: ["KiCad", "PCB"], date: "", repo: "https://github.com/ramuroy/AC-to-DC-Converter-PCB", category: "Hardware/PCB" },
-  { title: "RTOS Weather Logger", description: "An ESP32 weather logger using DHT11, FreeRTOS, and Blynk.", tech: ["ESP32", "FreeRTOS", "DHT11"], date: "Jan 2025", repo: "https://github.com/ramuroy/RTOS-Weather-Logger", category: "Firmware/RTOS", featured: true },
-  { title: "FreeRTOS Multitasking LEDs", description: "A C/FreeRTOS demo running concurrent LED tasks.", tech: ["C", "FreeRTOS"], date: "", repo: "https://github.com/ramuroy/FreeRTOS-Multitasking-LEDs", category: "Firmware/RTOS", featured: true },
-  { title: "Object Detection over SPI", description: "Real-time object detection over SPI between ESP32 and Arduino with an IR sensor.", tech: ["ESP32", "Arduino", "SPI"], date: "", repo: "https://github.com/ramuroy/Real-Time-Object-Detection-using-SPI-Protocol-between-ESP32-and-Arduino", category: "IoT", featured: true },
-  { title: "Fire Detection System", description: "A smoke-based fire alert system using an MQ-2 sensor.", tech: ["MQ-2", "Arduino"], date: "Jun 2024", repo: "https://github.com/ramuroy/Fire-Detection-System", category: "IoT", featured: true },
+  { title: "Fire Detection System", description: "A smoke-based fire alert system using an MQ-2 sensor.", tech: ["MQ-2", "Arduino"], date: "Jun 2024", repo: "https://github.com/ramuroy/Fire-Detection-System", category: "IoT" },
   { title: "Water Level Detector", description: "A water level detector with overflow alerting.", tech: ["Arduino", "Sensors"], date: "May 2024", repo: "https://github.com/ramuroy/Water-Level-Detector", category: "IoT" },
+  { title: "Rain Detector", description: "An Arduino-based rain detector.", tech: ["Arduino", "Sensors"], date: "", repo: "https://github.com/ramuroy/Rain-Detector", category: "IoT" },
   { title: "Morse Caster", description: "A text-to-Morse converter with LCD output.", tech: ["Arduino", "LCD"], date: "Jan 2024", repo: "https://github.com/ramuroy/Morse-Caster", category: "IoT" },
   { title: "Digital Dice", description: "An Arduino digital dice with a 7-segment display.", tech: ["Arduino", "7-seg"], date: "", repo: "https://github.com/ramuroy/Digital-Dice", category: "IoT" },
   { title: "Click Counter Up/Down", description: "An Arduino up/down click counter.", tech: ["Arduino"], date: "", repo: "https://github.com/ramuroy/Click-Counter-Up-Down", category: "IoT" },
-  { title: "Rain Detector", description: "An Arduino-based rain detector.", tech: ["Arduino", "Sensors"], date: "", repo: "https://github.com/ramuroy/Rain-Detector", category: "IoT" },
-  { title: "Solar Track", description: "Dual-axis sun tracker — four shaded LDRs steer two servos (azimuth + tilt) to keep a panel facing the sun.", tech: ["Arduino", "Servo", "LDR"], date: "Mar 2025", repo: "https://github.com/ramuroy/Solar-Track", category: "IoT", featured: true },
 ];
 
 export type Role = {
