@@ -93,9 +93,9 @@ the Node version pinned in `.nvmrc`, runs `npm ci`, executes the full
 Every pull request and feature-branch push runs the same gate via
 `.github/workflows/verify.yml`, so breakage is caught before merge.
 
-Pushing a feature branch stores the work remotely but does **not** deploy it. Do not
-merge the current hardening branch until the remaining checks in the checkpoint
-document have been completed and reviewed.
+Pushing a feature branch stores the work remotely but does **not** deploy it.
+Merging to `main` requires the completed release checklist in the current
+checkpoint document plus the owner's explicit approval.
 
 GitHub Pages must use **Settings → Pages → Build and deployment → Source: GitHub
 Actions**.
