@@ -126,7 +126,7 @@ export const flagship: Flagship[] = [
     pills: [{ label: "Active dev", variant: "production" }],
     highlights: [
       "Authored and extended Yocto recipes (.bb/.bbappend) across the meta-eos layer, with BitBake PR bumps, AUTOREV pinning, and IPK packaging for incremental on-device deployment",
-      "Built the Linux subsystem stack: systemd unit design, D-Bus interfaces (org.eos.Config1, RoomCommands1, RoomAggregates1), a Mosquitto MQTT broker hardened with TLS and ACLs, and SQLite schema migrations with multi-writer concurrency tuning",
+      "Work across the Linux subsystem stack: systemd unit design, D-Bus interfaces (org.eos.Config1, org.eos.RoomCommands1, org.eos.RoomAggregates1), a Mosquitto MQTT broker hardened with TLS and ACLs, and SQLite schema migrations with multi-writer concurrency tuning",
       "Wrote a generic Rust RoomAggregator framework for per-room sensor fusion across thermal, mmWave radar, air-quality, ambient-light, and PIR motion inputs, with D-Bus calibration and SQLite-backed persistence",
       "Owned the build and deploy flow end to end: extended kas orchestration plus an in-house eos-build CLI, cross-compilation, WIC image builds, bmaptool SD flashing, and RAUC A/B verification",
     ],
