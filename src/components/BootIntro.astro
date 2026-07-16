@@ -1,7 +1,12 @@
 ---
 import { bootLines } from "../data/site";
+import { bootScript } from "../data/inline-scripts";
+
+// The boot script lives in src/data/inline-scripts.ts; its CSP hash is
+// registered by Layout.astro (component-level insertScriptHash calls do not
+// reach the emitted CSP meta). Behavior notes live with the script string.
 ---
-<div class="boot" role="dialog" aria-modal="true" aria-label="Portfolio loading introduction">
+<div id="boot-intro" class="boot" role="dialog" aria-modal="true" aria-label="Portfolio loading introduction">
   <button class="boot__skip" type="button">skip intro ▸</button>
   <div class="boot__panel" aria-hidden="true">
     {bootLines.map((line, i) => {
@@ -9,68 +14,10 @@ import { bootLines } from "../data/site";
       const hasStatus = after !== undefined;
       const isLast = i === bootLines.length - 1;
       return (
-        <p class="boot__line" style={`--i:${i}`}>
-          {hasStatus ? (
-            <Fragment>{before}[ <span class="ok">ok</span> ]{after}</Fragment>
-          ) : (
-            line
-          )}
-          {isLast && <span class="caret" aria-hidden="true"></span>}
-        </p>
+        <p class="boot__line" style={`--i:${i}`}>{hasStatus ? <Fragment>{before}[ <span class="ok">ok</span> ]{after}</Fragment> : line}{isLast && <span class="caret" aria-hidden="true"></span>}</p>
       );
     })}
   </div>
 </div>
 
-<script is:inline>
-  (() => {
-    const script = document.currentScript;
-    const boot = script?.previousElementSibling;
-    if (!(boot instanceof HTMLElement) || !boot.classList.contains("boot")) return;
-
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let seen = false;
-    try {
-      seen = sessionStorage.getItem("rr_boot") === "1";
-    } catch {
-      // Storage can be unavailable in hardened/private browsing contexts.
-    }
-
-    if (reduceMotion || seen) {
-      boot.remove();
-      return;
-    }
-
-    try {
-      sessionStorage.setItem("rr_boot", "1");
-    } catch {
-      // The intro still works; it may simply appear again in a later visit.
-    }
-
-    const skip = boot.querySelector(".boot__skip");
-    let dismissed = false;
-    let timer = 0;
-    const dismiss = () => {
-      if (dismissed) return;
-      dismissed = true;
-      window.clearTimeout(timer);
-      boot.classList.add("is-wiping");
-      window.setTimeout(() => {
-        const hadFocus = boot.contains(document.activeElement);
-        boot.remove();
-        document.body.style.overflow = "";
-        if (hadFocus) document.getElementById("main")?.focus({ preventScroll: true });
-        window.dispatchEvent(new Event("rr:boot-done"));
-      }, 340);
-    };
-
-    boot.classList.add("is-active");
-    document.body.style.overflow = "hidden";
-    skip?.addEventListener("click", dismiss, { once: true });
-    boot.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") dismiss();
-    });
-    window.requestAnimationFrame(() => skip?.focus({ preventScroll: true }));
-    timer = window.setTimeout(dismiss, 1300);
-  })();
-</script>
+<script is:inline set:html={bootScript} />

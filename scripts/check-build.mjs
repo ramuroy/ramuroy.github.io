@@ -1,5 +1,8 @@
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
+
+const SITE = "https://ramuroy.github.io";
 
 const root = process.cwd();
 const dist = join(root, "dist");
@@ -29,7 +32,27 @@ check(html.includes('name="description"'), "the meta description is missing");
 check(html.includes('property="og:image"'), "the Open Graph image is missing");
 check(html.includes('http-equiv="content-security-policy"'), "Astro did not emit the expected CSP meta tag");
 check(!html.includes("fonts.googleapis.com"), "the production page still depends on Google Fonts");
-check(!/\b(?:undefined|NaN)\b/.test(html), "the built page contains an undefined or NaN value");
+
+// Scan rendered output for leaked undefined/NaN, but not script bodies, where
+// the identifier `undefined` is legitimate JavaScript.
+const htmlWithoutScripts = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, "");
+check(!/\b(?:undefined|NaN)\b/.test(htmlWithoutScripts), "the built page contains an undefined or NaN value");
+
+// Every executable inline script must be hash-allowlisted by the CSP, and the
+// style-src-attr directive must survive (Astro does not hash is:inline scripts,
+// and both insertions are optional-chained — this turns silent drift into a
+// build failure).
+const cspContent = html.match(/http-equiv="content-security-policy"\s+content="([^"]*)"/i)?.[1] ?? "";
+check(cspContent.includes("style-src-attr 'unsafe-inline'"), "CSP is missing the style-src-attr directive for authored style attributes");
+const allowedScriptHashes = new Set([...cspContent.matchAll(/'sha256-([^']+)'/g)].map((m) => m[1]));
+for (const [, attrs, body] of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)) {
+  if (/\bsrc=/.test(attrs) || /application\/ld\+json/.test(attrs)) continue;
+  const hash = createHash("sha256").update(body).digest("base64");
+  check(
+    allowedScriptHashes.has(hash),
+    `inline script is not allowlisted by the CSP (sha256-${hash}): ${body.trim().slice(0, 60)}…`
+  );
+}
 
 for (const id of ["main", "about", "projects", "experience", "skills", "certifications", "contact", "nav-links", "copy-status"]) {
   check(idSet.has(id), `required element #${id} is missing`);
@@ -40,11 +63,18 @@ for (const [, target] of html.matchAll(/\b(?:href|src)="([^"]+)"/g)) {
     check(idSet.has(target.slice(1)), `internal link ${target} has no matching target`);
     continue;
   }
-  if (!target.startsWith("/") || target.startsWith("//")) continue;
+  // Own-domain absolute URLs are internal links too — normalize instead of skipping.
+  let local = target;
+  if (local.startsWith(SITE)) local = local.slice(SITE.length) || "/";
+  if (!local.startsWith("/") || local.startsWith("//")) continue;
 
-  const pathname = new URL(target, "https://ramuroy.github.io").pathname;
-  let localPath = join(dist, decodeURIComponent(pathname).replace(/^\//, ""));
-  if (pathname.endsWith("/")) localPath = join(localPath, "index.html");
+  const url = new URL(local, SITE);
+  // Path-form fragments (e.g. /#projects) must also resolve on the home page.
+  if (url.hash && (url.pathname === "/" || url.pathname === "/index.html")) {
+    check(idSet.has(url.hash.slice(1)), `internal link ${target} has no matching target`);
+  }
+  let localPath = join(dist, decodeURIComponent(url.pathname).replace(/^\//, ""));
+  if (url.pathname.endsWith("/")) localPath = join(localPath, "index.html");
   check(existsSync(localPath), `local asset ${target} does not exist in dist`);
 }
 
