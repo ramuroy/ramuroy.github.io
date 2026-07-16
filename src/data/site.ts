@@ -40,8 +40,8 @@ export const seo = {
 };
 
 export const nav = [
-  { label: "About", href: "#about" },
   { label: "Projects", href: "#projects" },
+  { label: "About", href: "#about" },
   { label: "Experience", href: "#experience" },
   { label: "Skills", href: "#skills" },
   { label: "Certifications", href: "#certifications" },
@@ -315,8 +315,8 @@ export const spokenLanguages = [
 
 /* Section signatures (eyebrow / numeral / heading) */
 export const sections = {
-  about: { num: "01", eyebrow: "// 01 — overview", title: "From hardware to custom Linux to on-device ML" },
-  projects: { num: "02", eyebrow: "// 02 — selected work", title: "Shipped firmware, distros & deployed systems" },
+  projects: { num: "01", eyebrow: "// 01 — selected work", title: "Shipped firmware, distros & deployed systems" },
+  about: { num: "02", eyebrow: "// 02 — overview", title: "From hardware to custom Linux to on-device ML" },
   experience: { num: "03", eyebrow: "// 03 — revision history", title: "Where I've done the work" },
   skills: { num: "04", eyebrow: "// 04 — specifications", title: "The full embedded stack" },
   certifications: { num: "05", eyebrow: "// 05 — compliance & test", title: "Certifications" },
