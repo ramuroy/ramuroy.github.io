@@ -440,6 +440,8 @@ main:focus-visible { box-shadow: none; outline: none; }
 .contact__spec { margin-bottom: var(--space-6); }
 .contact__spec .spec__row dd a { color: var(--accent-text); }
 .copy-btn { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); border: 1px solid var(--border); border-radius: var(--radius-xs); padding: 0.1em 0.45em; margin-left: 0.5em; transition: color var(--t-fast), border-color var(--t-fast); }
+/* Clipboard needs JS — don't render focusable dead controls without it (audit B30) */
+html:not(.js) .copy-btn { display: none; }
 .copy-btn:hover { color: var(--accent-text); border-color: var(--border-bright); }
 .copy-btn.copied { color: var(--success); border-color: color-mix(in srgb, var(--success) 40%, transparent); }
 
