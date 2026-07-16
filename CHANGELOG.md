@@ -3,7 +3,7 @@
 This project follows a lightweight, date-based changelog. Entries describe changes
 that affect the source, generated site, development workflow, or deployment safety.
 
-## Unreleased — continuation docs and browser smoke suite (2026-07-17)
+## Released 2026-07-17 — continuation docs and browser smoke suite
 
 - `scripts/browser-smoke.mjs`: the 25-check Playwright suite used for the
   release, committed for reuse (Playwright installed on demand; D-015).
