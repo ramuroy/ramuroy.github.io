@@ -280,8 +280,6 @@ main:focus-visible { box-shadow: none; outline: none; }
    ===================================================================== */
 .hero { position: relative; min-height: 100svh; display: flex; align-items: center; padding-block: calc(var(--nav-h) + var(--space-6)) var(--space-8); }
 .hero__grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: clamp(2rem, 5vw, 4.5rem); align-items: center; width: 100%; }
-.hero__titleblock { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: var(--space-5); }
-.hero__titleblock b { color: var(--accent); }
 .hero__eyebrow { display: inline-flex; align-items: center; gap: 0.6em; margin-bottom: var(--space-4); }
 .hero h1 { font-size: var(--fs-hero); font-weight: 700; color: var(--text); margin-bottom: var(--space-4); white-space: nowrap; }
 .hero h1 .end { text-shadow: var(--glow-text); }
@@ -293,9 +291,10 @@ main:focus-visible { box-shadow: none; outline: none; }
 .hero__lead em:hover::after { transform: scaleX(1); }
 .hero.lead-drawn .hero__lead em::after { animation: draw-underline 0.5s var(--ease-out) forwards; animation-delay: var(--d); }
 @keyframes draw-underline { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-.hero__ctas { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-6); }
-.ticker { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); letter-spacing: 0.04em; }
-.ticker span { color: var(--muted); padding-inline: 0.5em; }
+.hero__ctas { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+/* IC topmark under the name — silkscreen voice (T2.9) */
+.hero__topmark { display: flex; flex-direction: column; margin: calc(-1 * var(--space-2)) 0 var(--space-5); font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.22em; text-transform: uppercase; color: var(--silkscreen); line-height: 1.9; }
+.hero__topmark .pin1 { display: inline-block; width: 0.45em; height: 0.45em; border-radius: 50%; border: 1px solid var(--silkscreen); margin-right: 0.7em; vertical-align: 6%; }
 .hero__spec { position: relative; }
 .hero__scroll { position: absolute; left: 50%; bottom: var(--space-5); transform: translateX(-50%); font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); letter-spacing: 0.2em; text-transform: uppercase; }
 .hero__scroll::before { content: "▼"; display: block; text-align: center; margin-bottom: 0.3em; animation: nudge 2s ease-in-out infinite; }
