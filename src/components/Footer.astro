@@ -16,10 +16,10 @@ import TraceDivider from "./TraceDivider.astro";
     <div class="footer__row">
       <span class="footer__copy">© 2026 {profile.name} · {profile.location}</span>
       <div class="footer__links">
-        <a href={profile.github} target="_blank" rel="noopener noreferrer">GitHub</a>
-        <a href={profile.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+        <a href={profile.github} target="_blank" rel="noopener noreferrer">GitHub<span class="sr-only"> (opens in new tab)</span></a>
+        <a href={profile.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn<span class="sr-only"> (opens in new tab)</span></a>
         <a href={`mailto:${profile.email}`}>Email</a>
-        <a href="#main">back to top ↑</a>
+        <a href="#main">back to top <span aria-hidden="true">↑</span></a>
       </div>
     </div>
   </div>

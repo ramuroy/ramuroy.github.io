@@ -7,7 +7,7 @@ import { bootScript } from "../data/inline-scripts";
 // reach the emitted CSP meta). Behavior notes live with the script string.
 ---
 <div id="boot-intro" class="boot" role="dialog" aria-modal="true" aria-label="Portfolio loading introduction">
-  <button class="boot__skip" type="button">skip intro ▸</button>
+  <button class="boot__skip" type="button">skip intro <span aria-hidden="true">▸</span></button>
   <div class="boot__panel" aria-hidden="true">
     {bootLines.map((line, i) => {
       const [before, after] = line.split("[ ok ]");

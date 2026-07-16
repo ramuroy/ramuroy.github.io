@@ -22,7 +22,7 @@ import { certifications, sections } from "../data/site";
           </div>
           {c.url && (
             <a class="cert__link" href={c.url} target="_blank" rel="noopener noreferrer">
-              view certificate <span aria-hidden="true">↗</span>
+              view certificate <span aria-hidden="true">↗</span><span class="sr-only">{`— ${c.title} (opens in new tab)`}</span>
             </a>
           )}
         </div>

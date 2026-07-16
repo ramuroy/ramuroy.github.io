@@ -58,12 +58,12 @@ const showDot = (v: string) => v === "deployed" || v === "production";
           <div class="pcard__foot">
             {p.repo ? (
               <a class="pcard__ref" href={p.repo} target="_blank" rel="noopener noreferrer">
-                REF → {slug(p.repo)} <span class="arrow" aria-hidden="true">→</span>
+                REF → {slug(p.repo)} <span class="arrow" aria-hidden="true">→</span><span class="sr-only">(opens in new tab)</span>
               </a>
             ) : (
               <span class="pcard__norepo">{p.noRepoNote}</span>
             )}
-            {p.stars ? <span class="star"><span aria-hidden="true">★</span> {p.stars}</span> : null}
+            {p.stars ? <span class="star"><span aria-hidden="true">★ {p.stars}</span><span class="sr-only">{`${p.stars} GitHub ${p.stars === 1 ? "star" : "stars"}`}</span></span> : null}
           </div>
         </article>
       ))}
@@ -75,7 +75,7 @@ const showDot = (v: string) => v === "deployed" || v === "production";
       <div class="projects__more-head">
         <h3>// selected on github</h3>
         <a class="btn btn-ghost" href="https://github.com/ramuroy?tab=repositories" target="_blank" rel="noopener noreferrer">
-          VIEW ALL ON GITHUB <span aria-hidden="true">↗</span>
+          VIEW ALL ON GITHUB <span aria-hidden="true">↗</span><span class="sr-only">(opens in new tab)</span>
         </a>
       </div>
       <div class="pgrid">
@@ -93,9 +93,9 @@ const showDot = (v: string) => v === "deployed" || v === "production";
               <div class="gcard__foot">
                 <span class="gcard__cat">{g.category}</span>
                 {g.stars ? (
-                  <span class="star"><span aria-hidden="true">★</span> {g.stars}</span>
+                  <span class="star"><span aria-hidden="true">★ {g.stars}</span><span class="sr-only">{`${g.stars} GitHub ${g.stars === 1 ? "star" : "stars"}`}</span></span>
                 ) : g.repo ? (
-                  <span class="gcard__cat">↗ repo</span>
+                  <span class="gcard__cat"><span aria-hidden="true">↗</span> repo</span>
                 ) : (
                   <span class="gcard__cat">local</span>
                 )}

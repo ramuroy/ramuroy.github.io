@@ -30,11 +30,11 @@ const tel = profile.phone.replace(/\s+/g, "");
         </div>
         <div class="spec__row hoverable">
           <dt>GitHub</dt>
-          <dd><a class="link" href={profile.github} target="_blank" rel="noopener noreferrer">{profile.githubHandle}</a></dd>
+          <dd><a class="link" href={profile.github} target="_blank" rel="noopener noreferrer">{profile.githubHandle}<span class="sr-only"> (opens in new tab)</span></a></dd>
         </div>
         <div class="spec__row hoverable">
           <dt>LinkedIn</dt>
-          <dd><a class="link" href={profile.linkedin} target="_blank" rel="noopener noreferrer">{profile.linkedinLabel}</a></dd>
+          <dd><a class="link" href={profile.linkedin} target="_blank" rel="noopener noreferrer">{profile.linkedinLabel}<span class="sr-only"> (opens in new tab)</span></a></dd>
         </div>
         <div class="spec__row hoverable">
           <dt>Location</dt>

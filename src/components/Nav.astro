@@ -12,7 +12,7 @@ import { nav, profile } from "../data/site";
         <li><a class="nav__link" href={n.href}>{n.label}</a></li>
       ))}
       <li>
-        <a class="nav__link" href={profile.github} target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+        <a class="nav__link" href={profile.github} target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span><span class="sr-only">(opens in new tab)</span></a>
       </li>
     </ul>
   </div>
