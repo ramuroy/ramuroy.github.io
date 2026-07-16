@@ -1,6 +1,12 @@
 ---
 import { createHash } from "node:crypto";
 import "../styles/global.css";
+// ?url imports resolve to the same hashed assets the CSS references, so the
+// preloads below never drift from the stylesheet (audit performance: fonts
+// were discovered a full round trip late, guaranteeing FOUT on first visit).
+import interWoff2 from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url";
+import jetbrainsWoff2 from "@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?url";
+import spaceGroteskWoff2 from "@fontsource-variable/space-grotesk/files/space-grotesk-latin-wght-normal.woff2?url";
 import Nav from "../components/Nav.astro";
 import Footer from "../components/Footer.astro";
 import BootIntro from "../components/BootIntro.astro";
@@ -66,6 +72,9 @@ const websiteLdJson = escapeLd(websiteLd);
     <meta name="color-scheme" content="dark" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <link rel="canonical" href={canonical} />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href={spaceGroteskWoff2} />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href={interWoff2} />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href={jetbrainsWoff2} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
