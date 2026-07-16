@@ -84,10 +84,10 @@ export const hero = {
 
 export const about = {
   subhead: "A full-stack embedded engineer — silicon to UI.",
+  // One paragraph, deliberately: the projects above and the experience below
+  // carry the specifics; About carries only what no other section can (T1.2).
   paragraphs: [
-    "I'm an Electronics & Communication Engineering graduate (RGUKT Srikakulam, 2026) who works across the entire embedded stack. I design hardware and PCBs in KiCad; I write bare-metal and RTOS firmware for ESP32, ESP32-S3, and STM32; I build a custom Yocto Linux distribution from the recipe up; and I train and run ML and voice models directly on-device. The interesting problems usually live at the seams between those layers, and that's where I spend my time.",
-    "The proof is in the field. As an intern at Radiogeet, I built an Industrial Anti-Collision System for crane operations that's deployed at Tata Steel BlueScope — ESP32-S3 dual-core firmware doing time-critical UWB ranging on one core and zone-safety logic on the other, talking ESP-NOW peer-to-peer and MODBUS RTU over RS485 to drive industrial relays that physically stop hazardous crane movement. Safety-critical, real-time, and running in production.",
-    "Right now I'm building eOS at Elipse — a Yocto/OpenEmbedded Linux distro for the Raspberry Pi 5 with A/B RAUC OTA, an MQTT service bus, D-Bus interfaces, SQLite persistence, and a Qt6/QML UI. It includes a Rust sensor-fusion framework and a fully on-device voice subsystem — a transfer-learned wake-word detector exported to ONNX and run on the pure-Rust tract runtime, multi-mic best-source fusion across ESP32 satellites, Whisper STT, Piper TTS, and async-Rust barge-in. I like owning a system end to end, from the device tree to the deploy flow.",
+    "I'm an Electronics & Communication Engineering graduate (RGUKT Srikakulam, 2026) who works across the entire embedded stack: hardware and PCBs in KiCad, bare-metal and RTOS firmware on ESP32 and STM32, a custom Yocto Linux distribution built from the recipe up, and ML and voice models running directly on-device. The interesting problems usually live at the seams between those layers — that's where I spend my time, and it's why I like owning a system end to end, from the device tree to the deploy flow. Right now that means contributing to eOS at Elipse; before that, an anti-collision safety system I built firmware for as an intern went into production at Tata Steel BlueScope — the projects above tell both stories in full.",
   ],
   glance: [
     { k: "Role", v: "Embedded Systems Engineer" },
