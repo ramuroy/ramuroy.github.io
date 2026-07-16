@@ -72,7 +72,9 @@ export const hero = {
   ],
   ctaPrimary: { label: "VIEW PROJECTS", href: "#projects", glyph: "▸" },
   ctaGhost: { label: "DOWNLOAD CV", href: profile.resumeUrl, glyph: "↓" },
-  ticker: ["cgpa 8.3", "esp-idf v5.2", "yocto", "rust", `${profile.githubRepoCount} repos`],
+  // Proof-first: leads with the deployment, not the grade (CGPA stays in the
+  // spec card and education rows).
+  ticker: ["deployed @ tata steel bluescope", "yocto", "esp-idf v5.2", "rust", `${profile.githubRepoCount} repos`],
   keySpecs: [
     { k: "Location", v: "Hyderabad, IN" },
     { k: "Degree", v: "B.Tech ECE (CGPA 8.3)" },
