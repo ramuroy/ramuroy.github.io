@@ -258,8 +258,10 @@ const personLdJson = JSON.stringify(personLd).replace(/</g, "\\u003c");
           closeMenu();
         }
       });
-      window.matchMedia("(min-width: 721px)").addEventListener("change", (e) => {
-        if (e.matches) closeMenu();
+      // Same query as the CSS mobile block — inverse queries left a fractional
+      // width where neither matched.
+      window.matchMedia("(max-width: 860px)").addEventListener("change", (e) => {
+        if (!e.matches) closeMenu();
       });
 
       // ---- Cursor glow over the grid + per-card spotlight ----

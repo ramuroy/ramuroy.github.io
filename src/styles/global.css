@@ -219,14 +219,17 @@ main:focus-visible { box-shadow: none; outline: none; }
 .masthead { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.14em; color: var(--text-secondary); text-transform: uppercase; white-space: nowrap; }
 .masthead b { color: var(--accent); font-weight: 600; }
 .masthead .rev { color: var(--muted); margin-left: 0.5em; }
-.nav__links { display: flex; align-items: center; gap: var(--space-5); }
+.nav__links { display: flex; align-items: center; gap: clamp(0.9rem, 2vw, 1.5rem); }
 .nav__link { position: relative; font-size: var(--fs-small); color: var(--text-secondary); transition: color var(--t-fast); padding-block: 0.4rem; }
 .nav__link::after { content: ""; position: absolute; left: 0; bottom: 0; height: 1px; width: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform var(--t-fast) var(--ease-std); }
 .nav__link:hover, .nav__link[aria-current] { color: var(--accent-text); }
 .nav__link:hover::after, .nav__link[aria-current]::after { transform: scaleX(1); }
 .nav__menu-btn { display: none; }
 
-@media (max-width: 720px) {
+/* 860px (not 720): seven links + masthead need ~840px — at 721-820px the old
+   desktop nav clipped its links, including iPad portrait (audit B4). The JS
+   close-on-resize handler uses this exact query, so there is no fractional gap. */
+@media (max-width: 860px) {
   .nav__menu-btn { display: inline-flex; align-items: center; gap: 0.5em; font-family: var(--font-mono); font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); min-height: 44px; padding: 0.4rem 0.7rem; }
   .nav__links { position: absolute; top: var(--nav-h); left: 0; right: 0; flex-direction: column; align-items: stretch; gap: 0; background: var(--bg); border-bottom: 1px solid var(--border); padding: var(--space-2) var(--gutter) var(--space-4); transform: translateY(-8px); opacity: 0; pointer-events: none; visibility: hidden; transition: opacity var(--t-fast), transform var(--t-fast), visibility var(--t-fast); }
   .nav__links[data-open] { transform: none; opacity: 1; pointer-events: auto; visibility: visible; }
@@ -234,8 +237,16 @@ main:focus-visible { box-shadow: none; outline: none; }
   .nav__link::after { display: none; }
   /* Mobile active-section state (the desktop underline is hidden here) */
   .nav__link[aria-current] { color: var(--accent-text); box-shadow: inset 2px 0 0 var(--accent); padding-left: 0.6rem; }
-  .masthead { font-size: 0.66rem; }
+  .masthead { font-size: 0.75rem; }
   .masthead .rev { display: none; }
+
+  /* Without JavaScript the toggle can never open the menu — render the links
+     as a wrapped static row instead so navigation always works (audit B11). */
+  html:not(.js) .nav { height: auto; }
+  html:not(.js) .nav__inner { flex-wrap: wrap; height: auto; padding-block: var(--space-2); row-gap: 0; }
+  html:not(.js) .nav__menu-btn { display: none; }
+  html:not(.js) .nav__links { position: static; flex-direction: row; flex-wrap: wrap; gap: 0 var(--space-4); background: transparent; border-bottom: none; padding: 0; transform: none; opacity: 1; pointer-events: auto; visibility: visible; }
+  html:not(.js) .nav__link { border-bottom: none; padding-block: 0.4rem; }
 }
 
 /* =====================================================================
