@@ -22,10 +22,11 @@ export const profile = {
 };
 
 export const seo = {
-  title:
-    "Ramu Roy — Embedded Systems Engineer | Hardware, Firmware, Yocto Linux & On-Device ML",
+  // Title <= 60 chars and description <= 155 so search results show them
+  // untruncated (audit T1.7).
+  title: "Ramu Roy — Embedded Systems Engineer · Yocto, ESP32, Rust",
   description:
-    "Ramu Roy, embedded systems engineer building the whole stack: PCB & hardware design, bare-metal firmware, custom Yocto Linux (eOS), ESP32/STM32, and on-device ML & voice in Rust.",
+    "Ramu Roy builds the whole embedded stack — PCB design, ESP32/STM32 firmware, custom Yocto Linux, on-device ML in Rust — deployed at Tata Steel BlueScope.",
   ogDescription:
     "Embedded systems engineer building the whole stack — PCB & hardware design, bare-metal firmware, custom Yocto Linux for Raspberry Pi 5, ESP32/STM32, and on-device ML & voice in Rust.",
   keywords: [
