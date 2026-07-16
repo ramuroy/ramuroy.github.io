@@ -1,0 +1,138 @@
+<!doctype html>
+<!--
+  Social-card template for public/og.png (1200x630).
+  Content mirrors src/data/site.ts (hero tagline + key proof); keep in sync
+  when the positioning changes. Regenerate with Playwright (installed on
+  demand, same as browser-smoke.mjs):
+
+    node -e "
+      const { chromium } = require('playwright');
+      (async () => {
+        const b = await chromium.launch();
+        const p = await b.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
+        await p.goto('file://' + process.cwd() + '/scripts/og-card.html');
+        await p.waitForTimeout(400); // fonts
+        await p.screenshot({ path: 'public/og.png' });
+        await b.close();
+      })();
+    "
+
+  Colors/typography mirror src/styles/tokens.css.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  @font-face {
+    font-family: "Space Grotesk Variable";
+    src: url("../node_modules/@fontsource-variable/space-grotesk/files/space-grotesk-latin-wght-normal.woff2") format("woff2");
+    font-weight: 300 700;
+  }
+  @font-face {
+    font-family: "Inter Variable";
+    src: url("../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2") format("woff2");
+    font-weight: 100 900;
+  }
+  @font-face {
+    font-family: "JetBrains Mono Variable";
+    src: url("../node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2") format("woff2");
+    font-weight: 100 800;
+  }
+  * { margin: 0; box-sizing: border-box; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    background: #070A0F;
+    background-image:
+      radial-gradient(700px circle at 88% -10%, rgba(0, 229, 255, 0.10), transparent 60%),
+      repeating-linear-gradient(to right, #10161e 0 1px, transparent 1px 60px),
+      repeating-linear-gradient(to bottom, #10161e 0 1px, transparent 1px 60px);
+    color: #E6EDF3;
+    font-family: "Inter Variable", sans-serif;
+    position: relative;
+    padding: 64px 80px;
+  }
+  /* corner registration ticks */
+  .tick { position: absolute; width: 26px; height: 26px; }
+  .tick--tl { top: 36px; left: 40px; border-top: 2px solid #2C3A47; border-left: 2px solid #2C3A47; }
+  .tick--br { bottom: 36px; right: 40px; border-bottom: 2px solid #2C3A47; border-right: 2px solid #2C3A47; }
+
+  .masthead {
+    font-family: "JetBrains Mono Variable", monospace;
+    font-size: 24px; letter-spacing: 0.14em; color: #A9B6C2;
+  }
+  .masthead b { color: #00E5FF; font-weight: 600; }
+  .masthead .rev { color: #586675; margin-left: 14px; letter-spacing: 0.1em; }
+
+  /* chip icon, top right */
+  .chip { position: absolute; top: 72px; right: 96px; width: 72px; height: 72px; }
+  .chip .die { position: absolute; inset: 12px; border: 3px solid #00E5FF; border-radius: 8px; box-shadow: 0 0 22px rgba(0,229,255,0.35); }
+  .chip .pin { position: absolute; background: #00E5FF; }
+  .chip .pin.h { width: 12px; height: 3px; }
+  .chip .pin.v { width: 3px; height: 12px; }
+
+  .eyebrow {
+    margin-top: 118px;
+    font-family: "JetBrains Mono Variable", monospace;
+    font-size: 26px; letter-spacing: 0.16em; color: #00E5FF;
+  }
+  h1 {
+    margin-top: 10px;
+    font-family: "Space Grotesk Variable", sans-serif;
+    font-weight: 600; font-size: 128px; line-height: 1.02; color: #F2F6FA;
+    letter-spacing: -0.02em;
+  }
+  .rule { width: 96px; height: 5px; background: #00E5FF; margin: 26px 0 30px; box-shadow: 0 0 16px rgba(0,229,255,0.4); }
+  .chain {
+    font-size: 33px; color: #DDE6ee; font-weight: 500; letter-spacing: -0.01em;
+  }
+  .chain .arrow { color: #00E5FF; font-family: "JetBrains Mono Variable", monospace; padding: 0 4px; }
+
+  .foot { position: absolute; left: 80px; right: 64px; bottom: 56px; display: flex; align-items: center; gap: 16px; }
+  .pill {
+    font-family: "JetBrains Mono Variable", monospace;
+    font-size: 18px; letter-spacing: 0.08em;
+    padding: 10px 16px; border-radius: 8px; display: inline-flex; align-items: center; gap: 10px;
+    white-space: nowrap;
+  }
+  .pill .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .pill--deployed { color: #3DD68C; border: 2px solid rgba(61, 214, 140, 0.45); background: rgba(61, 214, 140, 0.08); }
+  .pill--deployed .dot { background: #3DD68C; box-shadow: 0 0 10px rgba(61,214,140,0.6); }
+  .pill--stack { color: #5BE9F7; border: 2px solid rgba(0, 229, 255, 0.4); background: rgba(0, 229, 255, 0.06); }
+  .pill--stack .dot { background: #00E5FF; box-shadow: 0 0 10px rgba(0,229,255,0.6); }
+  .site { margin-left: auto; font-family: "JetBrains Mono Variable", monospace; font-size: 21px; color: #7C8B99; letter-spacing: 0.04em; white-space: nowrap; }
+</style>
+</head>
+<body>
+  <div class="tick tick--tl"></div>
+  <div class="tick tick--br"></div>
+
+  <div class="masthead">RR <b>//</b> EMBEDDED SYSTEMS <span class="rev">rev.2026</span></div>
+
+  <div class="chip">
+    <div class="die"></div>
+    <div class="pin h" style="top:22px; left:0;"></div>
+    <div class="pin h" style="top:34px; left:0;"></div>
+    <div class="pin h" style="top:46px; left:0;"></div>
+    <div class="pin h" style="top:22px; right:0;"></div>
+    <div class="pin h" style="top:34px; right:0;"></div>
+    <div class="pin h" style="top:46px; right:0;"></div>
+    <div class="pin v" style="left:22px; top:0;"></div>
+    <div class="pin v" style="left:34px; top:0;"></div>
+    <div class="pin v" style="left:46px; top:0;"></div>
+    <div class="pin v" style="left:22px; bottom:0;"></div>
+    <div class="pin v" style="left:34px; bottom:0;"></div>
+    <div class="pin v" style="left:46px; bottom:0;"></div>
+  </div>
+
+  <div class="eyebrow">// EMBEDDED SYSTEMS ENGINEER</div>
+  <h1>Ramu Roy</h1>
+  <div class="rule"></div>
+  <div class="chain">hardware <span class="arrow">→</span> firmware <span class="arrow">→</span> custom Linux <span class="arrow">→</span> on-device ML &amp; voice</div>
+
+  <div class="foot">
+    <span class="pill pill--deployed"><span class="dot"></span>DEPLOYED · TATA STEEL BLUESCOPE</span>
+    <span class="pill pill--stack"><span class="dot"></span>YOCTO · ESP-IDF · RUST</span>
+    <span class="site">ramuroy.github.io</span>
+  </div>
+</body>
+</html>
