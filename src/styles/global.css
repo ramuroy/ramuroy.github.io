@@ -224,10 +224,14 @@ main:focus-visible { box-shadow: none; outline: none; }
 .nav__inner { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
 .masthead { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.14em; color: var(--text-secondary); text-transform: uppercase; white-space: nowrap; }
 .masthead b { color: var(--accent); font-weight: 600; }
-.masthead .rev { color: var(--muted); margin-left: 0.5em; }
+/* rev tag flickers in once on load (@starting-style; static where unsupported) */
+.masthead .rev { color: var(--muted); margin-left: 0.5em; transition: opacity 240ms steps(3, jump-none) 600ms; }
+@starting-style {
+  .masthead .rev { opacity: 0; }
+}
 .nav__links { display: flex; align-items: center; gap: clamp(0.9rem, 2vw, 1.5rem); }
 .nav__link { position: relative; font-size: var(--fs-small); color: var(--text-secondary); transition: color var(--t-fast); padding-block: 0.4rem; }
-.nav__link::after { content: ""; position: absolute; left: 0; bottom: 0; height: 1px; width: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform var(--t-fast) var(--ease-std); }
+.nav__link::after { content: ""; position: absolute; left: 0; bottom: 0; height: 1px; width: 100%; background: var(--accent); transform: scaleX(0); transform-origin: center; transition: transform var(--t-fast) var(--ease-std); }
 .nav__link:hover, .nav__link[aria-current] { color: var(--accent-text); }
 .nav__link:hover::after, .nav__link[aria-current]::after { transform: scaleX(1); }
 .nav__menu-btn { display: none; }
