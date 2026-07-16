@@ -23,6 +23,9 @@ Astro.csp?.insertScriptHash(cspHash(jsFlagScript));
 Astro.csp?.insertScriptHash(cspHash(bootScript));
 
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).href;
+// One robust builder for the social image URL — string concatenation onto the
+// canonical broke for any future non-root page (audit code-bugs).
+const ogImage = new URL("/og.png", canonical).href;
 const personLd = {
   "@context": "https://schema.org",
   "@type": "Person",
@@ -30,7 +33,7 @@ const personLd = {
   jobTitle: profile.role,
   description: profile.tagline,
   url: canonical,
-  image: new URL("/og.png", canonical).href,
+  image: ogImage,
   email: `mailto:${profile.email}`,
   telephone: profile.phone,
   address: { "@type": "PostalAddress", addressLocality: "Hyderabad", addressRegion: "Telangana", addressCountry: "IN" },
@@ -38,7 +41,16 @@ const personLd = {
   knowsAbout: ["Embedded Linux", "Yocto Project", "Firmware", "ESP-IDF", "STM32", "Rust", "On-device ML"],
   sameAs: [profile.github, profile.linkedin],
 };
-const personLdJson = JSON.stringify(personLd).replace(/</g, "\\u003c");
+const websiteLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: `${profile.name} — Portfolio`,
+  url: canonical,
+  author: { "@type": "Person", name: profile.name },
+};
+const escapeLd = (value: object) => JSON.stringify(value).replace(/</g, "\\u003c");
+const personLdJson = escapeLd(personLd);
+const websiteLdJson = escapeLd(websiteLd);
 ---
 
 <!doctype html>
@@ -48,8 +60,8 @@ const personLdJson = JSON.stringify(personLd).replace(/</g, "\\u003c");
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{seo.title}</title>
     <meta name="description" content={seo.description} />
-    <meta name="keywords" content={seo.keywords.join(", ")} />
     <meta name="author" content={profile.name} />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta name="theme-color" content="#0A0E14" />
     <meta name="color-scheme" content="dark" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
@@ -60,11 +72,12 @@ const personLdJson = JSON.stringify(personLd).replace(/</g, "\\u003c");
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:title" content={seo.title} />
     <meta property="og:description" content={seo.ogDescription} />
     <meta property="og:url" content={canonical} />
     <meta property="og:site_name" content={`${profile.name} — Portfolio`} />
-    <meta property="og:image" content={`${canonical}og.png`} />
+    <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content={`${profile.name} — ${profile.role}`} />
@@ -72,9 +85,11 @@ const personLdJson = JSON.stringify(personLd).replace(/</g, "\\u003c");
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={seo.title} />
     <meta name="twitter:description" content={seo.ogDescription} />
-    <meta name="twitter:image" content={`${canonical}og.png`} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={`${profile.name} — ${profile.role}`} />
 
     <script is:inline type="application/ld+json" set:html={personLdJson} />
+    <script is:inline type="application/ld+json" set:html={websiteLdJson} />
     <!-- Enable JS-gated styles before paint (avoids reveal flash) -->
     <script is:inline set:html={jsFlagScript} />
   </head>
