@@ -135,8 +135,18 @@ re-run in a second orchestration. Nothing was lost.
    row; print preview is legible with open disclosures; no sticky hover on a
    touch device.
 3. Then Tier 1 content work once the user provides the inputs above.
-4. The 2026-07-13 checkpoint's own release checklist (clean-install audit,
-   Lighthouse rerun) still stands before any merge to `main`.
+4. ~~The 2026-07-13 checkpoint's release checklist still stands.~~
+   **Release checklist COMPLETED 2026-07-17** at commit `f005851`:
+   clean `npm ci` reproduces the lockfile with **0 vulnerabilities**;
+   `npm ls` clean (hoisted optional wasm deps noted, harmless); full
+   `npm run verify` green on the fresh install; **Lighthouse 100/100/100/100
+   on both mobile and desktop presets, zero failing audits** (baseline
+   accessibility 96 → 100 — both baseline findings resolved); the 25-check
+   browser smoke suite passes; all 22 external links resolve; and
+   `git diff --check main...HEAD` is clean across the 38-commit diff.
+   `npm outdated`: astro 7.0.7→7.1.0 (minor) left for dependabot.
+   **The branch is release-ready. Merging to `main` (which deploys) still
+   requires the owner's explicit instruction per D-001.**
 
 ## Resume commands
 
