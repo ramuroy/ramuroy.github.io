@@ -471,8 +471,12 @@ html:not(.js) .copy-btn { display: none; }
 /* =====================================================================
    PCB TRACE DIVIDER
    ===================================================================== */
-.trace-div { display: block; width: 100%; height: 24px; margin-block: var(--space-7); opacity: 0.6; }
+.trace-div { display: block; width: 100%; max-width: 720px; height: 56px; margin-block: var(--space-7); margin-inline: auto; opacity: 0.75; }
 .trace-div path { stroke: var(--copper-dim); stroke-width: 1; fill: none; stroke-dasharray: var(--len, 600); stroke-dashoffset: 0; }
+.trace-div text { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; fill: var(--silkscreen); }
+.js.reveal-ready .trace-div text { opacity: 0; transition: opacity 0.4s var(--ease-out) 0.55s; }
+.js.reveal-ready .trace-div.in-view text { opacity: 1; }
+.js.reveal-ready .trace-div.skip-entrance text { opacity: 1; transition: none; }
 .js.reveal-ready .trace-div path { stroke-dashoffset: var(--len, 600); }
 .trace-div.in-view path { animation: trace-draw var(--t-draw) var(--ease-out) forwards; }
 @keyframes trace-draw { to { stroke-dashoffset: 0; } }

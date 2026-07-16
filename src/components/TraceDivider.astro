@@ -1,8 +1,106 @@
 ---
-// Reusable PCB-trace divider. Draws on scroll — the IntersectionObserver
-// in Layout already targets ".trace-div". --len matches the path length.
+/*
+  PCB-trace section divider that decodes a real protocol frame (T2.3).
+  Waveforms are computed at build time from the byte itself, so they are
+  correct by construction:
+    - uart: 8N1, LSB-first — idle high, start(0), D0..D7, stop(1)
+    - i2c : START, 7-bit address MSB-first + W, slave ACK, STOP
+            (SDA only changes while SCL is low; START/STOP while SCL high)
+  The draw-on-scroll animation from Layout's IntersectionObserver still
+  targets ".trace-div"; each path carries its own --len (exact path length).
+*/
+interface Props {
+  protocol?: "uart" | "i2c";
+  /** uart: the data byte; i2c: the 7-bit address (default 0x38 = AHT10). */
+  byte?: number;
+}
+const { protocol = "uart", byte = protocol === "i2c" ? 0x38 : 0x52 } = Astro.props;
+
+const W = 600;
+type Transition = { x: number; level: 0 | 1 };
+
+/** Build an H/V step path from level transitions; returns exact length. */
+function stepPath(transitions: Transition[], yHigh: number, yLow: number): { d: string; len: number } {
+  const y = (l: 0 | 1) => (l === 1 ? yHigh : yLow);
+  let d = `M 0 ${y(transitions[0].level)}`;
+  let len = 0;
+  let cx = 0;
+  let cl = transitions[0].level;
+  for (const t of transitions.slice(1)) {
+    if (t.level === cl) continue;
+    d += ` H ${t.x} V ${y(t.level)}`;
+    len += t.x - cx + Math.abs(yHigh - yLow);
+    cx = t.x;
+    cl = t.level;
+  }
+  d += ` H ${W}`;
+  len += W - cx;
+  return { d, len: Math.ceil(len) };
+}
+
+const hex = (n: number) => `0x${n.toString(16).toUpperCase().padStart(2, "0")}`;
+const printable = (n: number) =>
+  n >= 0x20 && n <= 0x7e ? `'${String.fromCharCode(n)}'` : n === 0x0d ? "'\\r'" : n === 0x0a ? "'\\n'" : "";
+
+type Label = { x: number; text: string; anchor?: string };
+let paths: { d: string; len: number }[] = [];
+let labels: Label[] = [];
+let caption = "";
+let via: { cx: number; cy: number };
+
+if (protocol === "uart") {
+  // idle | start | D0..D7 (LSB first) | stop | idle
+  const HI = 10, LO = 30, LEAD = 44, CELL = 44;
+  const bits: (0 | 1)[] = [0, ...Array.from({ length: 8 }, (_, i) => ((byte >> i) & 1) as 0 | 1), 1];
+  const tr: Transition[] = [{ x: 0, level: 1 }];
+  bits.forEach((b, i) => tr.push({ x: LEAD + i * CELL, level: b }));
+  tr.push({ x: LEAD + bits.length * CELL, level: 1 });
+  paths = [stepPath(tr, HI, LO)];
+  labels = [
+    { x: LEAD + CELL / 2, text: "S" },
+    ...bits.slice(1, 9).map((b, i) => ({ x: LEAD + (i + 1.5) * CELL, text: String(b) })),
+    { x: LEAD + 9.5 * CELL, text: "P" },
+    { x: W, text: `uart · 8n1 · ${hex(byte)} ${printable(byte)}`.trim(), anchor: "end" },
+  ];
+  caption = "";
+  via = { cx: LEAD + 10 * CELL + 20, cy: HI };
+} else {
+  // i2c: SCL on top, SDA below; address byte = addr<<1 | W(0), then slave ACK
+  const SCL_HI = 6, SCL_LO = 16, SDA_HI = 30, SDA_LO = 40;
+  const START_X = 24, FIRST_FALL = 40, CELL = 44;
+  const cell = (k: number) => FIRST_FALL + k * CELL; // start of clock-low window k (0-based)
+  const wire = ((byte & 0x7f) << 1) | 0; // address + write bit on the wire
+  const bits: (0 | 1)[] = [...Array.from({ length: 8 }, (_, i) => ((wire >> (7 - i)) & 1) as 0 | 1), 0]; // MSB first + ACK(0)
+  // SCL: high, falls after START, 9 pulses (rise mid-cell), rises for STOP
+  const scl: Transition[] = [{ x: 0, level: 1 }, { x: FIRST_FALL, level: 0 }];
+  for (let k = 0; k < 9; k++) {
+    scl.push({ x: cell(k) + 16, level: 1 });
+    scl.push({ x: cell(k) + 38, level: 0 });
+  }
+  scl.push({ x: cell(9) + 12, level: 1 });
+  // SDA: high, START fall while SCL high, bit changes while SCL low, STOP rise while SCL high
+  const sda: Transition[] = [{ x: 0, level: 1 }, { x: START_X, level: 0 }];
+  bits.forEach((b, i) => sda.push({ x: cell(i) + 5, level: b }));
+  sda.push({ x: cell(8) + 40, level: 0 }); // hold low after ACK for STOP setup
+  sda.push({ x: cell(9) + 22, level: 1 }); // STOP: SDA rises while SCL high
+  paths = [stepPath(scl, SCL_HI, SCL_LO), stepPath(sda, SDA_HI, SDA_LO)];
+  labels = [
+    { x: START_X, text: "S" },
+    { x: cell(0) + 6 + (7 * CELL) / 2, text: hex(byte & 0x7f) },
+    { x: cell(7) + 27, text: "W" },
+    { x: cell(8) + 27, text: "ACK" },
+    { x: cell(9) + 26, text: "P" },
+    { x: W, text: "i2c · aht10 · write", anchor: "end" },
+  ];
+  via = { cx: cell(9) + 22, cy: SDA_HI };
+}
 ---
-<svg class="trace-div" viewBox="0 0 600 24" preserveAspectRatio="none" aria-hidden="true" style="--len:606">
-  <path d="M0 12 H250 l10 -8 H330 l10 8 H600" />
-  <circle cx="300" cy="4" r="3.2" />
+<svg class="trace-div" viewBox={`0 0 ${W} 56`} preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+  {paths.map((p) => (
+    <path d={p.d} style={`--len:${p.len}`} />
+  ))}
+  {labels.map((l) => (
+    <text x={l.x} y="53" text-anchor={l.anchor ?? "middle"}>{l.text}</text>
+  ))}
+  <circle cx={via.cx} cy={via.cy} r="3.2" />
 </svg>

@@ -4,7 +4,7 @@ import TraceDivider from "./TraceDivider.astro";
 ---
 <footer class="footer">
   <div class="container spine footer__inner">
-    <TraceDivider />
+    <TraceDivider protocol="uart" byte={0x0d} />
     <div class="footer__row">
       <span class:list={["led", { "led--off": !profile.available }]}>
         {profile.available && <span class="led__dot"></span>} // {profile.availableText}
