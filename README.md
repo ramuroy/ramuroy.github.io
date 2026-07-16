@@ -37,6 +37,11 @@ npm run preview  # serve the production build locally
 npm run verify   # complete release gate
 ```
 
+For release-grade runtime verification there is also a real-browser smoke suite
+(`scripts/browser-smoke.mjs`, 25 checks — CSP, boot overlay, scroll-spy, no-JS
+navigation, print, reduced motion, 404). Playwright is installed on demand; see
+the script header for usage.
+
 `npm run verify` is the required release gate. It:
 
 1. checks every Astro and TypeScript source file;

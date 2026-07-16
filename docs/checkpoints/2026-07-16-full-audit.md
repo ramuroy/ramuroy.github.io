@@ -145,8 +145,8 @@ re-run in a second orchestration. Nothing was lost.
    browser smoke suite passes; all 22 external links resolve; and
    `git diff --check main...HEAD` is clean across the 38-commit diff.
    `npm outdated`: astro 7.0.7→7.1.0 (minor) left for dependabot.
-   **The branch is release-ready. Merging to `main` (which deploys) still
-   requires the owner's explicit instruction per D-001.**
+   **Merged to `main` and deployed 2026-07-17 with the owner's explicit
+   approval — see `2026-07-17-phase0-release.md` for the release record.**
 
 ## Resume commands
 
