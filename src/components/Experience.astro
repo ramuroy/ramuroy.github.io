@@ -23,6 +23,11 @@ import { experience, education, spokenLanguages, sections } from "../data/site";
           <ul class="tl-item__hl">
             {r.highlights.map((h) => <li>{h}</li>)}
           </ul>
+          {r.ref && (
+            <p class="tl-item__ref">
+              <a class="link" href={r.ref.href}>{r.ref.label} <span aria-hidden="true">↑</span></a>
+            </p>
+          )}
           <div class="badges">
             {r.tags.map((t) => <span class="badge">{t}</span>)}
           </div>

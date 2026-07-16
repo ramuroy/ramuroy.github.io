@@ -390,6 +390,7 @@ main:focus-visible { box-shadow: none; outline: none; }
 .tl-item__hl { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-4); max-width: 82ch; }
 .tl-item__hl li { position: relative; padding-left: 1.3em; color: var(--text-secondary); font-size: var(--fs-small); line-height: var(--lh-snug); }
 .tl-item__hl li::before { content: "›"; position: absolute; left: 0; color: var(--accent); opacity: 0.7; }
+.tl-item__ref { font-family: var(--font-mono); font-size: var(--fs-micro); margin: calc(-1 * var(--space-2)) 0 var(--space-4); }
 
 /* Education + extra cards under experience */
 .exp-extra { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); margin-top: var(--space-8); }

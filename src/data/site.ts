@@ -231,6 +231,8 @@ export type Role = {
   deployed?: boolean;
   summary: string;
   highlights: string[];
+  /** Optional pointer to the flagship card carrying the full detail. */
+  ref?: { label: string; href: string };
   tags: string[];
 };
 
@@ -242,15 +244,13 @@ export const experience: Role[] = [
     location: "Hyderabad, India",
     active: true,
     summary:
-      "Building eOS at Elipse — a custom Yocto-based Linux distribution for the Raspberry Pi 5, spanning the OTA system, service bus, sensor-fusion framework, and an on-device voice assistant.",
+      "Contributing to eOS at Elipse — a custom Yocto-based Linux distribution for the Raspberry Pi 5 — owning the build-and-deploy pipeline, the Rust sensor-fusion framework, and the on-device voice subsystem.",
     highlights: [
-      "Architected a Yocto/OpenEmbedded distro with A/B RAUC OTA, an MQTT service bus, SQLite persistence, and a Qt6/QML UI — authoring recipes across the meta-eos layer with BitBake PR bumps, AUTOREV pinning, and IPK packaging.",
-      "Built the Linux subsystem stack: systemd units, custom D-Bus interfaces, TLS/ACL-hardened Mosquitto MQTT, and SQLite migrations tuned for multi-writer concurrency.",
-      "Wrote a generic Rust RoomAggregator framework fusing thermal, mmWave radar, air-quality, ambient-light, and PIR sensors per room, with D-Bus calibration and SQLite persistence.",
-      "Built an on-device voice subsystem in Rust: transfer-learned wake-word (PyTorch → ONNX → tract), multi-mic best-source fusion across ESP32 satellites, Whisper STT, Piper TTS, and async barge-in.",
-      "Authored ESP32 firmware (ESP-IDF v5.2): BLE provisioning, on-chip EC P-256 keygen, X.509 CSR exchange with the hub CA, full NVS lifecycle across OTA, and SNTP-synced audio streaming.",
-      "Owned the full deploy flow via an in-house eos-build CLI: cross-compilation, WIC image builds, bmaptool SD flashing, and RAUC A/B verification.",
+      "Own the build-and-deploy flow end to end: Yocto recipes across the meta-eos layer with BitBake PR bumps, AUTOREV pinning, and IPK packaging, through the in-house eos-build CLI, WIC images, bmaptool flashing, and RAUC A/B verification.",
+      "Built the on-device voice subsystem in Rust: transfer-learned wake word (PyTorch → ONNX → tract), multi-mic best-source fusion across ESP32 satellites, Whisper STT, Piper TTS, and async barge-in.",
+      "Authored ESP32 satellite firmware (ESP-IDF v5.2): BLE provisioning with on-chip EC P-256 keygen and X.509 CSR exchange with the hub CA, full NVS lifecycle across OTA, and SNTP-synced audio streaming.",
     ],
+    ref: { label: "Full detail: eOS — FIG. 01 above", href: "#projects" },
     tags: ["Yocto", "BitBake", "RAUC OTA", "Rust", "D-Bus", "MQTT", "SQLite", "Qt6/QML", "ESP-IDF", "ONNX/tract", "Whisper", "Piper"],
   },
   {
@@ -262,11 +262,11 @@ export const experience: Role[] = [
     summary:
       "Developed an industrial Anti-Collision System for crane operations — deployed at Tata Steel BlueScope — using real-time UWB proximity detection and zone-based safety logic to prevent hazardous crane movements.",
     highlights: [
-      "Shipped the Anti-Collision System to production at Tata Steel BlueScope: real-time UWB proximity sensing with zone-based safety logic driving industrial outputs to halt unsafe crane motion.",
-      "Wrote ESP32-S3 dual-core firmware — core 1 for time-critical UWB distance measurement, core 2 for zone calculation, system logic, and an embedded web UI.",
-      "Linked nodes over ESP-NOW for low-latency peer-to-peer comms and drove an 8-channel industrial relay system via MODBUS RTU over RS485 to Masibus DO cards.",
+      "Shipped the Anti-Collision System to production at Tata Steel BlueScope: real-time UWB proximity sensing with zone-based safety logic driving industrial relays that halt unsafe crane motion.",
+      "Wrote ESP32-S3 dual-core firmware — one core for time-critical UWB ranging, the other for zone logic and the embedded web UI — linked over ESP-NOW and driving 8-channel Masibus relays via MODBUS RTU over RS485.",
       "Interfaced STM32 with AHT10 and ADS1115 — timers, internal ADC/DAC, 2/4-wire RS485, LoRa long-range links, and Masibus DI/DO/AI/AO cards (STM32CubeIDE).",
     ],
+    ref: { label: "Full detail: FIG. 02 above", href: "#projects" },
     tags: ["ESP32-S3", "FreeRTOS dual-core", "UWB", "ESP-NOW", "MODBUS RTU / RS485", "STM32", "LoRa", "Industrial relays"],
   },
   {
