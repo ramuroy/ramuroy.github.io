@@ -28,11 +28,9 @@ ul { list-style: none; padding: 0; }
 
 ::selection { background: var(--selection-bg); color: #fff; }
 
-/* Scrollbar */
+/* Scrollbar — standard properties only: Chromium 121+ ignores the ::-webkit-scrollbar
+   rules once these are set, so keeping both meant the webkit styling never applied. */
 * { scrollbar-width: thin; scrollbar-color: var(--border-bright) transparent; }
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 999px; border: 2px solid var(--bg); }
-::-webkit-scrollbar-track { background: transparent; }
 
 /* =====================================================================
    BLUEPRINT GRID + AMBIENT GLOW (fixed background layers)
@@ -46,6 +44,7 @@ body::before {
     repeating-linear-gradient(to right, var(--grid-line) 0 1px, transparent 1px 120px),
     repeating-linear-gradient(to bottom, var(--grid-line) 0 1px, transparent 1px 120px);
   opacity: 0.55;
+  -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 35%, transparent 92%);
   mask-image: radial-gradient(120% 90% at 50% 0%, #000 35%, transparent 92%);
 }
 body::after {
@@ -62,7 +61,6 @@ body::after {
 .container { width: 100%; max-width: var(--maxw); margin-inline: auto; padding-inline: var(--gutter); }
 .spine { max-width: var(--maxw-spine); }
 .section { padding-block: var(--section-gap); position: relative; scroll-margin-top: calc(var(--nav-h) + var(--space-4)); }
-.measure { max-width: var(--measure); }
 .sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
 
 .skip-link {
@@ -76,12 +74,10 @@ body::after {
 /* =====================================================================
    MONO / LABEL HELPERS
    ===================================================================== */
-.mono { font-family: var(--font-mono); }
 .eyebrow {
   font-family: var(--font-mono); font-size: var(--fs-eyebrow); text-transform: uppercase;
   letter-spacing: 0.14em; color: var(--accent); opacity: 0.85;
 }
-.tnum { font-variant-numeric: tabular-nums; }
 .accent { color: var(--accent-text); }
 
 /* Animated inline link underline */
@@ -95,12 +91,16 @@ body::after {
 
 /* =====================================================================
    REVEAL (progressive enhancement: only hides when html.js)
+   Entrances run as animations, not transitions, so they never override a
+   component's own transition list (e.g. card hover lift). See audit B2.
    ===================================================================== */
-.js.reveal-ready .reveal { opacity: 0; transform: translateY(16px); transition: opacity var(--t-slow) var(--ease-out), transform var(--t-slow) var(--ease-out); transition-delay: calc(var(--i, 0) * 60ms); }
-.js.reveal-ready .reveal.in-view { opacity: 1; transform: none; }
-/* opacity-only entrance for elements that own their own transform (tilt/hover) */
-.js.reveal-ready .fade { opacity: 0; transition: opacity var(--t-slow) var(--ease-out); transition-delay: calc(var(--i, 0) * 60ms); }
-.js.reveal-ready .fade.in-view { opacity: 1; }
+@keyframes rise-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.js.reveal-ready .reveal { opacity: 0; }
+.js.reveal-ready .reveal.in-view { animation: rise-in var(--t-slow) var(--ease-out) calc(var(--i, 0) * 60ms) both; }
+/* opacity-only entrance for elements that own their own transform (hover lift) */
+.js.reveal-ready .fade { opacity: 0; }
+.js.reveal-ready .fade.in-view { animation: fade-in var(--t-slow) var(--ease-out) calc(var(--i, 0) * 60ms) both; }
 
 /* =====================================================================
    SECTION HEADER (eyebrow + drawn cyan rule + faint numeral + title)
@@ -118,7 +118,7 @@ body::after {
   transition: transform var(--t-slow) var(--ease-out);
 }
 .js.reveal-ready .section-head .rule { transform: scaleX(0); }
-.js.reveal-ready .section-head.in-view .rule, .section-head.in-view .rule { transform: scaleX(1); }
+.js.reveal-ready .section-head.in-view .rule { transform: scaleX(1); }
 .section-head__title { font-size: var(--fs-h2); color: var(--text); max-width: 22ch; }
 
 /* =====================================================================
@@ -132,7 +132,11 @@ body::after {
 .btn-ghost::before { content: "›"; color: var(--accent); font-weight: 700; }
 .btn-ghost:hover { border-color: var(--border-bright); color: var(--accent-text); box-shadow: 0 0 0 1px var(--glow-soft); }
 
-:where(a, button, input, [tabindex]):focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
+/* Transparent outline keeps a visible focus indicator in forced-colors mode,
+   where box-shadow rings are stripped (audit B16). */
+:where(a, button, input, summary, [tabindex]):focus-visible { outline: 2px solid transparent; outline-offset: 1px; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
+/* The skip-link target is a landmark, not a control — no ring around the page body. */
+main:focus-visible { box-shadow: none; outline: none; }
 
 /* =====================================================================
    STATUS PILLS (silkscreen)
@@ -179,7 +183,9 @@ body::after {
 .ticked::before, .ticked::after { content: ""; position: absolute; width: 10px; height: 10px; transition: border-color var(--t) var(--ease-std); pointer-events: none; }
 .ticked::before { top: 8px; left: 8px; border-top: 1px solid var(--border-bright); border-left: 1px solid var(--border-bright); }
 .ticked::after { bottom: 8px; right: 8px; border-bottom: 1px solid var(--border-bright); border-right: 1px solid var(--border-bright); }
-.ticked:hover::before, .ticked:hover::after { border-color: var(--accent); }
+@media (hover: hover) {
+  .ticked:hover::before, .ticked:hover::after { border-color: var(--accent); }
+}
 
 /* =====================================================================
    STATUS LED
@@ -194,10 +200,12 @@ body::after {
    ===================================================================== */
 .signal-rail { display: none; }
 @media (min-width: 1100px) {
-  .signal-rail { display: block; position: fixed; top: 0; bottom: 0; left: max(calc((100vw - var(--maxw)) / 2 + 0.5rem), 0.9rem); width: 2px; z-index: 1; pointer-events: none; mask-image: linear-gradient(transparent, #000 6%, #000 94%, transparent); }
+  /* left uses % (excludes the scrollbar) rather than 100vw (includes it) — audit B18.
+     Progress drives transforms, not height/top, so scrolling never forces layout. */
+  .signal-rail { display: block; position: fixed; top: 0; bottom: 0; left: max(calc((100% - var(--maxw)) / 2 + 0.5rem), 0.9rem); width: 2px; z-index: 1; pointer-events: none; -webkit-mask-image: linear-gradient(transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(transparent, #000 6%, #000 94%, transparent); }
   .signal-rail__line { position: absolute; inset: 0; background: var(--trace); opacity: 0.7; }
-  .signal-rail__fill { position: absolute; top: 0; left: 0; width: 100%; height: calc(var(--scrollp, 0) * 100%); background: linear-gradient(180deg, var(--accent-deep), var(--accent)); box-shadow: 0 0 8px var(--glow-strong); }
-  .signal-rail__node { position: absolute; left: 50%; top: calc(var(--scrollp, 0) * 100%); width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--glow-strong), 0 0 26px var(--glow); }
+  .signal-rail__fill { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleY(var(--scrollp, 0)); transform-origin: top; background: linear-gradient(180deg, var(--accent-deep), var(--accent)); box-shadow: 0 0 8px var(--glow-strong); }
+  .signal-rail__node { position: absolute; left: 50%; top: 0; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; transform: translateY(calc(var(--scrollp, 0) * 100vh)); background: var(--accent); box-shadow: 0 0 12px var(--glow-strong), 0 0 26px var(--glow); }
   .signal-rail__node::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 1px solid var(--accent); animation: ping 2.2s ease-out infinite; }
 }
 @keyframes ping { 0% { transform: scale(0.55); opacity: 0.7; } 100% { transform: scale(2.4); opacity: 0; } }
@@ -205,7 +213,7 @@ body::after {
 /* =====================================================================
    NAVBAR
    ===================================================================== */
-.nav { position: sticky; top: 0; z-index: 100; height: var(--nav-h); border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--bg) 72%, transparent); backdrop-filter: saturate(140%) blur(10px); -webkit-backdrop-filter: saturate(140%) blur(10px); }
+.nav { position: sticky; top: 0; z-index: 100; height: var(--nav-h); border-bottom: 1px solid var(--border); background: var(--bg); background: color-mix(in srgb, var(--bg) 72%, transparent); backdrop-filter: saturate(140%) blur(10px); -webkit-backdrop-filter: saturate(140%) blur(10px); }
 @supports not (backdrop-filter: blur(2px)) { .nav { background: var(--bg); } }
 .nav__inner { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
 .masthead { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.14em; color: var(--text-secondary); text-transform: uppercase; white-space: nowrap; }
@@ -214,8 +222,8 @@ body::after {
 .nav__links { display: flex; align-items: center; gap: var(--space-5); }
 .nav__link { position: relative; font-size: var(--fs-small); color: var(--text-secondary); transition: color var(--t-fast); padding-block: 0.4rem; }
 .nav__link::after { content: ""; position: absolute; left: 0; bottom: 0; height: 1px; width: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform var(--t-fast) var(--ease-std); }
-.nav__link:hover, .nav__link[aria-current="true"] { color: var(--accent-text); }
-.nav__link:hover::after, .nav__link[aria-current="true"]::after { transform: scaleX(1); }
+.nav__link:hover, .nav__link[aria-current] { color: var(--accent-text); }
+.nav__link:hover::after, .nav__link[aria-current]::after { transform: scaleX(1); }
 .nav__menu-btn { display: none; }
 
 @media (max-width: 720px) {
@@ -224,6 +232,8 @@ body::after {
   .nav__links[data-open] { transform: none; opacity: 1; pointer-events: auto; visibility: visible; }
   .nav__link { padding-block: 0.8rem; border-bottom: 1px solid var(--border); }
   .nav__link::after { display: none; }
+  /* Mobile active-section state (the desktop underline is hidden here) */
+  .nav__link[aria-current] { color: var(--accent-text); box-shadow: inset 2px 0 0 var(--accent); padding-left: 0.6rem; }
   .masthead { font-size: 0.66rem; }
   .masthead .rev { display: none; }
 }
@@ -235,7 +245,6 @@ body::after {
    only shown once JS confirms support (and then dismissed by JS). */
 .boot { position: fixed; inset: 0; z-index: 300; background: var(--bg-deep); display: none; place-items: center; }
 .boot.is-active { display: grid; }
-.boot[hidden] { display: none; }
 .boot.is-wiping { animation: boot-wipe 320ms var(--ease-wipe) forwards; }
 @keyframes boot-wipe { to { clip-path: inset(0 0 100% 0); } }
 .boot__panel { font-family: var(--font-mono); font-size: var(--fs-small); color: var(--text-secondary); width: min(520px, 86vw); }
@@ -255,7 +264,7 @@ body::after {
 .hero__titleblock { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: var(--space-5); }
 .hero__titleblock b { color: var(--accent); }
 .hero__eyebrow { display: inline-flex; align-items: center; gap: 0.6em; margin-bottom: var(--space-4); }
-.hero h1 { font-size: var(--fs-hero); font-weight: 700; color: var(--text); margin-bottom: var(--space-4); }
+.hero h1 { font-size: var(--fs-hero); font-weight: 700; color: var(--text); margin-bottom: var(--space-4); white-space: nowrap; }
 .hero h1 .end { text-shadow: var(--glow-text); }
 .hero__lead { font-size: var(--fs-lead); line-height: var(--lh-lead); color: var(--text-secondary); max-width: 46ch; margin-bottom: var(--space-6); }
 .hero__lead .arrow { color: var(--accent); font-family: var(--font-mono); padding-inline: 0.15em; }
@@ -296,7 +305,10 @@ body::after {
 @media (max-width: 860px) { .projects__flagship { grid-template-columns: 1fr; } }
 
 .pcard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: clamp(1.25rem, 3vw, 2rem); position: relative; overflow: hidden; transition: transform var(--t) var(--ease-std), border-color var(--t), box-shadow var(--t); display: flex; flex-direction: column; gap: var(--space-4); }
-.pcard:hover { transform: translateY(-3px); border-color: var(--border-bright); box-shadow: var(--shadow-card-hover); }
+/* Hover lift only on devices that actually hover — taps must not stick (audit B5) */
+@media (hover: hover) {
+  .pcard:hover { transform: translateY(-3px); border-color: var(--border-bright); box-shadow: var(--shadow-card-hover); }
+}
 .pcard__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
 .pcard__fig { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.14em; color: var(--label); text-transform: uppercase; }
 .pcard__pills { display: flex; flex-wrap: wrap; gap: 0.4rem; }
@@ -328,7 +340,9 @@ body::after {
 .projects__more-head h3 { font-family: var(--font-mono); font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); font-weight: 500; }
 .pgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(258px, 1fr)); gap: var(--space-4); }
 .gcard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); transition: transform var(--t-fast) var(--ease-std), border-color var(--t-fast), box-shadow var(--t-fast); }
-.gcard:hover { transform: translateY(-2px); border-color: var(--border-bright); box-shadow: var(--shadow-md); }
+@media (hover: hover) {
+  .gcard:hover { transform: translateY(-2px); border-color: var(--border-bright); box-shadow: var(--shadow-md); }
+}
 .gcard__top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
 .gcard__title { font-family: var(--font-display); font-size: 1rem; font-weight: 600; color: var(--text); }
 .gcard__date { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); white-space: nowrap; }
@@ -352,8 +366,7 @@ body::after {
 .tl-item__company { color: var(--accent-text); }
 .tl-item__loc { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); }
 .tl-item__summary { color: var(--text-secondary); max-width: 64ch; margin-block: var(--space-3); font-size: var(--fs-small); }
-.tl-item__hl { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-4); }
-.tl-item__hl { max-width: 82ch; }
+.tl-item__hl { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-4); max-width: 82ch; }
 .tl-item__hl li { position: relative; padding-left: 1.3em; color: var(--text-secondary); font-size: var(--fs-small); line-height: var(--lh-snug); }
 .tl-item__hl li::before { content: "›"; position: absolute; left: 0; color: var(--accent); opacity: 0.7; }
 
@@ -449,20 +462,21 @@ body::after {
 @keyframes flow { to { stroke-dashoffset: 0; } }
 
 /* Cursor-follow glow over the blueprint grid (fine pointer only) */
-.cursor-glow { position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0; transition: opacity 0.5s ease; background: radial-gradient(440px circle at var(--mx, 50%) var(--my, 28%), rgba(0, 229, 255, 0.10), transparent 62%); }
+.cursor-glow { position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0; transition: opacity 0.5s ease; background: radial-gradient(440px circle at var(--mx, 50%) var(--my, 28%), var(--glow-soft), transparent 62%); }
 body.cursor-on .cursor-glow { opacity: 1; }
 
 /* Cursor-tracked spotlight inside flagship project cards */
 .card-glow { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity 0.35s ease; background: radial-gradient(320px circle at var(--cx, 50%) var(--cy, 50%), var(--glow-strong), transparent 60%); z-index: 0; }
 .pcard > *:not(.card-glow) { position: relative; z-index: 1; }
-.pcard:hover .card-glow { opacity: 0.5; }
+@media (hover: hover) {
+  .pcard:hover .card-glow { opacity: 0.5; }
+}
 
 /* Hero interactive constellation canvas */
 .hero__canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
 .hero > .container, .hero__scroll { position: relative; z-index: 1; }
 
 /* Glitch / scramble name */
-.hero h1 { white-space: nowrap; }
 .hero__name { display: inline-block; }
 
 /* =====================================================================
@@ -479,9 +493,17 @@ body.cursor-on .cursor-glow { opacity: 1; }
   .stat:nth-child(odd)::before { display: none; }
 }
 
-/* Shimmer sweep on section titles */
-.section-head__title { background: linear-gradient(100deg, var(--text) 38%, var(--accent-soft) 50%, var(--text) 62%); background-size: 220% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; animation: shimmer 7s linear infinite; }
+/* Shimmer sweep on section titles (guarded: engines without background-clip:text
+   keep the plain --text color from the base rule instead of invisible headings) */
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .section-head__title { background: linear-gradient(100deg, var(--text) 38%, var(--accent-soft) 50%, var(--text) 62%); background-size: 220% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; animation: shimmer 7s linear infinite; }
+}
 @keyframes shimmer { to { background-position: -220% center; } }
+
+/* Forced-colors (Windows High Contrast): gradient text would be invisible (audit B12) */
+@media (forced-colors: active) {
+  .section-head__title { background: none; -webkit-text-fill-color: currentColor; color: CanvasText; animation: none; }
+}
 
 /* =====================================================================
    COARSE POINTER (touch) — comfortable tap targets
@@ -511,7 +533,7 @@ body.cursor-on .cursor-glow { opacity: 1; }
    REDUCED MOTION
    ===================================================================== */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; transition-delay: 0s !important; }
   .js.reveal-ready .reveal { opacity: 1 !important; transform: none !important; }
   .js.reveal-ready .fade { opacity: 1 !important; }
   .section-head .rule { transform: scaleX(1) !important; }

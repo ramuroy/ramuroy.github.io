@@ -7,19 +7,16 @@
   --bg: #0A0E14;
   --bg-deep: #070A0F;
   --surface: #0F141C;
-  --elevated: #141B24;
-  --elevated-hover: #16212E;
   --border: #1E2730;
   --border-bright: #2C3A47;
   --grid-line: #121A22;
   --code-bg: #0E1219;
-  --scrim: rgba(7, 10, 15, 0.78);
 
   /* ---- Text ---- */
   --text: #E6EDF3;
   --text-secondary: #A9B6C2;
   --muted: #7C8B99;
-  --label: #7C8B99;
+  --label: var(--muted);
   --faint: #586675;
 
   /* ---- Accent (cyan signature) ---- */
@@ -28,9 +25,7 @@
   --accent-soft: #7FF0FF;
   --accent-text: #5BE9F7;
   --accent-ink: #062A30;
-  --accent-2: #7C8CFF;
   --trace: #16323D;
-  --silkscreen: #3A4956;
 
   /* ---- Glow / status ---- */
   --glow: rgba(0, 229, 255, 0.18);
@@ -38,10 +33,9 @@
   --glow-soft: rgba(0, 229, 255, 0.10);
   --success: #3DD68C;
   --success-glow: rgba(61, 214, 140, 0.30);
-  --led-on: #3DD68C;
+  --led-on: var(--success);
   --led-ring: rgba(61, 214, 140, 0.18);
   --warn: #F2C14E;
-  --danger: #FF6B6B;
   --selection-bg: rgba(0, 229, 255, 0.22);
 
   /* ---- Radius ---- */
@@ -52,15 +46,12 @@
   --radius-pill: 999px;
 
   /* ---- Shadow ---- */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.40);
   --shadow-md: 0 8px 30px -12px rgba(0, 0, 0, 0.55);
-  --shadow-lg: 0 24px 60px -20px rgba(0, 0, 0, 0.65);
   --shadow-card-hover: 0 0 0 1px var(--glow-strong), 0 12px 40px -14px var(--glow);
   --glow-ring: 0 0 0 1px var(--glow), 0 0 24px -4px var(--glow);
   --glow-text: 0 0 18px var(--glow-soft);
 
   /* ---- Spacing ---- */
-  --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
@@ -69,16 +60,13 @@
   --space-7: 3rem;
   --space-8: 4rem;
   --space-9: 6rem;
-  --space-10: 8rem;
   --section-gap: clamp(5rem, 10vh, 9rem);
 
   /* ---- Layout ---- */
   --maxw: 1180px;
   --maxw-spine: 720px;
-  --measure: 68ch;
   --gutter: clamp(1.25rem, 5vw, 4rem);
   --nav-h: 60px;
-  --border-w: 1px;
   --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
 
   /* ---- Type ---- */
@@ -93,7 +81,6 @@
   --fs-lead: clamp(1.15rem, 1.04rem + 0.55vw, 1.45rem);
   --fs-h3: clamp(1.2rem, 1.05rem + 0.7vw, 1.55rem);
   --fs-h2: clamp(1.7rem, 1.35rem + 1.6vw, 2.7rem);
-  --fs-h1: clamp(2.6rem, 1.7rem + 3.6vw, 4.6rem);
   --fs-hero: clamp(2.9rem, 1.9rem + 4.4vw, 5.2rem);
   --fs-numeral: clamp(3.5rem, 2.5rem + 5vw, 7rem);
 
