@@ -3,6 +3,57 @@
 This project follows a lightweight, date-based changelog. Entries describe changes
 that affect the source, generated site, development workflow, or deployment safety.
 
+## Unreleased — Phase 0 defect sweep (2026-07-16)
+
+Branch: `codex/site-hardening-20260713` — implements the P1/P2 defects (B1–B31)
+and hygiene items from `docs/site-audit-2026-07-16.md`, as individually
+verifiable atomic commits. No visual redesign; all changes are fixes.
+
+### Fixed
+
+- CSP no longer blocks the first-visit boot intro: inline scripts live in
+  `src/data/inline-scripts.ts`, are hash-registered in the layout, and the
+  build now fails if any inline script is missing from the CSP (B14).
+- Nav scroll-spy highlight renders for the first time (attribute mismatch),
+  clears when scrolling back to the top, and has a mobile active state (B1).
+- Card hover animations animate again — entrances are keyframe animations
+  instead of transition overrides (regression since a65464e) (B2).
+- Printing: token-level light re-theme, forced-open disclosures, visible
+  reference URLs, sane page-break behavior (B3).
+- Nav no longer clips at 721–860 px; the mobile menu works without
+  JavaScript; Certifications joined the nav and scroll-spy (B4, B11, B24).
+- Touch devices: hover lift/glow no longer sticks after taps (B5); 44 px
+  targets for summary/cert/footer/boot/nav controls (B17).
+- Windows High Contrast: section headings and focus indicators are visible
+  (B12, B16); reduced-motion also zeroes delays and is observed live
+  mid-session (B15, B27).
+- Boot overlay is an honest modal (background inert, animationend-based
+  dismissal); double-clicked copy buttons no longer wedge on "copied ✓";
+  counters can no longer strand at 0; hero canvas survives mobile URL-bar
+  resizes, runs at the same speed on high-refresh displays, and starts only
+  after the boot overlay (B9, B13, B7, B8, B23).
+- Screen readers: stable h1 during the name scramble, real spaces in the
+  hero lead and list separators, hidden decorative glyphs, "(opens in new
+  tab)" texts, star-count labels, heading-navigable cert cards, short grid
+  card link names (B10, B28, B30).
+- SEO/social: WebSite JSON-LD, robust og:image URL, twitter:image:alt,
+  og:locale, robots max-image-preview, keywords meta removed, branded 404
+  page, sitemap lastmod + 404 exclusion, "Tata Steel BlueScope" naming (B31).
+- Performance: fonts preloaded (hashed URLs verified against the CSS),
+  modern format()/tech() font sources, transform-driven signal rail,
+  rAF-coalesced pointer effects.
+- CI/tooling: verify gate now runs on PRs and feature branches (B20);
+  deploys are never cancelled mid-flight (B19); Node version single-sourced
+  from `.nvmrc` and enforced via `engine-strict` (B22); dependabot,
+  `.editorconfig`, and stronger `check-build.mjs` link/CSP validation (B21).
+
+### Deferred (recorded, not regressions)
+
+- Font-weight instancing, metric-compatible fallback fonts, og.png
+  regeneration, favicon-16/mask-icon, LICENSE choice, prettier config,
+  tsconfig `strictest`, SHA-pinned actions — see the audit's §7/P3 and the
+  roadmap for placement.
+
 ## Unreleased — full-site audit documentation (2026-07-16)
 
 Branch: `codex/site-hardening-20260713` (documentation only; no site source changed)

@@ -122,14 +122,19 @@ re-run in a second orchestration. Nothing was lost.
 
 ## Remaining work for the next session
 
-1. User reads `docs/site-audit-2026-07-16.md` and approves scope.
-2. On approval of Phase 0: fix B1–B31 on this branch, smallest-diff first,
-   extending `scripts/check-build.mjs` to hash-verify every inline script
-   against the CSP meta (turns the B14 bug class into a build failure), and add
-   a PR-triggered `npm run verify` workflow. Verify after each cluster:
-   `npm run verify`, then manual checks at 320/768/1024/1440 px, keyboard-only,
-   `prefers-reduced-motion`, JS disabled, and print preview.
-3. Then Tier 1 content work once the inputs above arrive.
+1. ~~User reads the audit and approves scope.~~ **Done — Phase 0 approved and
+   COMPLETED on 2026-07-16** (see the Phase 0 section in `CHANGELOG.md`).
+   All B1–B31 defects are fixed in individually verifiable atomic commits
+   (one fix per commit, per the repo rule in `CLAUDE.md`); `npm run verify`
+   was green before every commit, and every fix was grep-verified in the
+   built output. Deferred P3 items are listed in the changelog.
+2. **Manual browser checks still worth a human eyeball** (headless capture
+   was unavailable on the workstation; HTTP-level checks passed): boot intro
+   appears once per session and skips correctly; scroll-spy highlight follows
+   scrolling; mobile menu at ≤ 860 px; JS-disabled page shows the static nav
+   row; print preview is legible with open disclosures; no sticky hover on a
+   touch device.
+3. Then Tier 1 content work once the user provides the inputs above.
 4. The 2026-07-13 checkpoint's own release checklist (clean-install audit,
    Lighthouse rerun) still stands before any merge to `main`.
 

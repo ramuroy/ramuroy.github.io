@@ -91,8 +91,11 @@ unavailable, and motion must respect `prefers-reduced-motion`.
 ## Deployment and branch safety
 
 Only a push to `main` triggers `.github/workflows/deploy.yml`. That workflow uses
-Node 22.12, runs `npm ci`, executes the full `npm run verify` gate, uploads `dist/`,
-and deploys it to GitHub Pages.
+the Node version pinned in `.nvmrc`, runs `npm ci`, executes the full
+`npm run verify` gate, uploads `dist/`, and deploys it to GitHub Pages.
+
+Every pull request and feature-branch push runs the same gate via
+`.github/workflows/verify.yml`, so breakage is caught before merge.
 
 Pushing a feature branch stores the work remotely but does **not** deploy it. Do not
 merge the current hardening branch until the remaining checks in the checkpoint
