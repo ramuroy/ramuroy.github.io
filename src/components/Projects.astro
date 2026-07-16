@@ -79,35 +79,34 @@ const showDot = (v: string) => v === "deployed" || v === "production";
         </a>
       </div>
       <div class="pgrid">
-        {grid.map((g, i) => {
-          const inner = (
-            <>
-              <div class="gcard__top">
+        {grid.map((g, i) => (
+          <div class="gcard fade" style={`--i:${i % 4}`}>
+            <div class="gcard__top">
+              {/* Stretched link: whole card stays clickable, but the accessible
+                  link name is just the title, not a 25-word card dump (B28). */}
+              {g.repo ? (
+                <a class="gcard__title gcard__link" href={g.repo} target="_blank" rel="noopener noreferrer">{g.title}<span class="sr-only"> (opens in new tab)</span></a>
+              ) : (
                 <span class="gcard__title">{g.title}</span>
-                {g.date && <span class="gcard__date">{g.date}</span>}
-              </div>
-              <p class="gcard__desc">{g.description}</p>
-              <div class="badges">
-                {g.tech.map((t) => <span class="badge">{t}</span>)}
-              </div>
-              <div class="gcard__foot">
-                <span class="gcard__cat">{g.category}</span>
-                {g.stars ? (
-                  <span class="star"><span aria-hidden="true">★ {g.stars}</span><span class="sr-only">{`${g.stars} GitHub ${g.stars === 1 ? "star" : "stars"}`}</span></span>
-                ) : g.repo ? (
-                  <span class="gcard__cat"><span aria-hidden="true">↗</span> repo</span>
-                ) : (
-                  <span class="gcard__cat">local</span>
-                )}
-              </div>
-            </>
-          );
-          return g.repo ? (
-            <a class="gcard fade" style={`--i:${i % 4}`} href={g.repo} target="_blank" rel="noopener noreferrer">{inner}</a>
-          ) : (
-            <div class="gcard fade" style={`--i:${i % 4}`}>{inner}</div>
-          );
-        })}
+              )}
+              {g.date && <span class="gcard__date">{g.date}</span>}
+            </div>
+            <p class="gcard__desc">{g.description}</p>
+            <div class="badges">
+              {g.tech.map((t) => <span class="badge">{t}</span>)}
+            </div>
+            <div class="gcard__foot">
+              <span class="gcard__cat">{g.category}</span>
+              {g.stars ? (
+                <span class="star"><span aria-hidden="true">★ {g.stars}</span><span class="sr-only">{`${g.stars} GitHub ${g.stars === 1 ? "star" : "stars"}`}</span></span>
+              ) : g.repo ? (
+                <span class="gcard__cat"><span aria-hidden="true">↗</span> repo</span>
+              ) : (
+                <span class="gcard__cat">local</span>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   </div>

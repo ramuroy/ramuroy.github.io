@@ -13,7 +13,7 @@ import { certifications, sections } from "../data/site";
             <span class="cert__issuer">{c.issuer} · {c.year}</span>
             <span class="pill pill--oss">completed</span>
           </div>
-          <p class="cert__title">{c.title}</p>
+          <h3 class="cert__title">{c.title}</h3>
           <div class="gauge">
             <div class="gauge__track">
               <div class="gauge__fill" style={`--w:${c.score}%`}></div>

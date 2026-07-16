@@ -357,12 +357,15 @@ main:focus-visible { box-shadow: none; outline: none; }
 .projects__more-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-5); flex-wrap: wrap; }
 .projects__more-head h3 { font-family: var(--font-mono); font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); font-weight: 500; }
 .pgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(258px, 1fr)); gap: var(--space-4); }
-.gcard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); transition: transform var(--t-fast) var(--ease-std), border-color var(--t-fast), box-shadow var(--t-fast); }
+.gcard { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); transition: transform var(--t-fast) var(--ease-std), border-color var(--t-fast), box-shadow var(--t-fast); }
 @media (hover: hover) {
   .gcard:hover { transform: translateY(-2px); border-color: var(--border-bright); box-shadow: var(--shadow-md); }
 }
 .gcard__top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
 .gcard__title { font-family: var(--font-display); font-size: 1rem; font-weight: 600; color: var(--text); }
+/* Stretched link: the title anchor's hit area covers the whole card */
+.gcard__link::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.gcard:has(.gcard__link:focus-visible) { box-shadow: var(--focus-ring); }
 .gcard__date { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); white-space: nowrap; }
 .gcard__desc { color: var(--text-secondary); font-size: var(--fs-small); flex: 1; }
 .gcard__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); margin-top: auto; }
