@@ -308,6 +308,99 @@ const browser = await chromium.launch({ headless: true });
   await ctx.close();
 }
 
+// ---------- 9. Tier 3 spec tests: RM, touch, print, caps, guards ----------
+{
+  // page-input backtick guard + scrollback cap + non-modal scroll
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await ctx.newPage();
+  await ctx.addInitScript(() => { try { sessionStorage.setItem("rr_boot", "1"); } catch {} });
+  await page.goto(BASE + "/", { waitUntil: "load" });
+  await page.evaluate(() => {
+    const inp = document.createElement("input");
+    inp.id = "tmp-guard-input";
+    document.querySelector("main").prepend(inp);
+    inp.focus();
+  });
+  await page.keyboard.press("Backquote");
+  await page.waitForTimeout(200);
+  const guarded = await page.evaluate(() => !document.getElementById("rr-term").hasAttribute("data-open"));
+  check("T3.5: backtick ignored while a page input is focused", guarded);
+  await page.evaluate(() => document.getElementById("tmp-guard-input").remove());
+  await page.locator(".footer__term-open").scrollIntoViewIfNeeded();
+  await page.locator(".footer__term-open").click();
+  await page.waitForTimeout(320);
+  for (let i = 0; i < 65; i++) {
+    await page.fill(".term__input", "echo " + i);
+    await page.press(".term__input", "Enter");
+  }
+  const blocks = await page.evaluate(() => document.querySelector(".term__scroll").childElementCount);
+  check("T3.5: scrollback capped at 60 blocks", blocks <= 60, String(blocks));
+  const y0 = await page.evaluate(() => window.scrollY);
+  await page.mouse.move(700, 200);
+  await page.mouse.wheel(0, -600);
+  await page.waitForTimeout(200);
+  const scrolled = await page.evaluate(() => window.scrollY) !== y0;
+  check("T3.5: non-modal — page scrolls behind the open drawer", scrolled);
+  await ctx.close();
+}
+{
+  // reduced motion: instant open/close, commands work
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+  const page = await ctx.newPage();
+  await page.goto(BASE + "/", { waitUntil: "load" });
+  await page.locator(".footer__term-open").scrollIntoViewIfNeeded();
+  await page.locator(".footer__term-open").click();
+  await page.waitForTimeout(80);
+  const rmOpen = await page.evaluate(() => {
+    const t = document.getElementById("rr-term");
+    return t.hasAttribute("data-open") && getComputedStyle(t).transform === "none" && getComputedStyle(t).visibility === "visible";
+  });
+  check("T3.5 RM: opens instantly (no transition lag)", rmOpen);
+  await page.fill(".term__input", "help");
+  await page.press(".term__input", "Enter");
+  await page.waitForTimeout(150);
+  check("T3.5 RM: commands work", await page.evaluate(() => document.querySelector(".term__scroll").textContent.includes("replay the boot intro")));
+  await ctx.close();
+}
+{
+  // mobile touch: hint always visible, targets, input font size
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true });
+  const page = await ctx.newPage();
+  await ctx.addInitScript(() => { try { sessionStorage.setItem("rr_boot", "1"); } catch {} });
+  await page.goto(BASE + "/", { waitUntil: "load" });
+  await page.locator(".footer__term-open").scrollIntoViewIfNeeded();
+  const hintVisible = await page.evaluate(() => getComputedStyle(document.querySelector(".footer__term-hint")).opacity === "1");
+  check("T3.5 touch: console hint visible without hover", hintVisible);
+  await page.locator(".footer__term-open").tap();
+  await page.waitForTimeout(350);
+  const touch = await page.evaluate(() => ({
+    open: document.getElementById("rr-term").hasAttribute("data-open"),
+    closeH: document.querySelector(".term__close").getBoundingClientRect().height,
+    font: parseFloat(getComputedStyle(document.querySelector(".term__input")).fontSize),
+  }));
+  check("T3.5 touch: tap opens, exit ≥44px, input ≥16px", touch.open && touch.closeH >= 44 && touch.font >= 16, JSON.stringify(touch));
+  await page.locator(".term__close").tap();
+  await page.waitForTimeout(300);
+  check("T3.5 touch: [ exit ] closes", await page.evaluate(() => !document.getElementById("rr-term").hasAttribute("data-open")));
+  await ctx.close();
+}
+{
+  // print: terminal absent, static colophon back
+  const ctx = await browser.newContext({ viewport: { width: 1100, height: 1400 } });
+  const page = await ctx.newPage();
+  await ctx.addInitScript(() => { try { sessionStorage.setItem("rr_boot", "1"); } catch {} });
+  await page.goto(BASE + "/", { waitUntil: "load" });
+  await page.emulateMedia({ media: "print" });
+  const printState = await page.evaluate(() => ({
+    term: getComputedStyle(document.getElementById("rr-term")).display,
+    btn: getComputedStyle(document.querySelector(".footer__term-open")).display,
+    colophon: getComputedStyle(document.querySelector(".footer__colophon--static")).display,
+  }));
+  check("T3.5 print: terminal + trigger hidden, static colophon shown",
+    printState.term === "none" && printState.btn === "none" && printState.colophon === "block", JSON.stringify(printState));
+  await ctx.close();
+}
+
 await browser.close();
 const fails = results.filter(([ok]) => !ok);
 console.log(`\n${results.length - fails.length}/${results.length} checks passed`);
