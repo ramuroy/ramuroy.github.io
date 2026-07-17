@@ -61,13 +61,13 @@ See CHANGELOG and the 2026-07-17 checkpoint.
 | T3.1 | PCB layer viewer from real KiCad gerbers (CSS-only checkbox toggles) | L | ready (uses public repo) |
 | T3.2 | Oscilloscope hero scene (ticker strings as UART frames, phosphor persistence, measurement cursors; static SVG fallback) | L | ready |
 | T3.3 | Print-as-datasheet upgrade (running header, square corners — builds on the fixed print base) | M | ready |
-| T3.4 | CSS scroll-driven migration (rail, reveals, counters on scroll()/view() timelines — motion works without JS) | M | ready |
-| T3.5 | Footer terminal easter egg (help/whoami/ls projects/cat resume.txt/dmesg/reboot) + console signature | M | ready |
-| T3.6 | Hero power-on choreography with @starting-style (board-bring-up order, zero JS) | M | ready |
+| T3.4 | CSS scroll-driven migration | M | **done** (pending review) |
+| T3.5 | Footer terminal + console signature | M | **done** (pending review) |
+| T3.6 | Hero power-on choreography (fill-both animations + boot-hold) | M | **done** (pending review) |
 | T3.7 | Experience timeline as logic-analyzer waveforms (active role "still high") | M | ready |
-| T3.8 | Animated `<details>` disclosure (interpolate-size / ::details-content) | S | ready |
-| T3.9 | Mono type craft: slashed zeros, global tabular figures, outlined section numerals | S | ready |
-| T3.10 | Card edge highlight + film grain (kills gradient banding) | S | ready |
+| T3.8 | Animated `<details>` disclosure | S | **done** (pending review) |
+| T3.9 | Mono type craft (tnum + outlined numerals + font-feature build guard; `zero` verified stripped from the mono subset — default zero already dotted) | S | **done** (pending review) |
+| T3.10 | Card edge highlight + film grain | S | **done** (pending review) |
 
 Judge-rejected ideas (do NOT resurrect without new reasoning — reasons in the
 audit §10 and JSON): CAD-sheet grid frame, linear() spring easings, schematic
