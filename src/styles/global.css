@@ -827,19 +827,22 @@ body.cursor-on .cursor-glow { opacity: 1; }
     animation-timeline: --trace;
     animation-range: cover 0% cover 30%;
   }
+  /* Circle/text ranges end by cover 32%: the FOOTER divider can only ever
+     reach ~34% cover progress at max scroll (review finding — 26-38% left
+     its labels resting at opacity 0.86 on 1440x900). */
   .trace-div circle {
     animation-name: via-in;
     animation-timing-function: var(--ease-out);
     animation-fill-mode: both;
     animation-timeline: --trace;
-    animation-range: cover 22% cover 34%;
+    animation-range: cover 18% cover 30%;
   }
   .trace-div text {
     animation-name: fade-in;
     animation-timing-function: var(--ease-out);
     animation-fill-mode: both;
     animation-timeline: --trace;
-    animation-range: cover 26% cover 38%;
+    animation-range: cover 22% cover 32%;
   }
   @keyframes trace-draw-view { from { stroke-dashoffset: var(--len, 600); } to { stroke-dashoffset: 0; } }
 
