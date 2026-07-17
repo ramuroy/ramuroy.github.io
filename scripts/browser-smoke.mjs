@@ -264,9 +264,9 @@ const browser = await chromium.launch({ headless: true });
   const i2c = await page.evaluate(() => {
     const grids = document.querySelectorAll(".term__block--grid");
     const g = grids[grids.length - 1];
-    return g && g.getAttribute("aria-hidden") === "true" && g.textContent.includes("38") && g.nextElementSibling?.classList.contains("sr-only");
+    return g && g.getAttribute("role") === "img" && (g.getAttribute("aria-label") || "").includes("AHT10") && g.textContent.includes("38");
   });
-  check("T3.5: i2cdetect grid aria-hidden with sr summary, 0x38 present", !!i2c);
+  check("T3.5: i2cdetect grid is role=img with summary label, 0x38 present", !!i2c);
   await run("<img src=x onerror=alert(1)>");
   const safe = await page.evaluate(() => !document.querySelector(".term__scroll img"));
   check("T3.5: injected markup renders as text only", safe && (await logText()).includes("command not found"));

@@ -71,15 +71,15 @@ import { termPrompt } from "../data/site";
         "term__block" + (opts.echo ? " term__block--echo" : "") + (opts.grid ? " term__block--grid" : "");
       pre.textContent = lines.join("\n");
       if (opts.sr) {
-        // Visual grid is aria-hidden; the log announces the sr summary instead.
-        pre.setAttribute("aria-hidden", "true");
-        const sr = document.createElement("p");
-        sr.className = "sr-only";
-        sr.textContent = opts.sr;
-        scrollEl.append(pre, sr);
-      } else {
-        scrollEl.append(pre);
+        // The grid can overflow and become a Tab stop — aria-hidden would
+        // make that stop invisible to AT (review finding). role=img with the
+        // one-sentence label keeps it focusable AND announced; the cell soup
+        // is never read.
+        pre.setAttribute("role", "img");
+        pre.setAttribute("aria-label", opts.sr);
+        pre.setAttribute("tabindex", "0");
       }
+      scrollEl.append(pre);
       while (scrollEl.childElementCount > MAX_BLOCKS) scrollEl.firstElementChild!.remove();
       scrollEl.scrollTop = scrollEl.scrollHeight;
     };
