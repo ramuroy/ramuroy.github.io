@@ -3,6 +3,67 @@
 This project follows a lightweight, date-based changelog. Entries describe changes
 that affect the source, generated site, development workflow, or deployment safety.
 
+## Released 2026-07-18 — Tier 3: platform craft and the terminal
+
+Branch: `codex/site-hardening-20260713`. Implemented from committed build specs
+(`docs/design-specs/`, produced by a design workflow: three competing terminal
+concepts merged by a judge; specialist specs for the rest), then passed through
+a four-lens adversarial review (correctness, accessibility, constraints, motion)
+whose 12 confirmed findings were all fixed before this release. Browser suite
+grew 25 → 59 checks; all green against the production build.
+
+### Added
+
+- **Footer terminal (T3.5):** the `rr@embedded:~$` colophon is now a working
+  serial console — backtick or tap to open; `help`, `whoami`, `ls projects`,
+  `cat resume.txt` (with the PDF link), `dmesg` (replays the real boot ring
+  buffer), `uname -a`, `i2cdetect` (0x38/0x48 — FIG. 02 bench parts, labeled
+  as such), `open <section>`, `clear`, `reboot` (replays the boot intro), and
+  the canonical `sudo` line. Non-modal drawer, phosphor voice, all output via
+  textContent (D-008), commands derived from `site.ts` (D-009), absent without
+  JS (static colophon renders instead), one-line DevTools signature.
+- **Hero power-on choreography (T3.6):** pure-CSS board-bring-up entrance
+  (LED → name → IC topmark → lead with underline draws → CTAs → spec card,
+  900 ms). On first visits the boot inline script parks it pre-paint
+  (`boot-hold`) and releases it as the wipe reveals the page. Plays fully
+  without JS; instant under reduced motion (base styles are the final state).
+- **CSS scroll-driven animations (T3.4):** reveals, rule/trace draws, gauge
+  fills, the signal rail, and the circuit parallax ride `view()`/`scroll()`
+  timelines in supporting engines — entrances now work with JavaScript
+  disabled (D-006 upgraded). JS feature-detects the same query and stops
+  observing those elements; Firefox stable keeps the JS path unchanged.
+  Intentional behavior change: entrances are scrubbed and reversible.
+- **Animated disclosure (T3.8):** "Engineering detail" glides open (520 ms)
+  with a cascaded item stagger and retracts briskly (240 ms) via
+  `interpolate-size`/`::details-content`; native toggle, works without JS,
+  instant where unsupported and under reduced motion.
+- **Type & texture (T3.9/T3.10):** tabular figures on digit-bearing surfaces;
+  outline-stroke section numerals (solid-fill fallback, forced-colors and
+  print reverts); 1 px machined edge highlight on card surfaces; static
+  film-grain dither over the ambient glows. New build guard
+  `scripts/check-fonts.mjs` (in the verify gate) asserts the shipped font
+  subsets keep the features the CSS relies on — notably documenting that the
+  mono subset ships **no** `zero` feature (its default zero is already
+  dotted), which is why no `font-feature-settings: "zero"` is declared.
+
+### Fixed (adversarial review, 12 findings, 0 refuted)
+
+- Terminal Ctrl+C no longer destroys a selected command: Chromium hides
+  text-control selections from `document.getSelection()`, so the guard now
+  reads the input's own selection state (deliberate deviation from the spec
+  snippet). Ctrl+L/Ctrl+C survive Caps Lock.
+- The boot wipe plays its full 320 ms: the dismissal listener previously
+  caught `animationend` events bubbling from the boot lines and popped the
+  overlay in one frame (also releasing the hero hold too early).
+- Footer trace-divider labels settle fully at max scroll (cover ranges ended
+  beyond the last divider's reachable progress).
+- Terminal a11y: i2c grid is `role="img"` with a summary label instead of an
+  aria-hidden Tab stop; the open drawer reserves its height (WCAG 2.4.11
+  Focus Not Obscured); dim-voice contrast raised to AA via a new
+  `--phosphor-mid` token; the MOTD defers two frames so screen readers
+  announce it; focus restore treats `<body>` as no-opener (Safari/Firefox
+  click semantics).
+
 ## Released 2026-07-17 — continuation docs and browser smoke suite
 
 - `scripts/browser-smoke.mjs`: the 25-check Playwright suite used for the
