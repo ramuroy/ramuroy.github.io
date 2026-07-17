@@ -32,13 +32,13 @@ See CHANGELOG and the 2026-07-17 checkpoint.
 | # | Item | Effort | Status |
 |---|---|---|---|
 | T1.1 | Measured outcomes as datasheet tables on every flagship (`metrics[]` per project) | M | blocked on I1 |
-| T1.2 | Restructure for the 30-second screen | M | **done** (pending review) |
-| T1.3 | Scope-honest verbs + D-016 rule | S | **done** (pending review) |
+| T1.2 | Restructure for the 30-second screen | M | **SHIPPED 2026-07-17** |
+| T1.3 | Scope-honest verbs + D-016 rule | S | **SHIPPED 2026-07-17** |
 | T1.4 | Contact conversion: EMAIL ME + CV in sticky nav, prefilled mailto subject, logistics rows in contact | S | partial (needs I2) |
 | T1.5 | Credibility sweep: hide ★ counts <10, rename "Object Detection over SPI"→IR presence detection, NPTEL verify links, retire score gauges | S | partial (needs I3) |
 | T1.6 | Proof stats under hero (production system · months live · stack layers · 0 cloud deps) replacing volume counts | S | blocked on I1 |
-| T1.7 | SERP trims (title 57, description 153) | S | **done** (pending review) |
-| T1.8 | Regenerate og.png (template: scripts/og-card.html) | S | **done** (pending review) |
+| T1.7 | SERP trims (title 57, description 153) | S | **SHIPPED 2026-07-17** |
+| T1.8 | Regenerate og.png (template: scripts/og-card.html) | S | **SHIPPED 2026-07-17** |
 
 ## Tier 2 — verifiable evidence and sharpened identity
 
@@ -48,11 +48,11 @@ See CHANGELOG and the 2026-07-17 checkpoint.
 | T2.2 | Visual evidence: bench photos, KiCad renders, voice-pipeline SVG block diagram with latency annotations | L | blocked on I4 |
 | T2.3 | Protocol-decode trace dividers (correct UART/I²C/SPI frames computed at build time; replaces the stretching generic divider) | M | ready |
 | T2.4 | Three-voice palette: copper (static PCB), cyan (live signal), phosphor (terminal) — token surgery restoring accent hierarchy | M | ready |
-| T2.5 | Partition-map exhibits | M | **done** (pending review) |
-| T2.6 | Boot log reads like real bring-up | S | **done** (pending review) |
-| T2.7 | Motion discipline (shimmer one-shot; no hover replay — deliberate) | S | **done** (pending review) |
-| T2.8 | Nav polish | S | **done** (pending review) |
-| T2.9 | IC topmark (absorbed ticker + hero titleblock) | S | **done** (pending review) |
+| T2.5 | Partition-map exhibits | M | **SHIPPED 2026-07-17** |
+| T2.6 | Boot log reads like real bring-up | S | **SHIPPED 2026-07-17** |
+| T2.7 | Motion discipline (shimmer one-shot; no hover replay — deliberate) | S | **SHIPPED 2026-07-17** |
+| T2.8 | Nav polish | S | **SHIPPED 2026-07-17** |
+| T2.9 | IC topmark (absorbed ticker + hero titleblock) | S | **SHIPPED 2026-07-17** |
 
 ## Tier 3 — stretch: interactive artifacts and platform craft
 
@@ -61,13 +61,13 @@ See CHANGELOG and the 2026-07-17 checkpoint.
 | T3.1 | PCB layer viewer from real KiCad gerbers (CSS-only checkbox toggles) | L | ready (uses public repo) |
 | T3.2 | Oscilloscope hero scene (ticker strings as UART frames, phosphor persistence, measurement cursors; static SVG fallback) | L | ready |
 | T3.3 | Print-as-datasheet upgrade (running header, square corners — builds on the fixed print base) | M | ready |
-| T3.4 | CSS scroll-driven migration | M | **done** (pending review) |
-| T3.5 | Footer terminal + console signature | M | **done** (pending review) |
-| T3.6 | Hero power-on choreography (fill-both animations + boot-hold) | M | **done** (pending review) |
+| T3.4 | CSS scroll-driven migration | M | **SHIPPED 2026-07-18** |
+| T3.5 | Footer terminal + console signature | M | **SHIPPED 2026-07-18** |
+| T3.6 | Hero power-on choreography (fill-both animations + boot-hold) | M | **SHIPPED 2026-07-18** |
 | T3.7 | Experience timeline as logic-analyzer waveforms (active role "still high") | M | ready |
-| T3.8 | Animated `<details>` disclosure | S | **done** (pending review) |
-| T3.9 | Mono type craft (tnum + outlined numerals + font-feature build guard; `zero` verified stripped from the mono subset — default zero already dotted) | S | **done** (pending review) |
-| T3.10 | Card edge highlight + film grain | S | **done** (pending review) |
+| T3.8 | Animated `<details>` disclosure | S | **SHIPPED 2026-07-18** |
+| T3.9 | Mono type craft (tnum + outlined numerals + font-feature build guard; `zero` verified stripped from the mono subset — default zero already dotted) | S | **SHIPPED 2026-07-18** |
+| T3.10 | Card edge highlight + film grain | S | **SHIPPED 2026-07-18** |
 
 Judge-rejected ideas (do NOT resurrect without new reasoning — reasons in the
 audit §10 and JSON): CAD-sheet grid frame, linear() spring easings, schematic
@@ -89,6 +89,7 @@ per-character typing/morph.
 - `content-visibility: auto` on below-fold sections; skills stagger `--i % 3`
   vs actual column count; button `:active` press timing; boot-skip and
   spec-row hover transitions; copy-button width shift on "copied ✓".
+  (Done since: details-open snap → T3.8; tabular-figure consolidation → T3.9.)
 - Favicon 16 px + Safari mask-icon; web app manifest; Person portrait (I6).
 - LICENSE file (owner's legal choice); prettier + format script (dependency
   decision); tsconfig `strictest` (may surface new errors); SHA-pinned actions
