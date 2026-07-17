@@ -80,6 +80,17 @@ body::after {
 }
 .accent { color: var(--accent-text); }
 
+/* Tabular figures on every digit-bearing utility surface (T3.9). On JetBrains
+   Mono this is a verified no-op (all digit advances are 600/1000 em) — it
+   exists to harden the FOUT window and future font swaps. The one materially
+   rendering change is .section-head__num: Space Grotesk digits are
+   proportional by default ('1' = 404, '0' = 638 units), so "01"…"06" numerals
+   currently vary in width; tnum registers them on a common column. */
+.eyebrow, .masthead, .hero__topmark, .pcard__fig, .gcard__date,
+.edu-row__period, .pmap__caption, .footer__copy, .section-head__num {
+  font-variant-numeric: tabular-nums;
+}
+
 /* Animated inline link underline */
 .link {
   color: var(--accent-text);
