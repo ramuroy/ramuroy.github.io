@@ -60,6 +60,9 @@
   /* ---- Shadow ---- */
   --shadow-md: 0 8px 30px -12px rgba(0, 0, 0, 0.55);
   --shadow-card-hover: 0 0 0 1px var(--glow-strong), 0 12px 40px -14px var(--glow);
+  /* Machined top edge on card surfaces (T3.10): 6% of --text over --surface
+     reads as a catch-light, not a style. */
+  --edge-highlight: inset 0 1px 0 0 color-mix(in srgb, var(--text) 6%, transparent);
   --glow-ring: 0 0 0 1px var(--glow), 0 0 24px -4px var(--glow);
   --glow-text: 0 0 18px var(--glow-soft);
 
