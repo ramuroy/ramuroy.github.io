@@ -738,16 +738,45 @@ body.cursor-on .cursor-glow { opacity: 1; }
   }
   @keyframes gauge-fill { from { width: 0; } to { width: var(--w); } }
 
+  /* ---- Signal rail: page-progress mapping, linear by definition ---- */
+  .signal-rail__fill {
+    animation-name: rail-fill;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: scroll(root block);
+  }
+  .signal-rail__node {
+    animation-name: rail-node;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: scroll(root block);
+  }
+  @keyframes rail-fill { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  @keyframes rail-node { from { transform: translateY(0); } to { transform: translateY(100vh); } }
+
+  /* ---- Circuit background parallax (same -60px mapping as the JS path) ---- */
+  .circuit {
+    animation-name: circuit-drift;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: scroll(root block);
+  }
+  @keyframes circuit-drift { from { transform: translateY(0); } to { transform: translateY(-60px); } }
+
   /* ---- Reduced motion: the global RM rule zeroes durations, but
          progress-based timelines IGNORE duration — these need
          animation:none explicitly (the shorthand also resets
          timeline/range, killing them completely). Static styles are the
-         final state by the fill-mode contract above. ---- */
+         final state by the fill-mode contract above.
+         DELIBERATE KEEP: the signal rail stays animated — it is a
+         scroll-position indicator (feedback, like a scrollbar thumb),
+         matching the JS path, which also updates it under RM. ---- */
   @media (prefers-reduced-motion: reduce) {
     .reveal, .fade,
     .section-head .rule,
     .trace-div path, .trace-div circle, .trace-div text,
-    .gauge__fill {
+    .gauge__fill,
+    .circuit {
       animation: none !important;
     }
   }

@@ -224,7 +224,10 @@ const websiteLdJson = escapeLd(websiteLd);
       const updateScrollProgress = () => {
         const max = document.documentElement.scrollHeight - window.innerHeight;
         const p = max > 0 ? window.scrollY / max : 0;
-        document.documentElement.style.setProperty("--scrollp", String(p));
+        // Scroll-driven engines own the rail/parallax transforms (T3.4);
+        // this write is the fallback path only. The handler stays alive in
+        // both paths for the bottom-of-page scroll-spy force below.
+        if (!sda) document.documentElement.style.setProperty("--scrollp", String(p));
         // At the very bottom, force the last section active (the spy band can
         // sit above a short final section + footer).
         if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2) {
