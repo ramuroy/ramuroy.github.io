@@ -303,3 +303,27 @@ repos, checkable stats). One inflated verb puts all of it in doubt.
 **Consequences:** Content edits in `src/data/site.ts` should be checked
 against `public/Ramu_Roy_Resume.pdf` before merging. Applied 2026-07-17 to
 the About paragraph, the Elipse experience entry, and the eOS flagship card.
+
+## D-017 — Feature work follows committed build specs
+
+**Status:** Accepted (2026-07-18)
+
+**Context:** Tier 3 ("the trio + terminal") was built from four build specs
+produced by a design pass (competing concepts judged for the terminal;
+specialist specs for motion/platform work) and committed to
+`docs/design-specs/` before implementation began.
+
+**Decision:** Substantive feature work on this site starts with a build spec
+committed under `docs/design-specs/`; the implementation must match it, and
+any deviation is declared in the commit message. Reviews treat undeclared
+deviations as findings.
+
+**Why:** The specs caught traps ad-hoc implementation would have shipped
+(the stripped `zero` font feature; the boot-pause mechanism; the Chromium
+Ctrl+C selection blindspot was caught precisely because review could diff
+implementation against declared intent). The spec is also where design
+rationale survives for future sessions.
+
+**Consequences:** Small fixes and content edits are exempt; judgement applies.
+Specs are historical documents once shipped — corrections land in the code
+and the deviation note, not by rewriting the spec.
