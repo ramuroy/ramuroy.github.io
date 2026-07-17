@@ -291,10 +291,7 @@ main:focus-visible { box-shadow: none; outline: none; }
 .hero__lead { font-size: var(--fs-lead); line-height: var(--lh-lead); color: var(--text-secondary); max-width: 46ch; margin-bottom: var(--space-6); }
 .hero__lead .arrow { color: var(--accent); font-family: var(--font-mono); padding-inline: 0.15em; }
 .hero__lead em { font-style: normal; font-weight: 600; color: var(--text); position: relative; }
-.hero__lead em::after { content: ""; position: absolute; left: 0; bottom: -2px; height: 1px; width: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform var(--t-fast) var(--ease-std); }
-.js .hero__lead em { --d: 0ms; }
-.hero__lead em:hover::after { transform: scaleX(1); }
-.hero.lead-drawn .hero__lead em::after { animation: draw-underline 0.5s var(--ease-out) forwards; animation-delay: var(--d); }
+.hero__lead em::after { content: ""; position: absolute; left: 0; bottom: -2px; height: 1px; width: 100%; background: var(--accent); transform: scaleX(1); transform-origin: left; animation: draw-underline var(--t) var(--ease-out) var(--d, 480ms) both; }
 @keyframes draw-underline { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .hero__ctas { display: flex; flex-wrap: wrap; gap: var(--space-3); }
 /* IC topmark under the name — silkscreen voice (T2.9) */
@@ -304,6 +301,18 @@ main:focus-visible { box-shadow: none; outline: none; }
 .hero__scroll { position: absolute; left: 50%; bottom: var(--space-5); transform: translateX(-50%); font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); letter-spacing: 0.2em; text-transform: uppercase; }
 .hero__scroll::before { content: "▼"; display: block; text-align: center; margin-bottom: 0.3em; animation: nudge 2s ease-in-out infinite; }
 @keyframes nudge { 0%, 100% { transform: translateY(0); opacity: 0.6; } 50% { transform: translateY(3px); opacity: 1; } }
+
+/* ---- Power-on choreography (T3.6) — pure CSS, board-bring-up order ----
+   Hidden state lives ONLY in the animation's backwards fill: base styles are
+   the final state, so any context that strips animations (reduced motion,
+   print) renders the hero complete. --po is the bring-up beat (x 80ms),
+   authored in the markup. html.boot-hold — added pre-paint by the boot
+   inline script on first visits, removed by its finish() — parks every
+   entrance so the sequence plays only once the wipe has revealed the page. */
+.hero .po { animation: fade-in var(--t) var(--ease-out) calc(var(--po, 0) * 80ms) both; }
+.hero h1.po, .hero__lead.po { animation-name: rise-in; animation-duration: var(--t-slow); }
+.hero__ctas.po, .hero__spec.po { animation-name: rise-in; }
+html.boot-hold .hero .po, html.boot-hold .hero__lead em::after { animation-play-state: paused; }
 
 @media (max-width: 900px) {
   .hero__grid { grid-template-columns: 1fr; gap: var(--space-6); }
@@ -620,6 +629,9 @@ body.cursor-on .cursor-glow { opacity: 1; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; transition-delay: 0s !important; }
   .js.reveal-ready .reveal { opacity: 1 !important; transform: none !important; }
   .js.reveal-ready .fade { opacity: 1 !important; }
+  /* Power-on: no animation to pause means boot-hold + RM can never deadlock
+     the hero at opacity 0 — base styles are the final state (T3.6). */
+  .hero .po, .hero__lead em::after { animation: none !important; }
   .section-head .rule { transform: scaleX(1) !important; }
   .gauge__fill { transition: none; }
   .caret { animation: none; }

@@ -170,13 +170,15 @@ const websiteLdJson = escapeLd(websiteLd);
         });
       }
 
-      // ---- Hero underline draw on load ----
-      const hero = document.querySelector(".hero");
-      if (hero) {
-        const ems = hero.querySelectorAll(".hero__lead em");
-        ems.forEach((em, i) => (em as HTMLElement).style.setProperty("--d", `${600 + i * 160}ms`));
-        window.requestAnimationFrame(() => hero.classList.add("lead-drawn"));
-      }
+      // ---- Hero power-on hold: belt for the boot inline script ----
+      // The hold is added/removed by bootScript; these guards cover a boot
+      // that never activated (exotic failure) and bfcache restores where the
+      // overlay was already gone when the page was frozen.
+      const releaseHold = () => document.documentElement.classList.remove("boot-hold");
+      if (!document.querySelector(".boot.is-active")) releaseHold();
+      window.addEventListener("pageshow", (e) => {
+        if (e.persisted && !document.querySelector(".boot.is-active")) releaseHold();
+      });
 
       // ---- Nav scroll-spy ----
       const navLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>(".nav__link"));

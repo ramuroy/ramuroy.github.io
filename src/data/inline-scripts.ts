@@ -24,6 +24,9 @@ export const bootScript = `(() => {
   try { seen = sessionStorage.getItem("rr_boot") === "1"; } catch { /* storage may be blocked */ }
   if (reduceMotion || seen) { boot.remove(); return; }
   try { sessionStorage.setItem("rr_boot", "1"); } catch { /* the intro may simply repeat later */ }
+  // Park the hero power-on choreography (T3.6) until the wipe reveals the
+  // page. Added AFTER the early returns: returning/RM visitors are never held.
+  document.documentElement.classList.add("boot-hold");
   // Query at call time: this script executes during parsing, before nav/main/
   // footer exist, so a snapshot here would always be empty.
   const setInert = (on) => {
@@ -36,6 +39,7 @@ export const bootScript = `(() => {
     if (!document.body.contains(boot)) return;
     const hadFocus = boot.contains(document.activeElement);
     boot.remove();
+    document.documentElement.classList.remove("boot-hold");
     setInert(false);
     document.body.style.overflow = "";
     if (hadFocus) document.getElementById("main")?.focus({ preventScroll: true });
