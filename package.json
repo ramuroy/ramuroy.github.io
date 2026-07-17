@@ -8,7 +8,7 @@
     "node": ">=22.12.0",
     "npm": ">=10.0.0"
   },
-  "description": "Portfolio of Ramu Roy — Embedded Systems Engineer",
+  "description": "Portfolio of Ramu Roy \u2014 Embedded Systems Engineer",
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
@@ -16,7 +16,8 @@
     "preview": "astro preview",
     "check": "astro check",
     "check:build": "node scripts/check-build.mjs",
-    "verify": "npm run check && npm run build && npm run check:build"
+    "verify": "npm run check && npm run check:fonts && npm run build && npm run check:build",
+    "check:fonts": "node scripts/check-fonts.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
@@ -27,6 +28,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
+    "fontkitten": "^1.0.3",
     "typescript": "^5.9.3"
   }
 }
