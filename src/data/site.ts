@@ -49,13 +49,16 @@ export const nav = [
   { label: "Contact", href: "#contact" },
 ];
 
+/* Shared terminal prompt (footer colophon, boot log line 0, T3.5 terminal). */
+export const termPrompt = "rr@embedded:~$";
+
 /* Boot / POST intro lines (first visit only). dmesg-style bring-up (T2.6):
    every line is grounded in the published stack (ESP32-S3 = dual-core Xtensa
    LX7; RAUC A/B slots; KWS on tract; anti-collision live at Tata Steel
    BlueScope). Lines land in `group` beats within the 1.3s dismiss budget. */
 export type BootLine = { ts: string; text: string; ok?: boolean; group: number };
 export const bootLines: BootLine[] = [
-  { ts: "", text: "rr@embedded:~$ boot --portfolio", group: 0 },
+  { ts: "", text: `${termPrompt} boot --portfolio`, group: 0 },
   { ts: "0.012", text: "cpu: dual-core xtensa lx7 online", ok: true, group: 0 },
   { ts: "0.184", text: "mounting profile rev.2026", ok: true, group: 1 },
   { ts: "0.310", text: "rauc: booted slot A, marked good", ok: true, group: 1 },
