@@ -358,6 +358,31 @@ html.boot-hold .hero .po, html.boot-hold .hero__lead em::after { animation-play-
 .pcard__details ul { margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
 .pcard__details li { position: relative; padding-left: 1.3em; color: var(--text-secondary); font-size: var(--fs-small); line-height: var(--lh-snug); }
 .pcard__details li::before { content: "›"; position: absolute; left: 0; color: var(--accent); }
+/* Animated disclosure (T3.8) — engines with interpolate-size. Everything is
+   state-driven CSS on the native toggle: works without JS, degrades to
+   today's instant toggle where unsupported. Open 520ms decelerating; close
+   240ms standard — dismissal is brisk, one gesture, no reverse cascade. */
+@supports (interpolate-size: allow-keywords) {
+  .pcard__details { interpolate-size: allow-keywords; }
+  .pcard__details::details-content {
+    block-size: 0;
+    overflow-y: clip;
+    /* Base = CLOSE timing: transitions read the destination state's list. */
+    transition:
+      block-size var(--t) var(--ease-std),
+      content-visibility var(--t) var(--ease-std) allow-discrete;
+  }
+  .pcard__details[open]::details-content {
+    block-size: auto;
+    transition:
+      block-size var(--t-slow) var(--ease-out),
+      content-visibility var(--t-slow) var(--ease-out) allow-discrete;
+  }
+}
+/* Revealed items cascade in — unguarded: in engines without interpolate-size
+   the panel opens instantly and the cascade alone still gives the beat. */
+@keyframes detail-li-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.pcard__details[open] li { animation: detail-li-in var(--t) var(--ease-out) calc(80ms + var(--i, 0) * 50ms) both; }
 .pcard__foot { margin-top: auto; padding-top: var(--space-3); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
 .pcard__ref { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--text-secondary); display: inline-flex; align-items: center; gap: 0.4em; }
 .pcard__ref .arrow { color: var(--accent); transition: transform var(--t-fast); display: inline-block; }
@@ -614,7 +639,7 @@ body.cursor-on .cursor-glow { opacity: 1; }
   .gauge__fill { background: #111 !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   /* Engineering detail must not vanish inside closed disclosures on paper.
      (Belt: modern engines; suspenders: the beforeprint handler opens them.) */
-  .pcard__details::details-content { content-visibility: visible !important; display: block !important; }
+  .pcard__details::details-content { content-visibility: visible !important; display: block !important; block-size: auto !important; transition: none !important; }
   .pcard__details > ul { display: block !important; }
   .pcard__details summary::before { content: none; }
   /* Reference links are dead ends on paper without their URLs */
@@ -632,6 +657,8 @@ body.cursor-on .cursor-glow { opacity: 1; }
   /* Power-on: no animation to pause means boot-hold + RM can never deadlock
      the hero at opacity 0 — base styles are the final state (T3.6). */
   .hero .po, .hero__lead em::after { animation: none !important; }
+  /* ::details-content is not matched by the universal *-rule above (T3.8) */
+  .pcard__details::details-content { transition-duration: 0.01ms !important; transition-delay: 0s !important; }
   .section-head .rule { transform: scaleX(1) !important; }
   .gauge__fill { transition: none; }
   .caret { animation: none; }
