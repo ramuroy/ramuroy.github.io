@@ -129,9 +129,17 @@ const websiteLdJson = escapeLd(websiteLd);
         if (typeof mq.addEventListener === "function") mq.addEventListener("change", fn);
       };
 
+      // CSS scroll-driven animations (T3.4): when the engine drives entrances
+      // and the rail itself, this module must not double-drive them. The query
+      // string is byte-identical to the @supports guard in global.css — one
+      // detection, no split-brain. scroll() and view() shipped together.
+      const sda = typeof CSS !== "undefined" && CSS.supports("animation-timeline: view()");
+
       // ---- Scroll reveal ----
+      // In scroll-driven engines the observer exists solely to fire the
+      // section-title shimmer one-shot; view() timelines own everything else.
       const revealEls = document.querySelectorAll(
-        ".reveal, .fade, .section-head, .trace-div, .cert"
+        sda ? ".section-head" : ".reveal, .fade, .section-head, .trace-div, .cert"
       );
       const revealAll = () => revealEls.forEach((el) => el.classList.add("in-view", "skip-entrance"));
       if (reduceMotion || !("IntersectionObserver" in window)) {

@@ -642,3 +642,113 @@ body.cursor-on .cursor-glow { opacity: 1; }
   .cursor-glow, .card-glow { display: none !important; }
     .section-head__title { animation: none; -webkit-text-fill-color: var(--text); color: var(--text); }
 }
+
+/* =====================================================================
+   CSS SCROLL-DRIVEN ANIMATIONS (T3.4)
+   Entrances move off JS onto view() timelines — they run even with JS
+   disabled, an upgrade to the D-006 contract.
+   Contract: hidden states live ONLY in `from` keyframes (fill-mode both).
+   Inactive timeline (unscrollable page) or animation:none (reduced motion,
+   print) therefore always yields the final, fully-visible state.
+   The Layout module feature-detects the SAME query string and skips
+   observing these elements, so nothing is ever double-driven.
+   NOTE: longhands only — the `animation` shorthand resets
+   animation-timeline/animation-range to their initial values.
+   ===================================================================== */
+@supports (animation-timeline: view()) {
+
+  /* ---- Neutralize the JS-path hidden states (class system goes inert) ---- */
+  .js.reveal-ready :is(.reveal, .fade) { opacity: 1; }
+  .js.reveal-ready :is(.reveal, .fade).in-view { animation: none; } /* defense: JS no longer adds .in-view here */
+  .js.reveal-ready .section-head .rule { transform: scaleX(1); }
+  .section-head .rule { transition: none; }
+  .js.reveal-ready .trace-div path { stroke-dashoffset: 0; }
+  .js.reveal-ready .trace-div circle { opacity: 1; }
+  .js.reveal-ready .trace-div text { opacity: 1; transition: none; }
+  .trace-div.in-view path, .trace-div.in-view circle { animation: none; } /* defense, same reason */
+  .js.reveal-ready .gauge__fill { width: var(--w); }
+  .gauge__fill { transition: none; }
+  .cert.in-view .gauge__fill { width: var(--w); }
+
+  /* ---- Entrances: reveal / fade ----
+     Range ends at entry 60% so text is never half-transparent at rest;
+     --i staggers the start spatially. Invariant: --i <= 6 (start 48% <
+     end 60%); current max in markup is 3. */
+  .reveal {
+    animation-name: rise-in;
+    animation-timing-function: var(--ease-out);
+    animation-fill-mode: both;
+    animation-timeline: view();
+    animation-range: entry calc(var(--i, 0) * 8%) entry 60%;
+  }
+  .fade {
+    animation-name: fade-in;
+    animation-timing-function: var(--ease-out);
+    animation-fill-mode: both;
+    animation-timeline: view();
+    animation-range: entry calc(var(--i, 0) * 8%) entry 60%;
+  }
+
+  /* ---- Section-head rule draw (1px tall — its own view() range would be
+         degenerate; drive it from the head's named timeline) ---- */
+  .section-head { view-timeline: --sechead block; }
+  .section-head .rule {
+    animation-name: rule-draw;
+    animation-timing-function: var(--ease-out);
+    animation-fill-mode: both;
+    animation-timeline: --sechead;
+    animation-range: entry 0% entry 60%;
+  }
+  @keyframes rule-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+  /* ---- Trace divider (56px tall — cover ranges on the SVG root's named
+         timeline) ---- */
+  .trace-div { view-timeline: --trace block; }
+  .trace-div path {
+    animation-name: trace-draw-view;
+    animation-timing-function: var(--ease-out);
+    animation-fill-mode: both;
+    animation-timeline: --trace;
+    animation-range: cover 0% cover 30%;
+  }
+  .trace-div circle {
+    animation-name: via-in;
+    animation-timing-function: var(--ease-out);
+    animation-fill-mode: both;
+    animation-timeline: --trace;
+    animation-range: cover 22% cover 34%;
+  }
+  .trace-div text {
+    animation-name: fade-in;
+    animation-timing-function: var(--ease-out);
+    animation-fill-mode: both;
+    animation-timeline: --trace;
+    animation-range: cover 26% cover 38%;
+  }
+  @keyframes trace-draw-view { from { stroke-dashoffset: var(--len, 600); } to { stroke-dashoffset: 0; } }
+
+  /* ---- Cert gauge fill (8px tall — drive from the card's timeline) ---- */
+  .cert { view-timeline: --cert block; }
+  .gauge__fill {
+    animation-name: gauge-fill;
+    animation-timing-function: var(--ease-out);
+    animation-fill-mode: both;
+    animation-timeline: --cert;
+    animation-range: entry 0% entry 60%;
+  }
+  @keyframes gauge-fill { from { width: 0; } to { width: var(--w); } }
+
+  /* ---- Reduced motion: the global RM rule zeroes durations, but
+         progress-based timelines IGNORE duration — these need
+         animation:none explicitly (the shorthand also resets
+         timeline/range, killing them completely). Static styles are the
+         final state by the fill-mode contract above. ---- */
+  @media (prefers-reduced-motion: reduce) {
+    .reveal, .fade,
+    .section-head .rule,
+    .trace-div path, .trace-div circle, .trace-div text,
+    .gauge__fill {
+      animation: none !important;
+    }
+  }
+}
