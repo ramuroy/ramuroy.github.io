@@ -1,0 +1,309 @@
+---
+// T3.5 — footer serial console. Ships closed: server-rendered `inert` +
+// visibility:hidden base state + an html:not(.js) display:none belt. Only
+// the bundled script below can open it, so without JS it is invisible,
+// unfocusable, and absent from the a11y tree (D-006). The script is
+// Astro-processed → bundled → CSP 'self'; no inline-script hash work.
+import { termPrompt } from "../data/site";
+---
+<section id="rr-term" class="term" aria-label="rr@embedded interactive terminal" inert>
+  <div class="term__inner">
+    <div class="term__head">
+      <span aria-hidden="true">rr@embedded — serial console</span>
+      <span class="term__baud" aria-hidden="true">115200 8N1</span>
+      <button class="term__close" type="button">[ exit ]<span class="sr-only"> — close terminal</span></button>
+    </div>
+    <div class="term__scroll" role="log" aria-label="Terminal output" tabindex="0"></div>
+    <form class="term__prompt">
+      <span class="term__ps1" aria-hidden="true">{termPrompt}</span>
+      <input
+        class="term__input"
+        type="text"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        enterkeyhint="send"
+        maxlength="120"
+        aria-label="Terminal command input. Type help and press Enter."
+      />
+    </form>
+  </div>
+</section>
+
+<script>
+  import {
+    PROMPT, sectionIds, COMMAND_NAMES, helpLines, whoamiLines, lsRootLines,
+    lsProjectsLines, resumeLines, resumeLink, dmesgLines, unameLine,
+    i2cLines, i2cNote, i2cSummary, motdLine, sudoLine, rmRebootNote,
+  } from "../data/terminal";
+
+  // ---- DevTools signature (once per load, one line, no ASCII art) ----
+  const phosphor =
+    getComputedStyle(document.documentElement).getPropertyValue("--phosphor").trim() || "#3AFB77";
+  console.info(
+    `%c${PROMPT}%c serial console attached — press \` or tap the footer prompt`,
+    `color:${phosphor};font-family:monospace`,
+    "font-family:monospace"
+  );
+
+  const term = document.getElementById("rr-term");
+  const trigger = document.querySelector<HTMLButtonElement>(".footer__term-open");
+  if (term && trigger) {
+    const scrollEl = term.querySelector<HTMLElement>(".term__scroll")!;
+    const input = term.querySelector<HTMLInputElement>(".term__input")!;
+    const form = term.querySelector<HTMLFormElement>(".term__prompt")!;
+    const closeBtn = term.querySelector<HTMLButtonElement>(".term__close")!;
+
+    const MAX_BLOCKS = 60;
+    const MAX_HISTORY = 32;
+    let opener: HTMLElement | null = null;
+    let motdShown = false;
+    let rebooting = false;
+    const history: string[] = [];
+    let hIndex = -1;
+    let draft = "";
+
+    // ---- output ----
+    // DOM APIs + textContent only — no innerHTML anywhere (D-008).
+    const print = (lines: string[], opts: { echo?: boolean; grid?: boolean; sr?: string } = {}) => {
+      const pre = document.createElement("pre");
+      pre.className =
+        "term__block" + (opts.echo ? " term__block--echo" : "") + (opts.grid ? " term__block--grid" : "");
+      pre.textContent = lines.join("\n");
+      if (opts.sr) {
+        // Visual grid is aria-hidden; the log announces the sr summary instead.
+        pre.setAttribute("aria-hidden", "true");
+        const sr = document.createElement("p");
+        sr.className = "sr-only";
+        sr.textContent = opts.sr;
+        scrollEl.append(pre, sr);
+      } else {
+        scrollEl.append(pre);
+      }
+      while (scrollEl.childElementCount > MAX_BLOCKS) scrollEl.firstElementChild!.remove();
+      scrollEl.scrollTop = scrollEl.scrollHeight;
+    };
+    const echo = (cmd: string) => print([`${PROMPT} ${cmd}`], { echo: true });
+    // The single link the terminal ever renders (resume PDF) — cyan voice.
+    const printLink = (text: string, href: string) => {
+      const p = document.createElement("p");
+      p.className = "term__block";
+      const a = document.createElement("a");
+      a.href = href;
+      a.textContent = text;
+      a.setAttribute("download", "");
+      p.append("→ ", a);
+      scrollEl.append(p);
+      scrollEl.scrollTop = scrollEl.scrollHeight;
+    };
+
+    // ---- virtual keyboard (touch): keep the prompt visible ----
+    let vvHandler: (() => void) | null = null;
+    const trackKeyboard = (on: boolean) => {
+      const vv = window.visualViewport;
+      if (!vv) return;
+      if (on && !vvHandler) {
+        vvHandler = () => {
+          const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+          term.style.setProperty("--kb", `${kb}px`);
+        };
+        vv.addEventListener("resize", vvHandler);
+        vvHandler();
+      } else if (!on && vvHandler) {
+        vv.removeEventListener("resize", vvHandler);
+        vvHandler = null;
+        term.style.removeProperty("--kb");
+      }
+    };
+
+    // ---- open / close (non-modal; interruptible CSS transition) ----
+    const isOpen = () => term.hasAttribute("data-open");
+    const open = () => {
+      if (isOpen()) { input.focus({ preventScroll: true }); return; }
+      opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      term.removeAttribute("inert");
+      term.setAttribute("data-open", "");
+      trigger.setAttribute("aria-expanded", "true");
+      if (!motdShown) {
+        motdShown = true;
+        print([motdLine]);
+      }
+      trackKeyboard(true);
+      input.focus({ preventScroll: true });
+    };
+    const close = (refocus = true) => {
+      if (!isOpen()) return;
+      const hadFocus = term.contains(document.activeElement);
+      term.removeAttribute("data-open");
+      term.setAttribute("inert", "");
+      trigger.setAttribute("aria-expanded", "false");
+      trackKeyboard(false);
+      // Restore focus only if it was ours to take, and never scroll the page.
+      if (refocus && hadFocus) {
+        const back = opener && opener.isConnected ? opener : trigger;
+        back.focus({ preventScroll: true });
+      }
+      opener = null;
+    };
+
+    // ---- commands ----
+    const run = (raw: string) => {
+      const line = raw.trim().replace(/\s+/g, " ");
+      echo(line); // empty Enter echoes a bare prompt line, like a real shell
+      if (!line) return;
+      if (history[history.length - 1] !== line) {
+        history.push(line);
+        if (history.length > MAX_HISTORY) history.shift();
+      }
+      hIndex = -1;
+      draft = "";
+      const [cmd0, ...args] = line.split(" ");
+      const cmd = cmd0.toLowerCase();
+      switch (cmd) {
+        case "help":
+          print(helpLines);
+          break;
+        case "whoami":
+          print(whoamiLines);
+          break;
+        case "ls": {
+          const target = (args[0] || "").replace(/\/$/, "");
+          if (!target) print(lsRootLines);
+          else if (target === "projects") print(lsProjectsLines);
+          else print([`ls: cannot access '${args[0].slice(0, 32)}': no such file or directory`]);
+          break;
+        }
+        case "cat": {
+          const f = args.join(" ");
+          if (f === "resume.txt") {
+            print(resumeLines);
+            printLink(resumeLink.text, resumeLink.href);
+          } else if (!f) print(["cat: missing operand — try 'cat resume.txt'"]);
+          else print([`cat: ${f.slice(0, 32)}: no such file`]);
+          break;
+        }
+        case "dmesg":
+          print(dmesgLines);
+          break;
+        case "uname":
+          print([unameLine]);
+          break;
+        case "i2cdetect":
+          print(i2cLines, { grid: true, sr: i2cSummary });
+          print([i2cNote]);
+          break;
+        case "open": {
+          const sec = (args[0] || "").toLowerCase();
+          if (sectionIds.includes(sec)) {
+            close(false); // native hash navigation owns focus/scroll next
+            const el = document.getElementById(sec);
+            if (window.location.hash === `#${sec}`) el?.scrollIntoView();
+            else window.location.hash = `#${sec}`;
+          } else {
+            print([`open: unknown section — try: ${sectionIds.join(" · ")}`]);
+          }
+          break;
+        }
+        case "clear":
+          scrollEl.replaceChildren();
+          break;
+        case "reboot":
+          if (rebooting) break;
+          rebooting = true;
+          try { sessionStorage.removeItem("rr_boot"); } catch { /* intro just won't replay */ }
+          print(["reboot: replaying boot sequence…"]);
+          if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) print([rmRebootNote]);
+          window.setTimeout(() => window.location.reload(), 350);
+          break;
+        case "exit":
+          close();
+          break;
+        case "echo":
+          print([args.join(" ")]);
+          break;
+        case "sudo":
+          print([sudoLine]);
+          break;
+        default:
+          print([`sh: ${cmd.slice(0, 32)}: command not found — try 'help'`]);
+      }
+    };
+
+    // ---- wiring ----
+    trigger.addEventListener("click", () => (isOpen() ? close() : open()));
+    closeBtn.addEventListener("click", () => close());
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const v = input.value;
+      input.value = "";
+      run(v);
+    });
+    term.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !e.isComposing) {
+        e.preventDefault();
+        // Layout's document-level Escape handler owns the mobile nav menu —
+        // an Escape inside the terminal must close only the terminal.
+        e.stopPropagation();
+        close();
+      }
+    });
+    input.addEventListener("keydown", (e) => {
+      if (e.isComposing) return;
+      if (e.key === "ArrowUp") {
+        if (!history.length) return;
+        e.preventDefault();
+        if (hIndex === -1) { draft = input.value; hIndex = history.length; }
+        if (hIndex > 0) hIndex--;
+        input.value = history[hIndex];
+        input.setSelectionRange(input.value.length, input.value.length);
+      } else if (e.key === "ArrowDown") {
+        if (hIndex === -1) return;
+        e.preventDefault();
+        hIndex++;
+        if (hIndex >= history.length) { hIndex = -1; input.value = draft; }
+        else input.value = history[hIndex];
+        input.setSelectionRange(input.value.length, input.value.length);
+      } else if (e.key === "Tab" && !e.shiftKey && !e.ctrlKey && !e.altKey) {
+        // Complete only on a unique prefix match; otherwise Tab keeps its
+        // default behavior (moves focus — reinforces "not a trap").
+        const v = input.value.trimStart().toLowerCase();
+        if (v && !v.includes(" ")) {
+          const m = COMMAND_NAMES.filter((c) => c.startsWith(v));
+          if (m.length === 1) { e.preventDefault(); input.value = m[0] + " "; }
+        }
+      } else if (e.ctrlKey && e.key === "l") {
+        // Best effort: some browsers reserve Ctrl+L; `clear` always works.
+        e.preventDefault();
+        scrollEl.replaceChildren();
+      } else if (e.ctrlKey && e.key === "c" && document.getSelection()?.isCollapsed) {
+        // Only when nothing is selected — never hijack copy.
+        e.preventDefault();
+        echo(`${input.value}^C`);
+        input.value = "";
+        hIndex = -1;
+      }
+    });
+    // Backtick toggle — never while typing in any field, never during boot.
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "`" || e.ctrlKey || e.metaKey || e.altKey || e.repeat || e.isComposing) return;
+      const a = document.activeElement;
+      if (
+        a instanceof HTMLElement &&
+        (a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.tagName === "SELECT" || a.isContentEditable)
+      ) return;
+      if (document.getElementById("boot-intro")) return;
+      e.preventDefault();
+      if (isOpen()) close();
+      else open();
+    });
+    // Click anywhere non-interactive in the panel → focus the prompt,
+    // unless the user is selecting output text.
+    term.addEventListener("click", (e) => {
+      if (!isOpen()) return;
+      const t = e.target;
+      if (t instanceof HTMLElement && t.closest("button, a, input")) return;
+      if (!document.getSelection()?.isCollapsed) return;
+      input.focus({ preventScroll: true });
+    });
+  }
+</script>

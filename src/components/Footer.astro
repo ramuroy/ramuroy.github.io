@@ -1,6 +1,7 @@
 ---
-import { profile } from "../data/site";
+import { profile, termPrompt } from "../data/site";
 import TraceDivider from "./TraceDivider.astro";
+import Terminal from "./Terminal.astro";
 ---
 <footer class="footer">
   <div class="container spine footer__inner">
@@ -10,9 +11,17 @@ import TraceDivider from "./TraceDivider.astro";
         {profile.available && <span class="led__dot"></span>} // {profile.availableText}
       </span>
     </div>
-    <p class="footer__colophon">
-      <span class="prompt">rr@embedded:~$</span> built with <span class="accent">astro</span> · no trackers <span class="caret" aria-hidden="true"></span>
+    {/* Static line for no-JS visitors; real button when JS is present (same
+        pattern as .copy-btn / nav fallback, audit B30/B11 — never render a
+        dead control). jsFlagScript flips the class pre-paint: no flash. */}
+    <p class="footer__colophon footer__colophon--static">
+      <span class="prompt">{termPrompt}</span> built with <span class="accent">astro</span> · no trackers <span class="caret" aria-hidden="true"></span>
     </p>
+    <button type="button" class="footer__colophon footer__term-open" aria-controls="rr-term" aria-expanded="false">
+      <span class="footer__term-line"><span class="prompt">{termPrompt}</span> built with <span class="accent">astro</span> · no trackers <span class="caret" aria-hidden="true"></span></span>
+      <span class="footer__term-hint" aria-hidden="true">[ open console — ` ]</span>
+      <span class="sr-only">Open interactive terminal</span>
+    </button>
     <div class="footer__row">
       <span class="footer__copy">© 2026 {profile.name} · {profile.location}</span>
       <div class="footer__links">
@@ -22,5 +31,6 @@ import TraceDivider from "./TraceDivider.astro";
         <a href="#main">back to top <span aria-hidden="true">↑</span></a>
       </div>
     </div>
+    <Terminal />
   </div>
 </footer>

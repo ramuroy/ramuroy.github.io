@@ -540,6 +540,57 @@ html:not(.js) .copy-btn { display: none; }
 .footer__links a:hover { color: var(--accent-text); }
 
 /* =====================================================================
+   FOOTER TERMINAL (T3.5) — the colophon prompt pays off.
+   No-JS: the static <p> renders; the button and panel never appear.
+   No animation-timeline is used here, so the global reduced-motion rule
+   (zeroed transition durations) fully covers open/close.
+   ===================================================================== */
+html:not(.js) .footer__term-open { display: none; }
+html.js .footer__colophon--static { display: none; }
+
+.footer__term-open { display: inline-flex; align-items: baseline; gap: var(--space-3); flex-wrap: wrap; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
+/* Dotted underline = the standing invitation (same idiom as .annot) */
+.footer__term-line { border-bottom: 1px dotted var(--phosphor-dim); padding-bottom: 0.15em; }
+.footer__term-open:hover .prompt,
+.footer__term-open:focus-visible .prompt { color: var(--phosphor); }
+.footer__term-hint { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--silkscreen); opacity: 0; transition: opacity var(--t-fast) var(--ease-std); }
+.footer__term-open:hover .footer__term-hint,
+.footer__term-open:focus-visible .footer__term-hint { opacity: 1; }
+@media (hover: none) { .footer__term-hint { opacity: 1; } }
+
+/* Panel: fixed bottom drawer. Closed = translated offscreen + visibility
+   hidden + [inert] (server-rendered): untabbable, out of the a11y tree,
+   unhittable, even mid-transition. z-index 150: above .nav (100), below
+   .skip-link (200) and .boot (300). --kb = virtual-keyboard offset. */
+html:not(.js) .term { display: none !important; } /* belt: JS-only feature is absent without JS */
+.term { position: fixed; inset-inline: 0; bottom: var(--kb, 0px); z-index: 150; height: min(48vh, 24rem); height: min(48dvh, 24rem); max-height: calc(100vh - var(--kb, 0px)); max-height: calc(100dvh - var(--kb, 0px)); background: var(--bg-deep); border-top: 1px solid var(--phosphor-dim); box-shadow: 0 -12px 40px -20px var(--phosphor-glow); transform: translateY(103%); visibility: hidden; transition: transform var(--t) var(--ease-out), visibility 0s var(--t); }
+.term[data-open] { transform: none; visibility: visible; transition: transform var(--t) var(--ease-out), visibility 0s 0s; }
+
+.term__inner { display: flex; flex-direction: column; height: 100%; max-width: var(--maxw-spine); margin-inline: auto; padding: var(--space-3) var(--gutter); }
+.term__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding-bottom: var(--space-2); border-bottom: 1px solid var(--border); font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.08em; color: var(--silkscreen); }
+.term__baud { margin-left: auto; }
+.term__close { background: none; border: 0; padding: 0.2em 0.4em; margin: -0.2em -0.4em; font: inherit; letter-spacing: inherit; color: var(--phosphor-dim); cursor: pointer; border-radius: var(--radius-xs); transition: color var(--t-fast) var(--ease-std); }
+.term__close:hover { color: var(--phosphor); }
+
+.term__scroll { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding-block: var(--space-3); font-family: var(--font-mono); font-size: var(--fs-small); line-height: 1.55; color: var(--phosphor); }
+/* Quieter ring for the scroll region than the global control ring */
+.term__scroll:focus-visible { outline: 2px solid transparent; box-shadow: inset 0 0 0 2px var(--accent-deep); border-radius: 0; }
+.term__block { margin: 0 0 var(--space-2); font: inherit; white-space: pre-wrap; overflow-wrap: anywhere; }
+.term__block--echo { color: var(--phosphor-dim); }
+.term__block--grid { white-space: pre; overflow-x: auto; overflow-wrap: normal; }
+/* The one link (resume pdf) speaks the interactive cyan voice */
+.term__block a { color: var(--accent-text); text-decoration: underline dotted; text-underline-offset: 2px; }
+.term__block a:hover, .term__block a:focus-visible { color: var(--accent-soft); }
+
+.term__prompt { display: flex; align-items: center; gap: 0.6em; padding-top: var(--space-2); border-top: 1px solid var(--border); }
+.term__ps1 { font-family: var(--font-mono); font-size: var(--fs-small); color: var(--phosphor-dim); transition: color var(--t-fast) var(--ease-std); }
+.term__prompt:focus-within .term__ps1 { color: var(--phosphor); }
+.term__input { flex: 1; min-width: 0; background: none; border: 0; font-family: var(--font-mono); font-size: var(--fs-small); color: var(--phosphor); caret-color: var(--phosphor); }
+/* Focus is shown by the native phosphor caret + PS1 brightening — exactly
+   like a real terminal. Transparent outline kept for forced colors (B16). */
+.term__input:focus-visible { outline: 2px solid transparent; box-shadow: none; }
+
+/* =====================================================================
    PCB TRACE DIVIDER
    ===================================================================== */
 .trace-div { display: block; width: 100%; max-width: 720px; height: 56px; margin-block: var(--space-7); margin-inline: auto; opacity: 0.75; }
@@ -615,6 +666,7 @@ body.cursor-on .cursor-glow { opacity: 1; }
   .section-head__title { background: none; -webkit-text-fill-color: currentColor; color: CanvasText; animation: none; }
   /* forced colors overrides color but not stroke color — avoid double-render */
   .section-head__num { -webkit-text-stroke: 0; color: CanvasText; }
+  .term__input:focus { outline: 1px solid CanvasText; }
 }
 
 /* =====================================================================
@@ -627,6 +679,9 @@ body.cursor-on .cursor-glow { opacity: 1; }
   .cert__link, .footer__links a { min-height: 44px; display: inline-flex; align-items: center; }
   .boot__skip { min-height: 44px; }
   .nav__link { min-height: 44px; display: flex; align-items: center; }
+  .footer__term-open { min-height: 44px; }
+  .term__close { min-height: 44px; display: inline-flex; align-items: center; }
+  .term__input { font-size: max(16px, var(--fs-small)); } /* no iOS focus zoom */
 }
 
 @media (max-width: 420px) {
@@ -653,7 +708,10 @@ body.cursor-on .cursor-glow { opacity: 1; }
     --silkscreen: #777;
   }
   *, *::before, *::after { animation: none !important; transition: none !important; box-shadow: none !important; text-shadow: none !important; }
-  .nav, .boot, .circuit, .cursor-glow, .signal-rail, .hero__canvas, .hero__scroll, .trace-div, .card-glow, .caret, .skip-link, .copy-btn { display: none !important; }
+  .nav, .boot, .circuit, .cursor-glow, .signal-rail, .hero__canvas, .hero__scroll, .trace-div, .card-glow, .caret, .skip-link, .copy-btn, .term, .footer__term-hint { display: none !important; }
+  /* Print parity: the static colophon prints, the interactive button doesn't */
+  .footer__term-open { display: none !important; }
+  html.js .footer__colophon--static { display: block !important; }
   body { color: var(--text); background: #fff; }
   body::before, body::after { display: none; }
   .section, .hero { min-height: auto; padding-block: 1.5rem; }
