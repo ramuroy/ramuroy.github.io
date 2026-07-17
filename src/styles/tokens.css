@@ -35,6 +35,7 @@
   --copper-dim: #6E4A26;
   --pad-gold: #D4A24E;
   --phosphor: #3AFB77;
+  --phosphor-mid: #27A65C; /* AA on --bg-deep (6.3:1) — readable dim voice */
   --phosphor-dim: #1E7A42;
   --phosphor-glow: rgba(58, 251, 119, 0.25);
   --silkscreen: #3A4956;
