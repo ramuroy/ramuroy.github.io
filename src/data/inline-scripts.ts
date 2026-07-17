@@ -49,7 +49,11 @@ export const bootScript = `(() => {
     if (dismissed) return;
     dismissed = true;
     window.clearTimeout(timer);
-    boot.addEventListener("animationend", finish, { once: true });
+    // Child animations (boot lines, caret) bubble their animationend to this
+    // node — only the wipe's own end may finish, or the wipe pops in a frame.
+    boot.addEventListener("animationend", (event) => {
+      if (event.target === boot && event.animationName === "boot-wipe") finish();
+    });
     boot.classList.add("is-wiping");
     window.setTimeout(finish, 700);
   };
