@@ -125,6 +125,15 @@ const browser = await chromium.launch({ headless: true });
   const heroVisible = await page.locator("h1").isVisible();
   const statText = await page.locator("[data-count]").first().textContent();
   check("no-JS: content + real stat values visible", heroVisible && statText !== "0", `stat=${statText}`);
+  // T3.5: terminal is a JS-only feature — absent without JS, static colophon shown
+  const termHidden = await page.evaluate(() => getComputedStyle(document.getElementById("rr-term")).display === "none");
+  const termBtnHidden = await page.evaluate(() => getComputedStyle(document.querySelector(".footer__term-open")).display === "none");
+  const staticColophon = await page.evaluate(() => getComputedStyle(document.querySelector(".footer__colophon--static")).display !== "none");
+  check("T3.5 no-JS: terminal + trigger absent, static colophon shown", termHidden && termBtnHidden && staticColophon);
+  // T3.6: hero choreography settles without JS
+  await page.waitForTimeout(1100);
+  const heroSettled = await page.evaluate(() => getComputedStyle(document.querySelector(".hero__spec")).opacity === "1");
+  check("T3.6 no-JS: hero power-on settles fully visible", heroSettled);
   await page.screenshot({ path: SHOTS + "/04-nojs-mobile.png" });
   await ctx.close();
 }
@@ -169,6 +178,133 @@ const browser = await chromium.launch({ headless: true });
   const title = await page.title();
   check("404: branded page", title.includes("404"), title);
   await page.screenshot({ path: SHOTS + "/06-404.png" });
+  await ctx.close();
+}
+
+// ---------- 8. Tier 3: choreography, scroll-driven, disclosure, terminal ----------
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await ctx.newPage();
+  const t3errors = [];
+  let sigCount = 0;
+  page.on("console", (m) => {
+    if (m.type() === "error") t3errors.push(m.text());
+    if (m.type() === "info" && m.text().includes("serial console attached")) sigCount++;
+  });
+  await page.goto(BASE + "/", { waitUntil: "domcontentloaded" });
+
+  // T3.6: boot holds the hero, release plays the sequence
+  const held = await page.evaluate(() => document.documentElement.classList.contains("boot-hold"));
+  check("T3.6: boot-hold parks the hero on first visit", held);
+  await page.waitForFunction(() => !document.getElementById("boot-intro"), null, { timeout: 4000 });
+  await page.waitForTimeout(1100);
+  const settled = await page.evaluate(() =>
+    [".hero__eyebrow", "h1.po", ".hero__topmark", ".hero__lead", ".hero__ctas", ".hero__spec"]
+      .every((sel) => getComputedStyle(document.querySelector(sel)).opacity === "1"));
+  check("T3.6: full bring-up settles after the wipe", settled);
+
+  // T3.4: view()/scroll() own the entrances and rail in this engine
+  const sdaChecks = await page.evaluate(() => {
+    const reveal = document.querySelector(".stat.reveal");
+    const rail = document.querySelector(".signal-rail__fill");
+    return {
+      supports: CSS.supports("animation-timeline: view()"),
+      timeline: getComputedStyle(reveal).animationTimeline,
+      noInView: !reveal.classList.contains("in-view"),
+      railAnim: getComputedStyle(rail).animationName,
+    };
+  });
+  check("T3.4: reveals ride view() with no .in-view double-drive",
+    sdaChecks.supports && sdaChecks.timeline.includes("view") && sdaChecks.noInView, JSON.stringify(sdaChecks));
+  check("T3.4: signal rail rides scroll(root)", sdaChecks.railAnim === "rail-fill", sdaChecks.railAnim);
+
+  // T3.8: disclosure glides and cascades
+  const det = page.locator(".pcard__details").first();
+  await det.scrollIntoViewIfNeeded();
+  await det.locator("summary").click();
+  await page.waitForTimeout(150);
+  const midH = await page.evaluate(() => document.querySelector(".pcard__details").getBoundingClientRect().height);
+  await page.waitForTimeout(800);
+  const endState = await page.evaluate(() => {
+    const d = document.querySelector(".pcard__details");
+    return { h: d.getBoundingClientRect().height, li: getComputedStyle(d.querySelector("li")).animationName };
+  });
+  check("T3.8: details glides open with li cascade", midH < endState.h && endState.li === "detail-li-in", `${midH.toFixed(0)}->${endState.h.toFixed(0)}`);
+
+  // T3.5: terminal end-to-end
+  const run = async (cmd) => {
+    await page.fill(".term__input", cmd);
+    await page.press(".term__input", "Enter");
+    await page.waitForTimeout(60);
+  };
+  const logText = () => page.evaluate(() => document.querySelector(".term__scroll").textContent);
+  await page.locator(".footer__term-open").scrollIntoViewIfNeeded();
+  await page.locator(".footer__term-open").click();
+  await page.waitForTimeout(320);
+  const opened = await page.evaluate(() => ({
+    open: document.getElementById("rr-term").hasAttribute("data-open"),
+    expanded: document.querySelector(".footer__term-open").getAttribute("aria-expanded") === "true",
+    inputFocused: document.activeElement?.classList.contains("term__input"),
+  }));
+  check("T3.5: trigger opens, aria-expanded, input focused", opened.open && opened.expanded && opened.inputFocused);
+  check("T3.5: MOTD printed", (await logText()).includes("115200 8N1"));
+  await run("help");
+  check("T3.5: help lists commands", (await logText()).includes("replay the boot intro"));
+  await run("whoami");
+  check("T3.5: whoami derives from site.ts", (await logText()).includes("Ramu Roy"));
+  await run("ls projects");
+  const ls = await logText();
+  check("T3.5: ls projects lists flagship slugs + grid count", ls.includes("eos/") && ls.includes("+ 15 more"));
+  await run("cat resume.txt");
+  const pdfLink = await page.evaluate(() => !!document.querySelector('.term__scroll a[href="/Ramu_Roy_Resume.pdf"][download]'));
+  check("T3.5: cat resume.txt prints resume + pdf link", pdfLink);
+  await run("dmesg");
+  check("T3.5: dmesg replays the boot ring buffer", (await logText()).includes("rauc: booted slot A"));
+  await run("i2cdetect");
+  const i2c = await page.evaluate(() => {
+    const grids = document.querySelectorAll(".term__block--grid");
+    const g = grids[grids.length - 1];
+    return g && g.getAttribute("aria-hidden") === "true" && g.textContent.includes("38") && g.nextElementSibling?.classList.contains("sr-only");
+  });
+  check("T3.5: i2cdetect grid aria-hidden with sr summary, 0x38 present", !!i2c);
+  await run("<img src=x onerror=alert(1)>");
+  const safe = await page.evaluate(() => !document.querySelector(".term__scroll img"));
+  check("T3.5: injected markup renders as text only", safe && (await logText()).includes("command not found"));
+  await page.press(".term__input", "ArrowUp");
+  check("T3.5: history recall", (await page.inputValue(".term__input")).length > 0);
+  await page.fill(".term__input", "who");
+  await page.press(".term__input", "Tab");
+  check("T3.5: unique-prefix tab completion", (await page.inputValue(".term__input")) === "whoami ");
+  // backtick typed IN the input stays literal (by design)
+  await page.fill(".term__input", "");
+  await page.keyboard.press("Backquote");
+  const literal = await page.inputValue(".term__input");
+  const stillOpen = await page.evaluate(() => document.getElementById("rr-term").hasAttribute("data-open"));
+  check("T3.5: backtick inside input types literally, stays open", literal === "\u0060" && stillOpen);
+  await page.fill(".term__input", "");
+  await page.press(".term__input", "Escape");
+  await page.waitForTimeout(300);
+  const closedState = await page.evaluate(() => ({
+    closed: !document.getElementById("rr-term").hasAttribute("data-open"),
+    inert: document.getElementById("rr-term").hasAttribute("inert"),
+  }));
+  check("T3.5: Escape closes and re-inerts", closedState.closed && closedState.inert);
+  await page.keyboard.press("Backquote");
+  await page.waitForTimeout(300);
+  check("T3.5: backtick from page focus opens", await page.evaluate(() => document.getElementById("rr-term").hasAttribute("data-open")));
+  await run("open projects");
+  await page.waitForTimeout(400);
+  check("T3.5: open <section> navigates and closes", await page.evaluate(() =>
+    window.location.hash === "#projects" && !document.getElementById("rr-term").hasAttribute("data-open")));
+  check("T3.5: exactly one console signature", sigCount === 1, String(sigCount));
+  check("T3.5/tier3: zero console errors", t3errors.length === 0, t3errors.slice(0, 2).join(" | "));
+  // reboot LAST — it reloads the page
+  await page.keyboard.press("Backquote");
+  await page.waitForTimeout(300);
+  await page.fill(".term__input", "reboot");
+  await Promise.all([page.waitForNavigation(), page.press(".term__input", "Enter")]);
+  await page.waitForTimeout(400);
+  check("T3.5: reboot replays the boot intro", await page.evaluate(() => !!document.querySelector(".boot.is-active")));
   await ctx.close();
 }
 
