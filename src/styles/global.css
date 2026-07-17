@@ -129,6 +129,14 @@ body::after {
   font-family: var(--font-display); font-weight: 700; font-size: var(--fs-numeral);
   color: var(--faint); opacity: 1; pointer-events: none; line-height: 1; letter-spacing: -0.04em;
 }
+/* Outline-figure numerals (T3.9): draughting-ghost stroke, transparent fill,
+   grid visible through the counters — blueprint language. --faint (the same
+   color the solid fill used) keeps them legible where border-bright would
+   vanish; 1px matches the grid's own line weight. Fallback engines keep the
+   solid --faint fill. */
+@supports (-webkit-text-stroke-width: 1px) {
+  .section-head__num { color: transparent; -webkit-text-stroke: 1px var(--faint); }
+}
 .section-head__inner { position: relative; z-index: 1; }
 .section-head .rule {
   display: block; height: 1px; width: clamp(48px, 8vw, 96px); background: var(--accent);
@@ -597,6 +605,8 @@ body.cursor-on .cursor-glow { opacity: 1; }
 /* Forced-colors (Windows High Contrast): gradient text would be invisible (audit B12) */
 @media (forced-colors: active) {
   .section-head__title { background: none; -webkit-text-fill-color: currentColor; color: CanvasText; animation: none; }
+  /* forced colors overrides color but not stroke color — avoid double-render */
+  .section-head__num { -webkit-text-stroke: 0; color: CanvasText; }
 }
 
 /* =====================================================================
@@ -644,6 +654,8 @@ body.cursor-on .cursor-glow { opacity: 1; }
   .js.reveal-ready :is(.reveal, .fade) { opacity: 1 !important; transform: none !important; }
   .js.reveal-ready .section-head .rule { transform: scaleX(1) !important; }
   .section-head__title { background: none; -webkit-text-fill-color: currentColor; color: var(--text); }
+  /* Hairline outlines drop out on grayscale printers — revert to solid fill */
+  .section-head__num { -webkit-text-stroke: 0; color: var(--faint); }
   /* Certification gauges: numeric value carries the data; give the fill a
      printable best-effort bar as well. */
   .js.reveal-ready .gauge__fill { width: var(--w) !important; }
