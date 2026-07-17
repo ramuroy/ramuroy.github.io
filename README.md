@@ -16,8 +16,9 @@ progressively enhanced client JavaScript.
 - [2026-07-16 full-site audit report and improvement roadmap](docs/site-audit-2026-07-16.md)
   (with [unabridged findings](docs/audit-findings-full-2026-07-16.md) and
   [raw data](docs/audit-data-2026-07-16.json))
-- [2026-07-16 audit checkpoint and continuation notes](docs/checkpoints/2026-07-16-full-audit.md)
-- [2026-07-13 hardening checkpoint and continuation notes](docs/checkpoints/2026-07-13-site-hardening.md)
+- [Remaining-work roadmap](docs/roadmap-remaining.md) and
+  [release checkpoints](docs/checkpoints/) (latest: 2026-07-18 Tier 3)
+- [Feature build specs](docs/design-specs/) (D-017)
 - [Change history](CHANGELOG.md)
 
 ## Requirements
@@ -38,16 +39,20 @@ npm run verify   # complete release gate
 ```
 
 For release-grade runtime verification there is also a real-browser smoke suite
-(`scripts/browser-smoke.mjs`, 25 checks — CSP, boot overlay, scroll-spy, no-JS
-navigation, print, reduced motion, 404). Playwright is installed on demand; see
-the script header for usage.
+(`scripts/browser-smoke.mjs`, 59 checks — CSP, boot overlay + power-on
+choreography, scroll-driven entrances, the footer terminal, scroll-spy, no-JS
+navigation, print, reduced motion, touch, 404). Playwright is installed on
+demand; see the script header for usage.
 
 `npm run verify` is the required release gate. It:
 
 1. checks every Astro and TypeScript source file;
-2. builds the compressed static site and sitemap; and
-3. validates the generated HTML, metadata, CSP, JSON-LD, anchors, local assets,
-   external-link safety attributes, sitemap content, and required public files.
+2. asserts the shipped font subsets retain the OpenType features the CSS
+   relies on (`scripts/check-fonts.mjs`);
+3. builds the compressed static site and sitemap; and
+4. validates the generated HTML, metadata, CSP (including a hash check on
+   every inline script), JSON-LD, anchors, local assets, external-link safety
+   attributes, sitemap content, and required public files.
 
 The generated `dist/` directory is build output and is not edited by hand.
 
@@ -63,7 +68,7 @@ The portfolio content has one primary source of truth: `src/data/site.ts`.
 | Hero copy, key specifications, ticker | `hero` |
 | About copy and at-a-glance data | `about` |
 | Flagship project cards | `flagship` |
-| Curated GitHub project grid | `gridProjects` |
+| Project grid (all entries, strongest first) | `gridProjects` |
 | Employment and education | `experience`, `education` |
 | Skills and protocols | `skillGroups`, `protocols` |
 | Certifications and spoken languages | `certifications`, `spokenLanguages` |

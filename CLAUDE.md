@@ -35,3 +35,6 @@
 - Inline `<script>`s must be authored in `src/data/inline-scripts.ts` and
   hash-registered in `Layout.astro` — the build fails otherwise (see
   `scripts/check-build.mjs`).
+- Substantive feature work starts from a build spec committed under
+  `docs/design-specs/`; implementation deviations are declared in commit
+  messages (D-017).
