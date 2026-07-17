@@ -126,7 +126,10 @@ import { termPrompt } from "../data/site";
       trigger.setAttribute("aria-expanded", "true");
       if (!motdShown) {
         motdShown = true;
-        print([motdLine]);
+        // Defer past the un-inert/unhide task so the role=log region exists
+        // in the a11y tree before content lands — otherwise screen readers
+        // typically skip the first announcement (review finding).
+        requestAnimationFrame(() => requestAnimationFrame(() => print([motdLine])));
       }
       trackKeyboard(true);
       input.focus({ preventScroll: true });
