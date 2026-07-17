@@ -271,12 +271,21 @@ import { termPrompt } from "../data/site";
           const m = COMMAND_NAMES.filter((c) => c.startsWith(v));
           if (m.length === 1) { e.preventDefault(); input.value = m[0] + " "; }
         }
-      } else if (e.ctrlKey && e.key === "l") {
+      } else if (e.ctrlKey && e.key.toLowerCase() === "l") {
         // Best effort: some browsers reserve Ctrl+L; `clear` always works.
+        // toLowerCase: Caps Lock must not disable the shortcut.
         e.preventDefault();
         scrollEl.replaceChildren();
-      } else if (e.ctrlKey && e.key === "c" && document.getSelection()?.isCollapsed) {
-        // Only when nothing is selected — never hijack copy.
+      } else if (
+        e.ctrlKey &&
+        e.key.toLowerCase() === "c" &&
+        input.selectionStart === input.selectionEnd &&
+        document.getSelection()?.isCollapsed
+      ) {
+        // Only when nothing is selected — never hijack copy. Deviation from
+        // the spec snippet: Chromium does not expose text-control selections
+        // via document.getSelection(), so the input's own selectionStart/End
+        // is the authoritative guard (review finding).
         e.preventDefault();
         echo(`${input.value}^C`);
         input.value = "";
