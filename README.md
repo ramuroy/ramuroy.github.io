@@ -19,6 +19,7 @@ progressively enhanced client JavaScript.
 - [Remaining-work roadmap](docs/roadmap-remaining.md) and
   [release checkpoints](docs/checkpoints/) (latest: 2026-07-18 Tier 3)
 - [Feature build specs](docs/design-specs/) (D-017)
+- [CadSoft MCP inspection and terminal handoff guide](docs/cadsoft-mcp-guide.md)
 - [Change history](CHANGELOG.md)
 
 ## Requirements

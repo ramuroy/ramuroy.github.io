@@ -24,6 +24,9 @@ Use these documents in this order:
    the hardening work log and evidence boundary.
 9. [Project changelog](../CHANGELOG.md) — user- and developer-visible changes by
    release/checkpoint.
+10. [CadSoft MCP guide](cadsoft-mcp-guide.md) — read-only DWG/DXF inspection,
+    exact tool schemas, layer and placed-entity interpretation, pagination,
+    accuracy rules, troubleshooting, and a paste-ready terminal handoff.
 
 The root [README](../README.md) remains the quick-start and content-editing guide.
 

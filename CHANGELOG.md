@@ -3,6 +3,18 @@
 This project follows a lightweight, date-based changelog. Entries describe changes
 that affect the source, generated site, development workflow, or deployment safety.
 
+## Unreleased — CadSoft MCP documentation
+
+### Added
+
+- `docs/cadsoft-mcp-guide.md`: a self-contained guide for connecting a fresh
+  Codex terminal to the CadSoft MCP server and producing reproducible DWG/DXF
+  audits. It documents every available tool, visibility safeguards, layer and
+  placed-entity semantics, pagination, repeated-block handling, measurement and
+  evidence rules, troubleshooting, example requests, and a paste-ready terminal
+  handoff prompt.
+- Links to the guide from the root README and documentation index.
+
 ## Released 2026-07-18 — Tier 3: platform craft and the terminal
 
 Branch: `codex/site-hardening-20260713`. Implemented from committed build specs
