@@ -18,18 +18,20 @@ useful concept study, but its seven Zone Controllers, channel assignments,
 nearest-fixture route ownership and wire account have not been approved through
 the new step-by-step process. The authoritative file for the next session is:
 
-`Amara-Block-C-B1-Existing-Infrastructure-Review-P07.dxf`
+`Amara-Block-C-B1-Room-Boundaries-P08.dxf`
 
-Open it in **Model Space** and use **Fit View**. The next design action is to
-extract and review source-supported room boundaries. Do not place a Zone
-Controller or assign any light until the user explicitly advances to that step.
+Open it in **Model Space** and use **Fit View**. P08 is P07's verified existing
+infrastructure plus the first eOS overlay geometry: measured boundaries for the
+Block-C electrical and communications rooms. Do not place a Zone Controller or
+assign any light until the user explicitly advances to that step.
 
 Read the evidence chain in this order:
 
 1. [P04 source audit](p04-source-audit.md)
 2. [P05 equipment-map audit](p05-equipment-map-audit.md)
 3. [P06 provisional overlay audit](p06-overlay-audit.md)
-4. [P07 current infrastructure audit](p07-infrastructure-audit.md)
+4. [P07 infrastructure audit](p07-infrastructure-audit.md)
+5. [P08 room-boundary audit](p08-room-boundary-audit.md)
 
 ## What the user is trying to produce
 
@@ -228,7 +230,8 @@ this snapshot persists.
 | P04 | source audit and verified coordinate register | authoritative evidence |
 | P05 | equipment map and corrected shaft/cutout representation | authoritative evidence |
 | P06 | generated end-to-end eOS concept with seven controllers and wire account | retained as a provisional study; not approved design |
-| P07 | existing-infrastructure-only review | **current working revision** |
+| P07 | existing-infrastructure-only review | authoritative evidence; superseded as the working file |
+| P08 | measured boundaries for the electrical and comms rooms | **current working revision** |
 
 P06 must remain available because it records calculations and demonstrates a
 possible finished presentation. Its numbers are not to be silently carried into
@@ -303,27 +306,32 @@ client is current.
 
 ## Exact next step
 
-The user wants room/control-area boundaries visible in our overlay even when the
-consultant carbon copy is hidden. The next session must therefore:
+The room-boundary gate is **met for the electrical and communications rooms**.
+P08 carries both on `VERIFIED-ROOM-BOUNDARIES` and `VERIFIED-ROOM-DIMENSIONS`,
+source-exact, corroborated on two layers and against the consultant's own
+stated dimensions. See `Amara-Block-C-B1-Room-Boundary-Audit-P08.md`.
 
-1. Confirm P07 is active with `get_session` and `list_drawings`.
-2. List all P07 layers; do not change them without approval.
-3. Identify the exact room or service-area boundary layers/entities in the
-   consultant source for Block-C Basement-1.
-4. Extract the closed boundary geometry and source dimensions in E1.1, using the
-   verified transform where the evidence originates in E2.1.
-5. Cross-check the polygon against wall/door geometry, labels, issued PDF and
-   stated dimensions. Do not derive a polygon from an MTEXT anchor.
-6. Present the candidate room names, vertices, dimensions and evidence status to
-   the user before generating them.
-7. After approval, place the boundaries on dedicated coordination layers such
-   as `VERIFIED-ROOM-BOUNDARIES` and `VERIFIED-ROOM-DIMENSIONS` in a new P08
-   derivative. Do not alter P07 or the consultant DWG.
-8. Only after the room-boundary gate is accepted should controller placement
-   begin, one Zone Controller at a time.
+The next decision is the owner's, and there are two candidates:
 
-The exact room list and P08 layer names are proposed workflow details, not yet
-owner-approved design facts.
+1. **Extend the boundary set.** Other enclosed basement spaces — stair cores,
+   lift lobbies, ramps, pump and fire rooms — have not been surveyed. The P08
+   method applies unchanged: find the drawn wall outline, take its inner faces,
+   corroborate the naming on more than one signal, and never promote an MTEXT
+   anchor into a polygon.
+2. **Advance to Zone Controller placement**, one controller at a time, on the
+   two rooms now bounded.
+
+Whichever comes first, carry these forward:
+
+- the room-named consultant layers carry **doors**, not room outlines, so a
+  layer name is not evidence of what a layer holds;
+- both room labels sit on `E-Com. Room Text`, so filtering room labels by layer
+  attributes the electrical room to comms;
+- CadSoft does not return polyline vertices
+  (`ElipseTechnology/CadSoft#6`), so shape still comes from the cache at 0.1 mm;
+- the cache negates X for content inside mirrored block inserts, which makes
+  such content **vanish** from bounds-filtered queries rather than appear in the
+  wrong place. An exposure audit is owed before the next figure ships.
 
 ## Confidence language
 
