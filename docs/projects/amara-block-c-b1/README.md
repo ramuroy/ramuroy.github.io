@@ -263,27 +263,43 @@ handover copy is eventually produced.
 
 Required MCP sequence:
 
-1. `get_session`
-2. `list_drawings`
-3. state the active drawing
-4. `list_layers` before any proposed visibility change
-5. request explicit user approval before changing visibility
+1. `get_capabilities` — record the enabled scopes
+2. `get_session`
+3. `list_drawings` — record each drawing's opening `revision`
+4. state the active drawing
+5. `list_layers` before any proposed visibility change
+6. request explicit user approval before changing visibility
 
-CadSoft MCP can inspect drawings, layers and placed entities and can temporarily
-change the view. It cannot edit geometry or save the source drawing.
+CadSoft MCP inspects drawings, layers and placed entities and can temporarily
+change the view.
 
-The camera-control proof of concept is published in
-[`ElipseTechnology/CadSoft` branch `combined-mcp-view`](https://github.com/ElipseTechnology/CadSoft/tree/combined-mcp-view)
-at commit
-[`0e8261e`](https://github.com/ElipseTechnology/CadSoft/commit/0e8261ec0a785cba7c37e0b78c3b5acd0f5d3c59).
-It adds `get_view` and `set_view` through a terminal-command bridge. Native typed
-camera control is tracked in
-[`ElipseTechnology/CadSoft#5`](https://github.com/ElipseTechnology/CadSoft/issues/5).
+**As of CadSoft v0.4.0 (2026-08-13) it can also write.** `get_capabilities` on
+the current build reports `edit_source_entities` and `filesystem_export` among
+its enabled scopes, so the server can move and delete source entities, author
+wires and device ports, run and commit electrical capture, and export DWG
+files. Earlier revisions of this handoff stated that it could not edit geometry
+or save the source drawing; that is no longer true.
 
-Do not assume those two tools are available merely because the branch exists.
-The Codex client must be connected to a matching CadSoft/MCP build and normally
-restarted so its tool catalogue refreshes. If `get_view` and `set_view` are not
-listed, use the existing inspection tools and ask the user to navigate the view.
+This changes nothing about the design intent and everything about how it is
+enforced. Owner decision 7 — preserve the consultant source files read-only —
+is now upheld by discipline rather than by the tool's inability. Therefore:
+
+- confine this project to the read tools unless the user names both the target
+  and the change;
+- record the drawing `revision` at the start and check it again at the end; an
+  unchanged revision is the evidence that the source was not modified; and
+- if a write is ever authorized, run it with `dry_run: true` first, report what
+  it would affect, and pass `expected_revision`.
+
+Camera control (`get_view`, `set_view`, and the typed `set_view_state`) merged
+from the `combined-mcp-view` proof of concept into `main` and ships in v0.4.0.
+It changes only the plan camera, never drawing content.
+
+After a CadSoft upgrade, restart every MCP client. A stale client returns
+`no reachable CadSoft session is running`, which is indistinguishable from the
+application being closed and which retrying never clears. Confirm with
+`get_capabilities`: `protocol_version: 2` and a 41-tool catalogue mean the
+client is current.
 
 ## Exact next step
 
@@ -333,11 +349,18 @@ Use CadSoft for the Amara Block-C Basement-1 continuation. Read
 compare-2d/eos-drawing/block-c-b1/PROJECT-HANDOFF.md first, then the P04, P05,
 P06 and P07 audit documents it references.
 
-Call get_session and list_drawings and report the active drawing. The expected
-working file is Amara-Block-C-B1-Existing-Infrastructure-Review-P07.dxf in E1.1
+Call get_capabilities, get_session and list_drawings, and report the active
+drawing, its opening revision, and the scopes returned. The expected working
+file is Amara-Block-C-B1-Existing-Infrastructure-Review-P07.dxf in E1.1
 model-space millimetres. Call list_layers before proposing any visibility
 change and wait for my explicit approval before changing the visible layers.
-Do not edit or save the consultant DWG.
+
+This server can write: v0.4.0 enables edit_source_entities and
+filesystem_export by default. Treat this engagement as read-only. Do not call
+move_entities, delete_entities, draw_wire, move_wire_endpoint, delete_wire, any
+*_device_port, any *_electrical_capture, any *_plot, export_dwg, undo or redo.
+Ask me first if you think one is needed. Report the revision again at the end;
+unchanged is the evidence the consultant DWG was not modified.
 
 We are designing Tier-A complete 48 V common-area lighting with Zone
 Controllers, but one user-approved step at a time. P06 is only a retained
