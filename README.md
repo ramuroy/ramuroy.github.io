@@ -20,6 +20,7 @@ progressively enhanced client JavaScript.
   [release checkpoints](docs/checkpoints/) (latest: 2026-07-18 Tier 3)
 - [Feature build specs](docs/design-specs/) (D-017)
 - [CadSoft MCP inspection and terminal handoff guide](docs/cadsoft-mcp-guide.md)
+- [Amara Block-C Basement-1 project handoff and P04–P07 audit chain](docs/projects/amara-block-c-b1/)
 - [Change history](CHANGELOG.md)
 
 ## Requirements

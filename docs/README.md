@@ -27,6 +27,10 @@ Use these documents in this order:
 10. [CadSoft MCP guide](cadsoft-mcp-guide.md) — read-only DWG/DXF inspection,
     exact tool schemas, layer and placed-entity interpretation, pagination,
     accuracy rules, troubleshooting, and a paste-ready terminal handoff.
+11. [Amara Block-C Basement-1 handoff](projects/amara-block-c-b1/) —
+    the current project objective, accepted decisions, source and coordinate
+    evidence, revision authority, CadSoft state, exact next step and complete
+    P04–P07 audit chain.
 
 The root [README](../README.md) remains the quick-start and content-editing guide.
 
