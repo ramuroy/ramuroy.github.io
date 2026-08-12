@@ -7,9 +7,18 @@ the server, the open drawings, or the layer conventions in a project.
 
 CadSoft exposes structured drawing information. It is therefore more reliable
 for audits, counts, layer analysis, bounds, and entity inspection than treating
-a drawing as a screenshot. The server is intentionally read-mostly: it can
-inspect drawing data and temporarily control layer visibility, but it cannot
-edit geometry or save a DWG.
+a drawing as a screenshot.
+
+> **Revised 2026-08-13 for CadSoft v0.4.0.** Earlier revisions of this guide
+> described the server as read-mostly and stated that it could not edit geometry
+> or save a DWG. **That is no longer true.** v0.4.0 exposes 41 tools, and
+> `get_capabilities` reports the `edit_source_entities` and `filesystem_export`
+> scopes as enabled by default. An agent connected to this server can move and
+> delete source entities, author wires and device ports, and write DWG files.
+> Read-only behavior is now something an operator must require and verify, not
+> a property the server guarantees. Call `get_capabilities` first, on every
+> session, and treat its `scopes` list as the authority over anything written
+> here.
 
 ## 1. What MCP contributes
 
@@ -44,49 +53,107 @@ The server can:
   and visibility;
 - paginate through large entity sets;
 - inspect one placed entity using its handle and placement fingerprint;
-- read and set the active 2D plan camera when the matching camera-control build
-  exposes `get_view` and `set_view`;
+- report its own enabled read/write scopes, protocol revision, and coordinate
+  frames (`get_capabilities`);
+- read and set the active 2D plan camera (`get_view`, `set_view`, and the typed
+  `set_view_state`);
+- report real layout order and exact viewport target, size, twist, status, and
+  frozen layers (`list_pages`, `list_viewports`);
+- return the Info tool's semantics at a point — picked leaf entity,
+  measurements, plan-local position, room, legend, and schedule row
+  (`inspect_at_point`);
+- return recognized electrical devices, ports, wire routes, conduit hosts,
+  shafts, and route lengths (`get_electrical`);
+- inspect the final composited frame (`read_canvas`, `read_pixel`,
+  `read_canvas_colors`, `save_canvas_png`);
 - temporarily show or hide selected layers;
 - temporarily isolate selected layers; and
 - temporarily show every layer.
 
-The server cannot:
+Since v0.4.0 the server can also write. These are grouped so an operator can
+recognize them, and none of them should be called against a client source
+drawing unless the owner has named both the target and the change:
 
-- create, move, modify, or delete geometry;
-- edit attributes or text;
-- save or overwrite a DWG or DXF; or
+- move and delete top-level source entities (`move_entities`,
+  `delete_entities`);
+- author wire runs (`draw_wire`, `move_wire_endpoint`, `delete_wire`);
+- author device ports (`add_device_port`, `update_device_port`,
+  `remove_device_port`);
+- run electrical recognition and commit its result
+  (`start_electrical_capture`, `get_capture_review`, `update_capture_review`,
+  `apply_electrical_capture`);
+- attach and bind a plotted-PDF underlay (`attach_plot`, `bind_plot_page`,
+  `set_plot_visibility`, `detach_plot`);
+- write DWG files (`preview_dwg_export`, `export_dwg`); and
+- move through the edit journal (`undo`, `redo`).
+
+The server still cannot:
+
+- alter a source file implicitly — source edits live in CadSoft's in-memory
+  document and undo journal, and reach disk only through an explicit
+  `export_dwg`, which refuses to overwrite the currently open source and
+  refuses any existing destination without `overwrite: true`; or
 - prove design intent, installation status, or engineering compliance without
   supporting drawing evidence and professional review.
 
-Layer operations affect only the current CadSoft view. They never save the
-source drawing. They can still disrupt a user's visual context, so obtain
-permission before changing visibility.
+Write safety rests on three request fields rather than on the server refusing
+to act. Use them:
+
+- `dry_run: true` validates a write and reports the object IDs it would affect
+  without changing anything;
+- `expected_revision` carries the last `revision` you observed and makes the
+  write fail rather than overwrite an intervening user or agent edit; and
+- `idempotency_key` makes a retry after a transport failure return the original
+  result instead of applying the change twice.
+
+Layer and camera operations affect only the current CadSoft view. They never
+save the source drawing. They can still disrupt a user's visual context, so
+obtain permission before changing visibility.
+
+For a read-only engagement, say so explicitly and confine the session to
+`get_capabilities`, `get_session`, `list_drawings`, `list_layers`,
+`query_entities`, `get_entity`, `get_view`, `list_pages`, `list_viewports`,
+`inspect_at_point`, `get_electrical`, and the canvas readers. Record the
+opening `revision` and check it again at the end: unchanged is the evidence
+that nothing was modified.
 
 ## 3. Mandatory workflow
 
 Begin every CadSoft task in this order:
 
-1. Call `get_session`.
-2. Call `list_drawings`.
-3. State which drawing is active.
-4. Work on the active drawing unless the user specifies another drawing.
-5. Call `list_layers` before any visibility operation.
-6. Tell the user exactly which layers would be affected.
-7. Wait for explicit approval before showing, hiding, isolating, or restoring
+1. Call `get_capabilities`. Report the `scopes` it returns. If they include
+   `edit_source_entities` or `filesystem_export`, tell the user the session can
+   write and confirm whether the engagement is read-only.
+2. Call `get_session`.
+3. Call `list_drawings`. Record each drawing's opening `revision`.
+4. State which drawing is active.
+5. Work on the active drawing unless the user specifies another drawing.
+6. Call `list_layers` before any visibility operation.
+7. Tell the user exactly which layers would be affected.
+8. Wait for explicit approval before showing, hiding, isolating, or restoring
    layers.
-8. Never claim that the file was edited or saved.
+9. Never call a write tool without the user naming both the target and the
+   change. When one is authorized, run it with `dry_run: true` first, report
+   what it would affect, and pass `expected_revision`.
+10. Never claim that a file was edited or saved unless `export_dwg` actually
+    ran and returned a path. Equally, never claim a source file is unmodified
+    without checking that its `revision` is unchanged.
 
 For a read-only audit, do not change the view.
 
-Camera-tool availability is build-dependent. A client discovers its MCP tool
-catalogue when it connects, so verify that `get_view` and `set_view` are listed.
-Restart or reconnect the Codex client after installing a matching build. The
-published proof of concept is CadSoft branch
-[`combined-mcp-view`](https://github.com/ElipseTechnology/CadSoft/tree/combined-mcp-view),
-commit
-[`0e8261e`](https://github.com/ElipseTechnology/CadSoft/commit/0e8261ec0a785cba7c37e0b78c3b5acd0f5d3c59).
-The native typed implementation is tracked in
-[`ElipseTechnology/CadSoft#5`](https://github.com/ElipseTechnology/CadSoft/issues/5).
+Tool availability is build-dependent, and a client discovers its catalogue only
+when it connects. The camera tools were a proof of concept on branch
+`combined-mcp-view`; they merged into `main` and ship in **v0.4.0**, whose
+41-tool catalogue is the reference for this guide. `docs/MCP.md` in the CadSoft
+repository is the authoritative per-tool schema.
+
+**After upgrading CadSoft, restart every MCP client.** An already-running
+server process keeps executing the replaced binary, and the session manifest is
+versioned, so a v0.3.x client against a v0.4.0 application fails with
+`no reachable CadSoft session is running` — the same message it returns when
+the application is genuinely closed. Retrying never clears it; only a client
+restart does. Verify with `get_capabilities`: a `protocol_version` of 2 and a
+41-tool catalogue confirm the upgrade took effect.
 
 ## 4. Tool reference
 
@@ -127,10 +194,31 @@ Global bounds are not automatically the building or product envelope. A stray
 object, title block, remote detail, Xref, or repeated insertion can make them
 enormous. Validate the relevant region using layer and entity bounds.
 
-### `get_view` and `set_view` — proof-of-concept build
+### `get_capabilities`
 
-These tools are available only when the connected MCP executable contains the
-camera-control branch and the client has refreshed its tool catalogue.
+```json
+{}
+```
+
+New in v0.4.0, and the correct first call in any session. It returns
+`protocol_version`, the current `revision`, the enabled `scopes`, a `features`
+list, and the `coordinate_frames` the session understands
+(`drawing_world`, `plan_local`, `paper`, `screen`).
+
+A v0.4.0 session typically returns these scopes:
+
+```text
+read · view_control · edit_project · edit_source_entities · filesystem_export
+```
+
+Read that list before trusting any description of what the server will not do.
+It is the only authority on whether the connected session can write.
+
+### `get_view` and `set_view`
+
+Convenience tools for the active tab. `set_view_state` is the typed
+alternative that accepts `drawing_id`, a stable `page_id`, revision guards,
+dry-run and idempotency; prefer it for precise or multi-drawing work.
 
 `get_view` takes no parameters:
 
@@ -155,19 +243,17 @@ Coordinates and scale must be finite, and scale must be positive. The call
 changes only the temporary plan camera. It does not edit, dirty or save the
 drawing.
 
-Current proof-of-concept limits:
+Limits that still apply to both interfaces:
 
-- no `drawing_id`; switch to the intended tab first;
-- no fit-to-bounds, entity or layer operation;
-- no returned effective world bounds;
-- no final native agent request type; the typed MCP parameters currently call
-  a constrained internal `view` terminal command; and
-- behavior outside the active plan view still needs the native implementation
-  and tests described in issue #5.
+- no `drawing_id` on `get_view`/`set_view`; switch to the intended tab first,
+  or use `set_view_state`;
+- no fit-to-bounds, entity or layer targeting on either interface; and
+- no returned effective world bounds — derive them yourself from the reported
+  centre, `pixels_per_unit` and viewport size.
 
 Do not invent a pixels-per-unit value when a specific visual extent matters.
 Read the current view and viewport, calculate from the desired world bounds, or
-ask the user to use Fit View until native fit support exists.
+ask the user to use Fit View.
 
 ### `list_layers`
 
@@ -306,6 +392,43 @@ this is a broad view change, repeat the exact layer list and wait for approval.
 Temporarily shows all layers, including layers initially off or frozen. Call it
 only after listing layers and receiving approval.
 
+### Other v0.4.0 read tools
+
+Summarized here; `docs/MCP.md` in the CadSoft repository carries the exact
+schemas.
+
+- `list_pages` and `list_viewports` report real layout order and each
+  viewport's target, size, twist, status and frozen layers. This is the route
+  to the paper-space transform, which is what makes a layout coordinate
+  comparable to a model-space one.
+- `inspect_at_point` returns the Info tool's semantics for a picked point: leaf
+  entity, measurements, plan-local position, room, legend, and schedule row.
+  Note that its position is expressed relative to the detected plan's
+  lower-left origin, not in world coordinates.
+- `get_electrical` returns recognized `devices`, `wires`, `conduits` and
+  `shafts`, each with `length_drawing_units`. This is the only bulk-length
+  route in the server.
+
+  ⚠️ It reports CadSoft's **electrical model**, not raw source geometry. A
+  consultant drawing does not arrive with one; geometry becomes electrical
+  objects only by running `start_electrical_capture` → `get_capture_review` →
+  `apply_electrical_capture`, which is a recognition step with its own error
+  modes and whose final call is a write. Until that capture is validated
+  against counts you already trust, a length from `get_electrical` measures the
+  capture rather than the drawing.
+- `read_canvas`, `read_pixel`, `read_canvas_colors` and `save_canvas_png`
+  inspect the final composited frame. These answer a class of question no
+  numeric query can reach — whether the drawing, as rendered, actually says
+  what it should. Numeric checks cannot see the words on a page.
+
+### Write tools
+
+Not documented individually here, because this guide's purpose is inspection.
+See `docs/MCP.md`. Before calling any of them, re-read section 2: they are
+enabled by default, they are guarded by `dry_run`, `expected_revision` and
+`idempotency_key` rather than by refusal, and source edits reach disk only
+through an explicit `export_dwg`.
+
 ## 5. Reliable extraction strategy
 
 ### Establish identity and scope
@@ -437,11 +560,35 @@ Prefer explicit wording:
 
 If `get_session` returns `no reachable CadSoft session is running`:
 
-1. Confirm that the installed CadSoft desktop application is running.
+1. Confirm that the installed CadSoft desktop application is running. **If it
+   is running, the message is misleading and the cause is almost certainly
+   version skew — go to the upgrade checklist below.**
 2. Restart it if necessary.
 3. Open the requested DWG or DXF.
 4. Retry `get_session`.
 5. Retry `list_drawings`.
+
+**The same message means two different things.** It is returned both when no
+application is reachable and when a client is too old to speak to the one that
+is. The session manifest is versioned, so a v0.3.x `cadsoft-mcp` against a
+v0.4.0 application fails exactly this way, and retrying never clears it.
+
+After upgrading CadSoft:
+
+1. Confirm the desktop application and `cadsoft-mcp` came from the same build —
+   compare checksums against the build output rather than assuming.
+2. Restart every MCP client, not just the one you noticed failing. Each client
+   spawns its own server process.
+3. An installer that replaces the binary in place leaves already-running
+   servers executing the **deleted inode**; a process cannot swap its own
+   executable, so only a client restart helps. On Linux,
+   `readlink /proc/<pid>/exe` printing `… (deleted)` confirms it.
+4. Call `get_capabilities`. `protocol_version: 2` and a 41-tool catalogue mean
+   the client is current.
+
+Never verify the server by running it with `--version`. It is a stdio MCP
+server and will block on standard input indefinitely. Probe it by piping a real
+`initialize` request followed by `tools/list` and reading `serverInfo`.
 
 If CadSoft connects in `start` mode with zero drawings, the application is
 reachable but no drawing is open.
@@ -453,9 +600,10 @@ If the MCP tools are absent from a new terminal:
 3. Confirm that `cadsoft` is enabled in the shared Codex configuration.
 4. Restart the Codex client after configuration changes.
 5. Confirm that the terminal is on the same host as the CadSoft application.
-6. If only `get_view` or `set_view` is missing, confirm the desktop and
-   `cadsoft-mcp` executable came from the same camera-control build, then restart
-   the Codex client so it refreshes the tool catalogue.
+6. If some tools are present but others are missing, the client is connected to
+   an older build. Confirm the desktop application and `cadsoft-mcp` came from
+   the same build, then restart the client so it refreshes its tool catalogue.
+   A v0.4.0 catalogue has 41 tools.
 
 ## 9. Current project handoff example
 
@@ -478,18 +626,30 @@ needed:
 ```text
 Use the `cadsoft` MCP server for all DWG/DXF inspection in this task.
 
-Start by calling `get_session`, then `list_drawings`, and report the active
-drawing. Work on the active drawing unless I name another one. Call
-`list_layers` before analyzing layer content or proposing a visibility change.
+Start by calling `get_capabilities`, then `get_session`, then `list_drawings`.
+Report the active drawing, its opening `revision`, and the `scopes` that
+`get_capabilities` returned. Work on the active drawing unless I name another
+one. Call `list_layers` before analyzing layer content or proposing a
+visibility change.
 
-The CadSoft MCP server is read-mostly. It can inspect sessions, drawings,
-layers, placed entities, handles, fingerprints, transforms, bounds, and concise
-geometry. It can temporarily show, hide, isolate, or restore layers, but it
-cannot edit geometry or save the DWG.
+This server can WRITE. Depending on the build, its scopes may include
+`edit_source_entities` and `filesystem_export`, meaning it can move and delete
+source entities, author wires and device ports, run and commit electrical
+capture, and export DWG files. Treat this engagement as READ-ONLY: use only
+get_capabilities, get_session, list_drawings, list_layers, query_entities,
+get_entity, get_view, list_pages, list_viewports, inspect_at_point,
+get_electrical, and the canvas readers. Do not call move_entities,
+delete_entities, draw_wire, move_wire_endpoint, delete_wire, any *_device_port,
+any *_electrical_capture, any *_plot, export_dwg, undo, or redo. If you believe
+one is needed, stop and ask me first.
 
 Do not change layer visibility without my explicit approval. Before requesting
 approval, list the layers and repeat the exact layer names that would change.
 For a read-only audit, do not alter the view.
+
+Report the drawing's `revision` again at the end. If it is unchanged, say so as
+the evidence that the source was not modified. Do not assert the source is
+untouched without that check.
 
 Use `query_entities` with exact effective layer names. Preserve nested names
 containing `$0$`. Use `visible_only: false` for a complete audit and true only
@@ -508,10 +668,11 @@ which results are verified and which are inferred. Report the drawing, units,
 scope, exact layers, visibility flags, query pages, counts, bounds, anomalies,
 and limitations. Do not edit or save the drawing.
 
-If get_view and set_view are actually present, they may be used to read or
-change only the active plan camera. Confirm the intended centre and scale before
-a view change. Do not claim native fit-to-bounds or drawing-specific targeting;
-the current proof of concept does not provide them.
+get_view, set_view and set_view_state read or change only the plan camera, never
+drawing content. Confirm the intended centre and scale with me before any view
+change. Neither interface fits explicit bounds or targets an entity or layer, so
+compute pixels_per_unit from the viewport and the world extent you want rather
+than guessing it, or ask me to use Fit View.
 ```
 
 ## 11. Example requests
