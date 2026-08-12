@@ -5,6 +5,41 @@ that affect the source, generated site, development workflow, or deployment safe
 
 ## Unreleased — CadSoft MCP documentation
 
+### Corrected — v0.4.0 made the server read-write (2026-08-13)
+
+- **The guide's central safety claim was wrong.** It described the server as
+  read-mostly and stated that it "cannot edit geometry or save a DWG". CadSoft
+  v0.4.0 ships 41 tools and enables the `edit_source_entities` and
+  `filesystem_export` scopes by default, so a connected agent can move and
+  delete source entities, author wires and device ports, run and commit
+  electrical capture, and export DWG files. Both paste-ready handoff prompts
+  inherited the wrong claim, which is why this is recorded as a correction
+  rather than an update: an agent given the previous prompt would have believed
+  it was operating a read-only instrument while holding write scopes.
+- `docs/cadsoft-mcp-guide.md`: revision banner; rewritten capability and safety
+  boundary covering the write groups and the `dry_run` / `expected_revision` /
+  `idempotency_key` guards; `get_capabilities` added as the mandatory first call
+  and documented; the mandatory workflow now records the opening `revision` and
+  forbids unapproved writes; `get_view`/`set_view` no longer described as a
+  build-dependent proof of concept, with `set_view_state` noted as the typed
+  alternative; new read tools summarized (`list_pages`, `list_viewports`,
+  `inspect_at_point`, `get_electrical`, canvas readers); and both paste-ready
+  prompts rewritten to declare the write capability, name the permitted read
+  tools, and require a closing `revision` check.
+- `docs/projects/amara-block-c-b1/README.md`: the CadSoft operating context and
+  continuation prompt now state that owner decision 7 — consultant sources stay
+  read-only — is upheld by discipline rather than by the tool's inability.
+- Troubleshooting: `no reachable CadSoft session is running` is documented as
+  ambiguous. It is returned both when no application is reachable and when a
+  client is too old to reach the one that is, because the session manifest is
+  versioned. Added the upgrade checklist, the deleted-inode explanation for why
+  only a client restart clears it, and a warning never to probe the stdio server
+  with `--version`.
+- `get_electrical` is documented as the server's only bulk-length route, with
+  the caveat that it reports CadSoft's recognized electrical model rather than
+  raw source geometry, so a length from it measures the capture until that
+  capture is validated against counts already trusted.
+
 ### Added
 
 - `docs/cadsoft-mcp-guide.md`: a self-contained guide for connecting a fresh
