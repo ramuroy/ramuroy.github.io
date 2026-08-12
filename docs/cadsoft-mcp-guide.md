@@ -44,6 +44,8 @@ The server can:
   and visibility;
 - paginate through large entity sets;
 - inspect one placed entity using its handle and placement fingerprint;
+- read and set the active 2D plan camera when the matching camera-control build
+  exposes `get_view` and `set_view`;
 - temporarily show or hide selected layers;
 - temporarily isolate selected layers; and
 - temporarily show every layer.
@@ -75,6 +77,16 @@ Begin every CadSoft task in this order:
 8. Never claim that the file was edited or saved.
 
 For a read-only audit, do not change the view.
+
+Camera-tool availability is build-dependent. A client discovers its MCP tool
+catalogue when it connects, so verify that `get_view` and `set_view` are listed.
+Restart or reconnect the Codex client after installing a matching build. The
+published proof of concept is CadSoft branch
+[`combined-mcp-view`](https://github.com/ElipseTechnology/CadSoft/tree/combined-mcp-view),
+commit
+[`0e8261e`](https://github.com/ElipseTechnology/CadSoft/commit/0e8261ec0a785cba7c37e0b78c3b5acd0f5d3c59).
+The native typed implementation is tracked in
+[`ElipseTechnology/CadSoft#5`](https://github.com/ElipseTechnology/CadSoft/issues/5).
 
 ## 4. Tool reference
 
@@ -114,6 +126,48 @@ again because IDs are session-specific.
 Global bounds are not automatically the building or product envelope. A stray
 object, title block, remote detail, Xref, or repeated insertion can make them
 enormous. Validate the relevant region using layer and entity bounds.
+
+### `get_view` and `set_view` — proof-of-concept build
+
+These tools are available only when the connected MCP executable contains the
+camera-control branch and the client has refreshed its tool catalogue.
+
+`get_view` takes no parameters:
+
+```json
+{}
+```
+
+It reports the active tab's world-space centre, pixels-per-drawing-unit scale,
+viewport pixel size and plan/3D mode.
+
+`set_view` targets the active tab:
+
+```json
+{
+  "center_x": 278373.82,
+  "center_y": 411050.0,
+  "pixels_per_unit": 0.08
+}
+```
+
+Coordinates and scale must be finite, and scale must be positive. The call
+changes only the temporary plan camera. It does not edit, dirty or save the
+drawing.
+
+Current proof-of-concept limits:
+
+- no `drawing_id`; switch to the intended tab first;
+- no fit-to-bounds, entity or layer operation;
+- no returned effective world bounds;
+- no final native agent request type; the typed MCP parameters currently call
+  a constrained internal `view` terminal command; and
+- behavior outside the active plan view still needs the native implementation
+  and tests described in issue #5.
+
+Do not invent a pixels-per-unit value when a specific visual extent matters.
+Read the current view and viewport, calculate from the desired world bounds, or
+ask the user to use Fit View until native fit support exists.
 
 ### `list_layers`
 
@@ -399,8 +453,24 @@ If the MCP tools are absent from a new terminal:
 3. Confirm that `cadsoft` is enabled in the shared Codex configuration.
 4. Restart the Codex client after configuration changes.
 5. Confirm that the terminal is on the same host as the CadSoft application.
+6. If only `get_view` or `set_view` is missing, confirm the desktop and
+   `cadsoft-mcp` executable came from the same camera-control build, then restart
+   the Codex client so it refreshes the tool catalogue.
 
-## 9. Paste-ready terminal context
+## 9. Current project handoff example
+
+The Amara Block-C Basement-1 work is a concrete example of the evidence-first
+workflow. Its durable continuation record is
+[`projects/amara-block-c-b1/`](projects/amara-block-c-b1/), together with the
+complete P04–P07 audit chain.
+
+The important lesson is that a complete-looking generated overlay is not
+automatically the approved design. In this project, the P06 seven-controller
+concept is retained as a study, while P07 deliberately resets the current
+working drawing to verified existing infrastructure. Room boundaries must be
+established next, then controllers and lights are accepted one at a time.
+
+## 10. Paste-ready terminal context
 
 Paste the following into a fresh terminal when a concise operational handoff is
 needed:
@@ -437,9 +507,14 @@ placements, route geometry, labels, panels, legends, bounds, and titles. State
 which results are verified and which are inferred. Report the drawing, units,
 scope, exact layers, visibility flags, query pages, counts, bounds, anomalies,
 and limitations. Do not edit or save the drawing.
+
+If get_view and set_view are actually present, they may be used to read or
+change only the active plan camera. Confirm the intended centre and scale before
+a view change. Do not claim native fit-to-bounds or drawing-specific targeting;
+the current proof of concept does not provide them.
 ```
 
-## 10. Example requests
+## 11. Example requests
 
 Comprehensive read-only audit:
 

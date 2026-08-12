@@ -14,6 +14,21 @@ that affect the source, generated site, development workflow, or deployment safe
   evidence rules, troubleshooting, example requests, and a paste-ready terminal
   handoff prompt.
 - Links to the guide from the root README and documentation index.
+- `docs/projects/amara-block-c-b1/README.md`: the durable continuation record
+  for the Amara Block-C Basement-1 Tier-A 48 V drawing, including the MEP
+  objective, owner decisions, source hashes and paths, coordinate transforms,
+  revision authority, confidence vocabulary and exact next gate.
+- `docs/projects/amara-block-c-b1/`: the complete P04–P07 audit chain, including
+  the current infrastructure-only evidence checkpoint, layers, counts, live
+  CadSoft state, output register and limitations.
+
+### Changed
+
+- The CadSoft MCP guide now documents the tested `get_view` and `set_view`
+  camera proof of concept, build and tool-catalogue requirements, current
+  limitations and the native implementation issue.
+- Root and documentation indexes now route a fresh agent to the Amara handoff
+  before it continues the drawing.
 
 ## Released 2026-07-18 — Tier 3: platform craft and the terminal
 
