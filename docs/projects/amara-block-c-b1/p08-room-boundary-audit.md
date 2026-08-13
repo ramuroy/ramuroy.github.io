@@ -102,13 +102,79 @@ are not approximate.
 
 | Layer | Colour | Contents |
 |---|---|---|
+| `EXISTING-SERVICES-BLOCK-WALL` | 8 grey | the source 26-vertex wall outline, mapped E2.1 to E1.1, drawn exactly as it is |
 | `VERIFIED-ROOM-BOUNDARIES` | 190 violet | the two closed boundaries, names, sizes, status |
-| `VERIFIED-ROOM-DIMENSIONS` | 250 grey | witnessed dimension runs carrying measured **and** stated values |
+| `VERIFIED-ROOM-DIMENSIONS` | 250 grey | witnessed dimension runs, **off by default** |
 
 `VERIFIED-ROOM-ANCHORS` is retained from P07 and still labelled as anchors.
 Keeping the anchors visible is what lets a reviewer see that the boundaries are
 *not* derived from them — both anchors fall outside both rooms, the Electrical
 one 297.5 mm above the north end and the Comms one 1603.5 mm below the south.
+
+## Annotation: tags on the plan, words in the legend
+
+The plan carries **no prose**. Every item is a short tag placed inside its own
+box, sized to fit and rotated where the box is taller than it is wide, so a tag
+can never leave the object it names or land on a neighbour. There are no leader
+lines and no status text on the geometry.
+
+| Tag | Item | Tag | Item |
+|---|---|---|---|
+| `ER` | electrical room | `DB` | DB-C distribution board |
+| `CR` | comms room | `LT` | panel P7 / T3-LT |
+| `ES1` `ES2` | electrical shafts | `EC` | electrical ceiling cutout |
+| `CS1` `CS2` | comms shafts | `CC` | comms ceiling cutout |
+
+Room text anchors are now a bare cross with no label at all.
+
+Everything the plan stopped saying is said once in a **legend panel placed
+beside the plan**, at x 303000–329000, with the sheet extents widened to suit.
+It is outside the plan rather than in a gap inside it because there is no
+reliable gap: the basement carries 1,824 geometry points above y 430000. The
+legend border is drawn last, around what was actually emitted, so it cannot
+crop its own contents.
+
+Three placement facts were found only by rendering the sheet and reading it,
+which no numeric check could have caught:
+
+- a tag centred in the electrical room lands on the `LT` panel tag, because
+  **P7 / T3-LT sits inside the electrical room**. Room tags are therefore inset
+  in the top-left corner, not centred;
+- room tags scaled to their box were 2200 mm tall and dominated the plan; they
+  are now a fixed 900 mm;
+- the dimension runs crossed the carbon copy. The sizes are in the legend and
+  the register, so `VERIFIED-ROOM-DIMENSIONS` is **off by default** — the same
+  pattern P07 uses for fixtures and circuit labels.
+
+## The carbon copy cannot corroborate these boundaries
+
+Found by opening P08 in CadSoft and checking the boundaries against the
+underlay. **The E1.1 lighting frame does not draw these walls at all.**
+
+In a tight window around the rooms, the entire B2 architectural set --
+`WALL - A`, `DOOR - A`, `MEP door`, `BOUNDARY LINE - A` and the four
+`ELE ... THK` layers -- returns **four entities**, all site-scale envelopes at
+placement scale 1000. The only 200 mm wall polyline among them (104 vertices)
+puts just **two** of its vertices anywhere near the block, both 103.9 mm south
+of its south face. The nearest architecture is car-park bays on a 2500 x 5000
+grid with diagonal cross marks.
+
+The services-block walls exist only in the **B1 / E2.1 equipment frame**, which
+is where the boundaries were derived from. The carbon copy is built from B2
+layers, so before this was fixed a reviewer opening P08 saw two violet
+rectangles floating in a car park with nothing to check them against.
+
+The outline is therefore drawn into the coordination drawing on
+`EXISTING-SERVICES-BLOCK-WALL`, mapped through the verified transform and drawn
+**exactly as it is** -- open, 26 vertices, 0.1 mm end gap, jamb returns and all.
+Cleaning it up would hide the reason the boundaries had to be derived rather
+than copied. Validation asserts the outline encloses both rooms and that the
+inset from outline to boundary is one wall thickness on each side.
+
+This does not weaken the registration: the E2.1-to-E1.1 transform is
+independently verified by the two 400 x 400 cutouts appearing in both frames.
+It means the *visual* check has to be against the source outline, not against
+the underlay.
 
 ## Precision ceiling
 
@@ -141,8 +207,8 @@ polylines and the printed sheet scale.
 
 | File | Bytes | SHA-256 |
 |---|---|---|
-| `Amara-Block-C-B1-Room-Boundaries-P08.dxf` | 817691 | `e0b8fffcb72aa48512bbcae0a4ada0c15e67faa22439b79dfbf48b7ff7dfba79` |
-| `Amara-Block-C-B1-Room-Boundaries-P08.svg` | 4519 | `b993f23b50c43369c0dd48d63160f41386bbbc39529088909033fb699f16304d` |
+| `Amara-Block-C-B1-Room-Boundaries-P08.dxf` | 829344 | `40a83880ea6d543ec03b3e63fe54268dd4ee6980c2fdeb59f129138fc98d0e41` |
+| `Amara-Block-C-B1-Room-Boundaries-P08.svg` | 4801 | `637e9f1240f5943e51a8bab0d6e0a4c9cb59da0f374d74c782cc61cc2ac79ee4` |
 | `Amara-Block-C-B1-Room-Boundaries-P08-Rooms.csv` | 1277 | `e9bebca18da1196757712047424f6bd484dbfc434ce814bae5e41b15611145dd` |
 
 Generator: `build_block_c_b1_room_boundaries_p08.py`. Its validation asserts

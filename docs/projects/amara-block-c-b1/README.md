@@ -8,22 +8,33 @@ Design status: coordination work only; not for construction
 
 ## Read this first
 
-The current task is to build a complete Tier-A 48 V eOS lighting architecture
-for Amara Block-C Basement-1 on top of a source-accurate consultant carbon
-copy. The work must proceed one decision at a time with the user. Accuracy and
-traceability take priority over speed or visual completeness.
+Checkpoint date: 2026-08-13
 
-Do **not** resume by extending the P06 controller layout. P06 is a retained,
-useful concept study, but its seven Zone Controllers, channel assignments,
-nearest-fixture route ownership and wire account have not been approved through
-the new step-by-step process. The authoritative file for the next session is:
+**Current revision: `Amara-Block-C-B1-Controllers-P10.dxf`** — seven Zone
+Controllers, accepted one at a time and confirmed by the owner on 2026-08-13,
+with all 252 fittings allocated across 53 channels.
 
-`Amara-Block-C-B1-Room-Boundaries-P08.dxf`
+| | Column | mm² | Fittings | W | % of 960 | Ch | End-to-end drop |
+|---|---|---|---|---|---|---|---|
+| ZC1 | `PC8` | 1.0 | 33 | 594 | 61.9 % | 7 | 2.45 % |
+| ZC2 | `3W148` | **1.5** | 42 | 756 | 78.8 % | 7 | 2.39 % |
+| ZC3 | `3W54` | 1.0 | 42 | 756 | 78.8 % | 8 | 2.44 % |
+| ZC4 | `3W96` | 1.0 | 40 | 720 | 75.0 % | 8 | 2.40 % |
+| ZC5 | `3W154` | 1.0 | 28 | 504 | 52.5 % | 5 | 2.30 % |
+| ZC6 | `3W7` | 1.0 | 30 | 540 | 56.2 % | 8 | 2.41 % |
+| ZC7 | `PC16` | 1.0 | 37 | 666 | 69.4 % | 10 | 2.24 % |
 
-Open it in **Model Space** and use **Fit View**. P08 is P07's verified existing
-infrastructure plus the first eOS overlay geometry: measured boundaries for the
-Block-C electrical and communications rooms. Do not place a Zone Controller or
-assign any light until the user explicitly advances to that step.
+Basis: **48 V, 1.0 mm² branches, 3 % drop end-to-end, 18 W fittings
+(owner-confirmed 2026-08-13)**, PSU mounted at the board on a 4.0 mm² link
+≤ 1.5 m. Channels packed to 70 % of the per-channel Σd budget.
+
+🚨 **Do not attempt routed conduit lengths.** The drawn conduit is not a
+connected network — 47 of 225 in-window endpoints have nothing within a metre,
+and the join tolerance has no plateau between 0.1 mm and 2 m. Shortest-path
+routing was rejected on the B1 change drawing and that rejection has now been
+independently reproduced here. Every distance in this design is an orthogonal
+proxy that will never be reconciled against a routed length; the 70 % packing
+exists to absorb that. See `Amara-Block-C-B1-Controller-Walk-P10.md` §"Why 70 %".
 
 Read the evidence chain in this order:
 
@@ -32,6 +43,8 @@ Read the evidence chain in this order:
 3. [P06 provisional overlay audit](p06-overlay-audit.md)
 4. [P07 infrastructure audit](p07-infrastructure-audit.md)
 5. [P08 room-boundary audit](p08-room-boundary-audit.md)
+6. [P09 zoning study](p09-zoning-study.md)
+7. [P10 controller walk](p10-controller-walk.md)
 
 ## What the user is trying to produce
 
@@ -276,7 +289,7 @@ Required MCP sequence:
 CadSoft MCP inspects drawings, layers and placed entities and can temporarily
 change the view.
 
-**As of CadSoft v0.4.0 (2026-08-13) it can also write.** `get_capabilities` on
+**As of CadSoft v0.4.0 it can also write, and v0.5.0 widened it further.** `get_capabilities` on
 the current build reports `edit_source_entities` and `filesystem_export` among
 its enabled scopes, so the server can move and delete source entities, author
 wires and device ports, run and commit electrical capture, and export DWG
@@ -295,7 +308,9 @@ is now upheld by discipline rather than by the tool's inability. Therefore:
   it would affect, and pass `expected_revision`.
 
 Camera control (`get_view`, `set_view`, and the typed `set_view_state`) merged
-from the `combined-mcp-view` proof of concept into `main` and ships in v0.4.0.
+from the `combined-mcp-view` proof of concept into `main`. v0.5.0 adds
+`reload_drawing`, project lifecycle and room/wall/device authoring — 94 tools
+at protocol 7.
 It changes only the plan camera, never drawing content.
 
 After a CadSoft upgrade, restart every MCP client. A stale client returns
@@ -363,7 +378,7 @@ file is Amara-Block-C-B1-Existing-Infrastructure-Review-P07.dxf in E1.1
 model-space millimetres. Call list_layers before proposing any visibility
 change and wait for my explicit approval before changing the visible layers.
 
-This server can write: v0.4.0 enables edit_source_entities and
+This server can write: v0.5.0 enables edit_source_entities and
 filesystem_export by default. Treat this engagement as read-only. Do not call
 move_entities, delete_entities, draw_wire, move_wire_endpoint, delete_wire, any
 *_device_port, any *_electrical_capture, any *_plot, export_dwg, undo or redo.

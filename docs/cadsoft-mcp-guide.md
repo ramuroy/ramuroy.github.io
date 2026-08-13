@@ -9,9 +9,12 @@ CadSoft exposes structured drawing information. It is therefore more reliable
 for audits, counts, layer analysis, bounds, and entity inspection than treating
 a drawing as a screenshot.
 
-> **Revised 2026-08-13 for CadSoft v0.4.0.** Earlier revisions of this guide
+> **Revised 2026-08-13 for CadSoft v0.5.0.** Earlier revisions of this guide
 > described the server as read-mostly and stated that it could not edit geometry
-> or save a DWG. **That is no longer true.** v0.4.0 exposes 41 tools, and
+> or save a DWG. **That is no longer true.** v0.4.0 exposed 41 tools and write
+> access; **v0.5.0 exposes 94 tools at protocol 7**, adding project lifecycle
+> (`open_drawing`, `reload_drawing`, `save_project`, `close_drawing`),
+> room/wall/device/annotation authoring, and live legends. On v0.5.0
 > `get_capabilities` reports the `edit_source_entities` and `filesystem_export`
 > scopes as enabled by default. An agent connected to this server can move and
 > delete source entities, author wires and device ports, and write DWG files.
@@ -70,7 +73,7 @@ The server can:
 - temporarily isolate selected layers; and
 - temporarily show every layer.
 
-Since v0.4.0 the server can also write. These are grouped so an operator can
+Since v0.4.0 the server can also write, and v0.5.0 widened it further. These are grouped so an operator can
 recognize them, and none of them should be called against a client source
 drawing unless the owner has named both the target and the change:
 
@@ -143,13 +146,13 @@ For a read-only audit, do not change the view.
 
 Tool availability is build-dependent, and a client discovers its catalogue only
 when it connects. The camera tools were a proof of concept on branch
-`combined-mcp-view`; they merged into `main` and ship in **v0.4.0**, whose
-41-tool catalogue is the reference for this guide. `docs/MCP.md` in the CadSoft
+`combined-mcp-view`; they merged into `main`. **v0.5.0's 94-tool catalogue at
+protocol 7 is the reference for this guide.** `docs/MCP.md` in the CadSoft
 repository is the authoritative per-tool schema.
 
 **After upgrading CadSoft, restart every MCP client.** An already-running
 server process keeps executing the replaced binary, and the session manifest is
-versioned, so a v0.3.x client against a v0.4.0 application fails with
+versioned, so an older client against a newer application fails with
 `no reachable CadSoft session is running` — the same message it returns when
 the application is genuinely closed. Retrying never clears it; only a client
 restart does. Verify with `get_capabilities`: a `protocol_version` of 2 and a
@@ -200,15 +203,16 @@ enormous. Validate the relevant region using layer and entity bounds.
 {}
 ```
 
-New in v0.4.0, and the correct first call in any session. It returns
+The correct first call in any session. It returns
 `protocol_version`, the current `revision`, the enabled `scopes`, a `features`
 list, and the `coordinate_frames` the session understands
 (`drawing_world`, `plan_local`, `paper`, `screen`).
 
-A v0.4.0 session typically returns these scopes:
+A v0.5.0 session typically returns these scopes:
 
 ```text
-read · view_control · edit_project · edit_source_entities · filesystem_export
+read · view_control · edit_project · edit_source_entities
+· project_lifecycle · filesystem_read · filesystem_export
 ```
 
 Read that list before trusting any description of what the server will not do.
@@ -392,7 +396,7 @@ this is a broad view change, repeat the exact layer list and wait for approval.
 Temporarily shows all layers, including layers initially off or frozen. Call it
 only after listing layers and receiving approval.
 
-### Other v0.4.0 read tools
+### Other read tools
 
 Summarized here; `docs/MCP.md` in the CadSoft repository carries the exact
 schemas.
@@ -405,9 +409,13 @@ schemas.
   entity, measurements, plan-local position, room, legend, and schedule row.
   Note that its position is expressed relative to the detected plan's
   lower-left origin, not in world coordinates.
+- `get_entity` returns **complete polyline vertex arrays** with each vertex's
+  outgoing `bulge`, widths and `plan_world_position`. A non-zero bulge
+  describes the segment to the next native vertex, wrapping to the first only
+  when `closed` is true. Ignoring bulge silently chords arc segments, so any
+  length derived without it is wrong for curved runs.
 - `get_electrical` returns recognized `devices`, `wires`, `conduits` and
-  `shafts`, each with `length_drawing_units`. This is the only bulk-length
-  route in the server.
+  `shafts`, each with `length_drawing_units`.
 
   ⚠️ It reports CadSoft's **electrical model**, not raw source geometry. A
   consultant drawing does not arrive with one; geometry becomes electrical
@@ -571,7 +579,8 @@ If `get_session` returns `no reachable CadSoft session is running`:
 **The same message means two different things.** It is returned both when no
 application is reachable and when a client is too old to speak to the one that
 is. The session manifest is versioned, so a v0.3.x `cadsoft-mcp` against a
-v0.4.0 application fails exactly this way, and retrying never clears it.
+newer application fails exactly this way, and retrying never clears it. Since
+v0.5.0 the message names both versions and the required action explicitly.
 
 After upgrading CadSoft:
 
@@ -603,7 +612,7 @@ If the MCP tools are absent from a new terminal:
 6. If some tools are present but others are missing, the client is connected to
    an older build. Confirm the desktop application and `cadsoft-mcp` came from
    the same build, then restart the client so it refreshes its tool catalogue.
-   A v0.4.0 catalogue has 41 tools.
+   A v0.5.0 catalogue has 94 tools.
 
 ## 9. Current project handoff example
 
