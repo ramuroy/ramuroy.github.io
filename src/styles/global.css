@@ -419,6 +419,21 @@ html.boot-hold .hero .po, html.boot-hold .hero__lead em::after { animation-play-
 .star { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--warn); display: inline-flex; align-items: center; gap: 0.3em; }
 
 /* Partition-map exhibit (T2.5) */
+/* Measured-outcome table (T1.1). Deliberately heavier than .spec: params are
+   description, metrics are evidence, and the card should read that difference. */
+.metrics { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--code-bg); overflow: hidden; }
+.metrics__label { font-family: var(--font-mono); font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.14em; color: var(--silkscreen); padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
+/* -1px + overflow:hidden clips the final row's rule whatever the row count is,
+   so no :nth-child arithmetic has to know how many metrics a card has. */
+.metrics__list { display: grid; grid-template-columns: 1fr 1fr; margin-bottom: -1px; }
+@media (max-width: 620px) { .metrics__list { grid-template-columns: 1fr; } }
+.metrics__row { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); min-width: 0; }
+@media (min-width: 621px) { .metrics__row:nth-child(odd):not(:last-child) { border-right: 1px solid var(--border); } }
+.metrics__row dt { font-family: var(--font-mono); font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.1em; color: var(--label); }
+.metrics__row dd { text-align: right; min-width: 0; }
+.metrics__v { display: block; color: var(--accent-text); font-size: var(--fs-small); font-weight: 500; font-variant-numeric: tabular-nums; }
+.metrics__note { display: block; font-family: var(--font-mono); font-size: 0.64rem; color: var(--muted); letter-spacing: 0.04em; margin-top: 2px; }
+
 .pmap { margin: 0; }
 .pmap__bar { display: flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--code-bg); }
 .pmap__seg { flex: var(--w, 1) 1 0; min-width: 0; padding: 0.4rem 0.5rem 0.45rem; display: flex; flex-direction: column; gap: 2px; border-right: 1px solid var(--border); font-family: var(--font-mono); }

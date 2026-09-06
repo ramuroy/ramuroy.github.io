@@ -51,6 +51,23 @@ const showDot = (v: string) => v === "deployed" || v === "production";
             </dl>
           </div>
 
+          {p.metrics && (
+            <div class="metrics">
+              <div class="metrics__label">Measured</div>
+              <dl class="metrics__list">
+                {p.metrics.map((m) => (
+                  <div class="metrics__row">
+                    <dt>{m.k}</dt>
+                    <dd>
+                      <span class="metrics__v">{m.v}</span>
+                      {m.note && <span class="metrics__note">{m.note}</span>}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
+
           {p.partitions && <PartitionMap {...p.partitions} />}
 
           <details class="pcard__details">

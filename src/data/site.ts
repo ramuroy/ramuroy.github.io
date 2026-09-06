@@ -123,6 +123,12 @@ export type Flagship = {
   highlights: string[];
   tech: string[];
   params: { k: string; v: string; active?: boolean }[];
+  /** Measured outcomes (T1.1). Rendered as a bordered datasheet table, separate
+      from `params`: params describe *what a thing is*, metrics record *what was
+      measured*. Every row must be a number with evidence behind it — invoices,
+      instruments, or a tool's own output. `note` carries the qualifier that
+      keeps the number honest (see docs/design-specs/h1-hardware-and-pcb.md §4). */
+  metrics?: { k: string; v: string; note?: string }[];
   /** Partition/slot exhibit (T2.5). Weights are visual proportions only —
       captions say "scheme"/"layout" deliberately; no sizes are claimed (D-016). */
   partitions?: {
