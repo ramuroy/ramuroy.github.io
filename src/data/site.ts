@@ -428,14 +428,15 @@ export const experience: Role[] = [
     location: "Hyderabad, India",
     active: true,
     summary:
-      "Contributing to eOS at Elipse — a custom Yocto-based Linux distribution for the Raspberry Pi 5 — owning the build-and-deploy pipeline, the Rust sensor-fusion framework, and the on-device voice subsystem.",
+      "Contributing to eOS at Elipse — a custom Yocto-based Linux distribution for the Raspberry Pi 5 — owning the build-and-deploy pipeline, the Rust sensor-fusion framework, the on-device voice subsystem, and the control boards the fleet runs on.",
     highlights: [
+      "Design the fleet's control hardware in KiCad with the schematics captured in code via atopile — a 24 V per-room controller (v1 fabbed and in the field, v2 re-spun at 57% less board area) and a 48 V, 16-channel floor controller on a four-layer impedance-controlled stackup — through fabrication release and bench bring-up.",
       "Own the build-and-deploy flow end to end: Yocto recipes across the meta-eos layer with BitBake PR bumps, AUTOREV pinning, and IPK packaging, through the in-house eos-build CLI, WIC images, bmaptool flashing, and RAUC A/B verification.",
       "Built the on-device voice subsystem in Rust: transfer-learned wake word (PyTorch → ONNX → tract), multi-mic best-source fusion across ESP32 satellites, Whisper STT, Piper TTS, and async barge-in.",
       "Authored ESP32 satellite firmware (ESP-IDF v5.2): BLE provisioning with on-chip EC P-256 keygen and X.509 CSR exchange with the hub CA, full NVS lifecycle across OTA, and SNTP-synced audio streaming.",
     ],
     ref: { label: `Full detail: eOS — ${figOf("eos")} above`, href: "#projects" },
-    tags: ["Yocto", "BitBake", "RAUC OTA", "Rust", "D-Bus", "MQTT", "SQLite", "Qt6/QML", "ESP-IDF", "ONNX/tract", "Whisper", "Piper"],
+    tags: ["KiCad", "atopile", "PCB design", "Yocto", "BitBake", "RAUC OTA", "Rust", "D-Bus", "MQTT", "SQLite", "Qt6/QML", "ESP-IDF", "ONNX/tract", "Whisper", "Piper"],
   },
   {
     company: "Radiogeet",
