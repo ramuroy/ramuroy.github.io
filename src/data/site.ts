@@ -300,6 +300,43 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
     noRepoNote: "Elipse · no public repo",
   },
   {
+    slug: "pcbrouter",
+    title: "pcbrouter",
+    tagline: "A KiCad autorouter in Rust — exact integer geometry, judged by KiCad's own DRC",
+    description:
+      "A KiCad-native autorouter and routing verifier written in Rust, grown out of the toolkit that finished the Zone Controller. It reads and writes real KiCad boards, proves its model against pcbnew before it routes anything, checks its own output with KiCad's DRC, and is benchmarked against FreeRouting on a corpus of published hardware.",
+    pills: [
+      { label: "Active dev", variant: "production" },
+      { label: "Apache-2.0", variant: "oss" },
+    ],
+    highlights: [
+      "Built the whole geometry stack on exact integers: board coordinates parse from decimal millimetres straight to integer nanometres, and clearance predicates run on i128 and 256-bit rationals — so no routing decision anywhere rests on a floating-point comparison.",
+      "Made KiCad the arbiter rather than the router's own opinion. The loader's dump matches pcbnew field for field across 1,212 footprints, 4,514 pads, 15,107 segments, 2,350 vias and 108 zones; pad outlines land within 3.1 µm of KiCad's own polygons; and the obstacle index is cross-checked against an independent shapely model on every segment of every board.",
+      "Ported the Python reference router to Rust: the two-layer Olimex ESP32-PoE routes in 71 seconds against 14 minutes 15 seconds, in 58 MB against 605 MB — and where the reference leaves 45 dangling tracks and 6 dangling vias behind, the Rust output draws no new DRC violation at all. Completion caught up once negotiated congestion landed.",
+      "Added PathFinder-style negotiated congestion over a tile graph with exact capacities, with the resulting corridors steering the exact detailed router. It took the same board from 111–118 unconnected down to 96, and produced byte-identical boards across two runs.",
+      "Found two classes of copper the model had been blind to — graphic shapes on copper layers such as net-tie bars, and text on copper layers — then re-measured every earlier result against the corrected model instead of keeping the more flattering numbers.",
+      "Benchmarks against FreeRouting 2.4.1 driven headless through KiCad's own Specctra export and import, on a commit-pinned corpus of published designs: HackRF One, Bus Pirate 5, and Olimex ESP32-PoE in both two- and four-layer form, each with its upstream licence recorded.",
+    ],
+    tech: ["Rust", "KiCad 9/10", "exact integer geometry", "Dijkstra", "PathFinder negotiation", "rip-up & retry", "Python", "shapely", "FreeRouting"],
+    params: [
+      { k: "Language", v: "Rust — no floating point", active: true },
+      { k: "Geometry", v: "exact integers (i128)" },
+      { k: "Search", v: "Dijkstra · rip-up · PathFinder" },
+      { k: "Arbiter", v: "KiCad 10 DRC", active: true },
+      { k: "Corpus", v: "HackRF · Bus Pirate · Olimex ×2" },
+      { k: "Licence", v: "Apache-2.0" },
+    ],
+    metrics: [
+      { k: "Loader fidelity", v: "field-identical to pcbnew", note: "1,212 footprints · 4,514 pads" },
+      { k: "Pad geometry", v: "within 3.1 µm", note: "vs KiCad's own polygons, 4,337 pads" },
+      { k: "Olimex, 2-layer", v: "71 s vs 14 min 15 s", note: "against the Python reference" },
+      { k: "Peak memory", v: "58 MB vs 605 MB", note: "same board, same task" },
+      { k: "New DRC violations", v: "0", note: "on every routed board KiCad judged" },
+      { k: "Reruns", v: "byte-identical", note: "deterministic at 0.25 mm tiles" },
+    ],
+    noRepoNote: "personal project · repo not yet public",
+  },
+  {
     slug: "on-device-voice-subsystem",
     title: "On-Device Voice Subsystem",
     tagline: "A fully on-device, Rust voice pipeline: wake word → STT → TTS",
