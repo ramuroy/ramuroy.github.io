@@ -187,6 +187,51 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
     full: true,
   },
   {
+    slug: "eos-room-controller",
+    title: "eOS Room Controller",
+    tagline: "The 24 V board eOS runs a room from — schematic written as code, fabbed twice",
+    description:
+      "The per-room node of the eOS fleet: dimmable 24 V DC channels for lights and a fan, addressable RGB, wired Ethernet back to the Pi hub over MQTT-TLS, and an I²S microphone bridge. The schematic is captured in code with atopile and laid out in KiCad 9. v1 is fabbed and running in the field; v2 is a full re-spin driven by what v1 did wrong.",
+    pills: [
+      { label: "v1 in the field", variant: "deployed" },
+      { label: "v2 bring-up", variant: "wip" },
+    ],
+    image: {
+      src: "/eos-room-controller-v2.webp",
+      alt: "KiCad 3D render of the eOS Room Controller v2 board: screw terminals along the top edge, four dual MOSFET packages, a PCA9685 in the centre, electrolytic bulk capacitors, and two long header rows for the socketed ESP32-S3-ETH module.",
+      caption: "kicad 3d render — room controller v2, 125 × 100 mm",
+      w: 1200,
+      h: 836,
+    },
+    highlights: [
+      "Wrote the schematic as code in atopile 0.15.7 and laid the board out in KiCad 9; v1 was fabbed and put into service (PCB1–PCB3), and v2 re-spun the whole design at 125 × 100 mm — 57% less board area.",
+      "Rebuilt the power path around what actually failed: v1's MP1584 burned twice and its AMS1117 drifted to ~4.4 V and killed a W5500 rated 3.63 V absolute maximum. v2 answers with five protection stages — 6.3 A SMD fuse → TPS26631 60 V eFuse (reverse polarity, 6 A OCP, 33 V OVP, 18 V UVLO, inrush control) → SMCJ24A TVS → tap fuse → TPS25947 eFuse guarding the whole 5 V rail.",
+      "Ran the PCA9685 at 5 V so it drives the FET gates directly, which deleted all four UCC27524 gate drivers; eight TO-220s and their axial diodes became four dual SMD packages. 81 hand-soldered through-hole parts became roughly 34 placement classes on a stencil-and-reflow board.",
+      "Merged the MCU and Ethernet into one socketed Waveshare ESP32-S3-ETH module — four plug-in modules down to one, five SPI GPIOs freed, and a dead PHY becomes a 30-second swap in a ceiling instead of board surgery.",
+      "Recorded 40 dated design decisions (D1–D40) with rationale and closed every one, including two standing rules the fleet still works to: cut only true redundancy, never performance (D36), and read a part's datasheet before designing it in (D40) — written after a missed common-ground destroyed a radar and two ESP32s.",
+      "Debugged bring-up on the bench: traced a total 24 V rail collapse to an open dV/dT net between the input eFuse's soft-start pin and its capacitor — without soft-start, inrush tripped the retry loop forever and the rail never established.",
+    ],
+    tech: ["atopile", "KiCad 9", "ESP32-S3", "PCA9685", "TPS26631 eFuse", "W5500", "24 V DC", "MOSFET PWM", "I²S", "SMD / PCBA"],
+    params: [
+      { k: "Bus", v: "24 V DC — no mains" },
+      { k: "Outputs", v: "16-ch PWM · 2× RGB", active: true },
+      { k: "Uplink", v: "Ethernet → MQTT-TLS" },
+      { k: "Audio", v: "XVF3800 mic bridge (I²S)" },
+      { k: "Build", v: "atopile → KiCad 9 → PCBA" },
+      { k: "State", v: "v1 in the field · v2 on the bench", active: true },
+    ],
+    metrics: [
+      { k: "Board area", v: "−57%", note: "173×168 → 125×100 mm" },
+      { k: "Bare PCB cost", v: "₹1,260 / board", note: "down from ₹2,120 — invoiced, ex-GST" },
+      { k: "Plug-in modules", v: "4 → 1", note: "one socketed ESP32-S3-ETH" },
+      { k: "Protection stages", v: "0 → 5", note: "fuse · eFuse · TVS · fuse · eFuse" },
+      { k: "PWM channels", v: "8 → 16", note: "PCA9685, zero MCU pins" },
+      { k: "Decisions closed", v: "40 of 40", note: "D1–D40, no open verdicts" },
+    ],
+    noRepoNote: "Elipse · no public repo",
+    full: true,
+  },
+  {
     slug: "industrial-anti-collision-system",
     title: "Industrial Anti-Collision System",
     tagline: "UWB crane anti-collision safety system, deployed at Tata Steel BlueScope",
@@ -250,6 +295,16 @@ export const flagship: Flagship[] = flagshipOrder.map((project, i) => ({
   fig: `FIG. ${String(i + 1).padStart(2, "0")}`,
 }));
 
+/** Resolve a card's derived FIG label by slug, so cross-references elsewhere on
+    the page (the experience entries) survive a reorder. Throws rather than
+    returning a placeholder: a broken cross-reference should fail the build,
+    not ship as "Full detail: above". */
+const figOf = (slug: string): string => {
+  const card = flagship.find((project) => project.slug === slug);
+  if (!card) throw new Error(`figOf: no flagship card has the slug "${slug}"`);
+  return card.fig;
+};
+
 export type GridProject = {
   title: string;
   description: string;
@@ -308,7 +363,7 @@ export const experience: Role[] = [
       "Built the on-device voice subsystem in Rust: transfer-learned wake word (PyTorch → ONNX → tract), multi-mic best-source fusion across ESP32 satellites, Whisper STT, Piper TTS, and async barge-in.",
       "Authored ESP32 satellite firmware (ESP-IDF v5.2): BLE provisioning with on-chip EC P-256 keygen and X.509 CSR exchange with the hub CA, full NVS lifecycle across OTA, and SNTP-synced audio streaming.",
     ],
-    ref: { label: "Full detail: eOS — FIG. 01 above", href: "#projects" },
+    ref: { label: `Full detail: eOS — ${figOf("eos")} above`, href: "#projects" },
     tags: ["Yocto", "BitBake", "RAUC OTA", "Rust", "D-Bus", "MQTT", "SQLite", "Qt6/QML", "ESP-IDF", "ONNX/tract", "Whisper", "Piper"],
   },
   {
@@ -324,7 +379,7 @@ export const experience: Role[] = [
       "Wrote ESP32-S3 dual-core firmware — one core for time-critical UWB ranging, the other for zone logic and the embedded web UI — linked over ESP-NOW and driving 8-channel Masibus relays via MODBUS RTU over RS485.",
       "Interfaced STM32 with AHT10 and ADS1115 — timers, internal ADC/DAC, 2/4-wire RS485, LoRa long-range links, and Masibus DI/DO/AI/AO cards (STM32CubeIDE).",
     ],
-    ref: { label: "Full detail: FIG. 02 above", href: "#projects" },
+    ref: { label: `Full detail: ${figOf("industrial-anti-collision-system")} above`, href: "#projects" },
     tags: ["ESP32-S3", "FreeRTOS dual-core", "UWB", "ESP-NOW", "MODBUS RTU / RS485", "STM32", "LoRa", "Industrial relays"],
   },
   {
