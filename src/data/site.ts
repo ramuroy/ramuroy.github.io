@@ -36,7 +36,7 @@ export const seo = {
     "wake-word detection", "Whisper STT", "Piper TTS", "ONNX tract", "MQTT",
     "D-Bus", "systemd", "UWB ranging", "MODBUS RTU", "RS485", "ESP-NOW",
     "device tree", "BSP", "Qt6 QML", "KiCad PCB design", "sensor fusion",
-    "FreeRTOS", "atopile", "PCB layout", "PCB autorouter", "schematic capture",
+    "FreeRTOS", "PCB layout", "PCB autorouter", "schematic capture",
     "impedance-controlled stackup", "differential pair routing", "eFuse",
     "hardware design engineer", "LAN9354", "PCA9685", "48V lighting control",
     "Hyderabad", "Telangana", "Andhra Pradesh",
@@ -192,9 +192,9 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
   {
     slug: "eos-room-controller",
     title: "eOS Room Controller",
-    tagline: "The 24 V board eOS runs a room from — schematic written as code, fabbed twice",
+    tagline: "The 24 V board eOS runs a room from — designed, fabbed, then re-spun",
     description:
-      "The per-room node of the eOS fleet: dimmable 24 V DC channels for lights and a fan, addressable RGB, wired Ethernet back to the Pi hub over MQTT-TLS, and an I²S microphone bridge. The schematic is captured in code with atopile and laid out in KiCad 9. v1 is fabbed and running in the field; v2 is a full re-spin driven by what v1 did wrong.",
+      "The per-room node of the eOS fleet: dimmable 24 V DC channels for lights and a fan, addressable RGB, wired Ethernet back to the Pi hub over MQTT-TLS, and an I²S microphone bridge. Designed and laid out in KiCad 9. v1 is fabbed and running in the field; v2 is a full re-spin driven by what v1 did wrong.",
     pills: [
       { label: "v1 in the field", variant: "deployed" },
       { label: "v2 bring-up", variant: "wip" },
@@ -207,20 +207,20 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       h: 836,
     },
     highlights: [
-      "Wrote the schematic as code in atopile 0.15.7 and laid the board out in KiCad 9; v1 was fabbed and put into service (PCB1–PCB3), and v2 re-spun the whole design at 125 × 100 mm — 57% less board area.",
+      "Drew the schematic and laid the board out in KiCad 9; v1 was fabbed and put into service (PCB1–PCB3), and v2 re-spun the whole design at 125 × 100 mm — 57% less board area.",
       "Rebuilt the power path around what actually failed: v1's MP1584 burned twice and its AMS1117 drifted to ~4.4 V and killed a W5500 rated 3.63 V absolute maximum. v2 answers with five protection stages — 6.3 A SMD fuse → TPS26631 60 V eFuse (reverse polarity, 6 A OCP, 33 V OVP, 18 V UVLO, inrush control) → SMCJ24A TVS → tap fuse → TPS25947 eFuse guarding the whole 5 V rail.",
       "Ran the PCA9685 at 5 V so it drives the FET gates directly, which deleted all four UCC27524 gate drivers; eight TO-220s and their axial diodes became four dual SMD packages. 81 hand-soldered through-hole parts became roughly 34 placement classes on a stencil-and-reflow board.",
       "Merged the MCU and Ethernet into one socketed Waveshare ESP32-S3-ETH module — four plug-in modules down to one, five SPI GPIOs freed, and a dead PHY becomes a 30-second swap in a ceiling instead of board surgery.",
       "Recorded 40 dated design decisions (D1–D40) with rationale and closed every one, including two standing rules the fleet still works to: cut only true redundancy, never performance (D36), and read a part's datasheet before designing it in (D40) — written after a missed common-ground destroyed a radar and two ESP32s.",
       "Debugged bring-up on the bench: traced a total 24 V rail collapse to an open dV/dT net between the input eFuse's soft-start pin and its capacitor — without soft-start, inrush tripped the retry loop forever and the rail never established.",
     ],
-    tech: ["atopile", "KiCad 9", "ESP32-S3", "PCA9685", "TPS26631 eFuse", "W5500", "24 V DC", "MOSFET PWM", "I²S", "SMD / PCBA"],
+    tech: ["KiCad 9", "ESP32-S3", "PCA9685", "TPS26631 eFuse", "W5500", "24 V DC", "MOSFET PWM", "I²S", "SMD / PCBA"],
     params: [
       { k: "Bus", v: "24 V DC — no mains" },
       { k: "Outputs", v: "16-ch PWM · 2× RGB", active: true },
       { k: "Uplink", v: "Ethernet → MQTT-TLS" },
       { k: "Audio", v: "XVF3800 mic bridge (I²S)" },
-      { k: "Build", v: "atopile → KiCad 9 → PCBA" },
+      { k: "Build", v: "KiCad 9 → full SMD PCBA" },
       { k: "State", v: "v1 in the field · v2 on the bench", active: true },
     ],
     metrics: [
@@ -320,7 +320,7 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       "Gave the logic and the LEDs independent bucks rather than one buck and an LDO: slider sensitivity tracks logic-rail noise, so 30 addressable pixels stepping current must not land on that rail. The 3.3 V buck's input is Schottky-ORed between the 24 V tap and USB VBUS, so the board comes up and flashes on USB alone with the 5 V LED rail dead.",
       "Wrote down what could not be known. The tactile switch's snap ratio is uncomputable because Alps publishes operating force, travel and life for the part but not release force; an earlier revision of the spec quoted 85.7%, that figure belonged to a different, retired switch, and the spec now records the withdrawal and forbids citing a number at all.",
     ],
-    tech: ["atopile", "KiCad 9", "ESP32-S3", "CY8CMBR3116", "WS2812B", "CAN 2.0A", "SELV", "Alps SKQG", "SHT30", "BH1750"],
+    tech: ["KiCad 9", "ESP32-S3", "CY8CMBR3116", "WS2812B", "CAN 2.0A", "SELV", "Alps SKQG", "SHT30", "BH1750"],
     params: [
       { k: "Class", v: "SELV — no mains copper", active: true },
       { k: "Board", v: "145 × 70 mm, 2-layer" },
@@ -344,7 +344,7 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
     title: "pcbrouter",
     tagline: "A KiCad autorouter in Rust — exact integer geometry, judged by KiCad's own DRC",
     description:
-      "A KiCad-native autorouter and routing verifier written in Rust, grown out of the toolkit that finished the Zone Controller. It reads and writes real KiCad boards, proves its model against pcbnew before it routes anything, checks its own output with KiCad's DRC, and is benchmarked against FreeRouting on a corpus of published hardware.",
+      "A KiCad-native autorouter and routing verifier written in Rust, grown out of the toolkit that finished the Zone Controller. It reads and writes real KiCad boards, proves its model against pcbnew before it routes anything, checks its own output with KiCad's DRC, and is benchmarked on a corpus of published hardware.",
     pills: [
       { label: "Active dev", variant: "production" },
       { label: "Apache-2.0", variant: "oss" },
@@ -355,9 +355,9 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       "Ported the Python reference router to Rust: the two-layer Olimex ESP32-PoE routes in 71 seconds against 14 minutes 15 seconds, in 58 MB against 605 MB — and where the reference leaves 45 dangling tracks and 6 dangling vias behind, the Rust output draws no new DRC violation at all. Completion caught up once negotiated congestion landed.",
       "Added PathFinder-style negotiated congestion over a tile graph with exact capacities, with the resulting corridors steering the exact detailed router. It took the same board from 111–118 unconnected down to 96, and produced byte-identical boards across two runs.",
       "Found two classes of copper the model had been blind to — graphic shapes on copper layers such as net-tie bars, and text on copper layers — then re-measured every earlier result against the corrected model instead of keeping the more flattering numbers.",
-      "Benchmarks against FreeRouting 2.4.1 driven headless through KiCad's own Specctra export and import, on a commit-pinned corpus of published designs: HackRF One, Bus Pirate 5, and Olimex ESP32-PoE in both two- and four-layer form, each with its upstream licence recorded.",
+      "Benchmarks on a commit-pinned corpus of published designs — HackRF One, Bus Pirate 5, and Olimex ESP32-PoE in both two- and four-layer form — each board loaded, stripped of every track and via, re-routed from nothing and scored the same way, with its upstream licence recorded.",
     ],
-    tech: ["Rust", "KiCad 9/10", "exact integer geometry", "Dijkstra", "PathFinder negotiation", "rip-up & retry", "Python", "shapely", "FreeRouting"],
+    tech: ["Rust", "KiCad 9/10", "exact integer geometry", "Dijkstra", "PathFinder negotiation", "rip-up & retry", "Python", "shapely"],
     params: [
       { k: "Language", v: "Rust — no floating point", active: true },
       { k: "Geometry", v: "exact integers (i128)" },
@@ -507,13 +507,13 @@ export const experience: Role[] = [
     summary:
       "Contributing to eOS at Elipse — a custom Yocto-based Linux distribution for the Raspberry Pi 5 — owning the build-and-deploy pipeline, the Rust sensor-fusion framework, the on-device voice subsystem, and the control boards the fleet runs on.",
     highlights: [
-      "Design the fleet's control hardware in KiCad with the schematics captured in code via atopile — a 24 V per-room controller (v1 fabbed and in the field, v2 re-spun at 57% less board area) and a 48 V, 16-channel floor controller on a four-layer impedance-controlled stackup — through fabrication release and bench bring-up.",
+      "Design the fleet's control hardware in KiCad — a 24 V per-room controller (v1 fabbed and in the field, v2 re-spun at 57% less board area) and a 48 V, 16-channel floor controller on a four-layer impedance-controlled stackup — through fabrication release and bench bring-up.",
       "Own the build-and-deploy flow end to end: Yocto recipes across the meta-eos layer with BitBake PR bumps, AUTOREV pinning, and IPK packaging, through the in-house eos-build CLI, WIC images, bmaptool flashing, and RAUC A/B verification.",
       "Built the on-device voice subsystem in Rust: transfer-learned wake word (PyTorch → ONNX → tract), multi-mic best-source fusion across ESP32 satellites, Whisper STT, Piper TTS, and async barge-in.",
       "Authored ESP32 satellite firmware (ESP-IDF v5.2): BLE provisioning with on-chip EC P-256 keygen and X.509 CSR exchange with the hub CA, full NVS lifecycle across OTA, and SNTP-synced audio streaming.",
     ],
     ref: { label: `Full detail: eOS — ${figOf("eos")} above`, href: "#projects" },
-    tags: ["KiCad", "atopile", "PCB design", "Yocto", "BitBake", "RAUC OTA", "Rust", "D-Bus", "MQTT", "SQLite", "Qt6/QML", "ESP-IDF", "ONNX/tract", "Whisper", "Piper"],
+    tags: ["KiCad", "PCB design", "Yocto", "BitBake", "RAUC OTA", "Rust", "D-Bus", "MQTT", "SQLite", "Qt6/QML", "ESP-IDF", "ONNX/tract", "Whisper", "Piper"],
   },
   {
     company: "Radiogeet",
@@ -553,8 +553,8 @@ export const skillGroups = [
   { name: "On-Device ML & Voice", blurb: "Wake-word, speech, and sensor inference running entirely on the edge.", items: ["PyTorch", "ONNX", "tract (Rust)", "Transfer learning", "KWS", "VAD", "Mel-spectrogram", "Whisper STT", "Piper TTS", "Multi-mic fusion", "Barge-in"], core: ["PyTorch", "ONNX", "tract (Rust)"] },
   { name: "Languages", blurb: "Systems and application languages I write production code in.", items: ["C", "Embedded C/C++", "Rust (async/Tokio)", "Python", "MATLAB"], core: ["Embedded C/C++", "Rust (async/Tokio)"] },
   { name: "Sensors & Peripherals", blurb: "Radar, air-quality, and industrial I/O I interface and calibrate.", items: ["HLK-C4001 mmWave radar", "HLK-LD6001A radar", "PIR motion", "PM/VOC/CO₂ air-quality", "SHT40", "SHT30", "TSL2591", "BH1750", "AHT10", "ADS1115 ADC", "INA226 / INA238", "PCA9685 PWM", "CY8CMBR3116 capacitive touch", "WS2812B addressable LEDs", "UWB modules", "Masibus DI/DO/AI/AO", "Industrial relays"], core: [] },
-  { name: "PCB & Hardware", blurb: "Schematic to fabricated board — capture, layout, release, bring-up.", items: ["KiCad 9/10", "atopile", "Schematic capture", "PCB layout & routing", "ERC / DRC", "Impedance-controlled stackups", "100 Ω differential pairs", "eFuse protection chains", "Power-supply design", "SELV design", "Capacitive-touch electrode layout", "Gerber / CAM release", "BOM & sourcing", "Bring-up, rework & fault-finding", "Raspberry Pi 5", "ESP32 / ESP32-S3", "STM32"], core: ["KiCad 9/10", "atopile", "PCB layout & routing"] },
-  { name: "UI & Tooling", blurb: "The build flow, IDEs, and front-end that ship the work.", items: ["Qt6/QML", "Git / GitHub", "STM32CubeIDE", "ESP-IDF", "kas", "BitBake", "pcbnew scripting", "FreeRouting"], core: [] },
+  { name: "PCB & Hardware", blurb: "Schematic to fabricated board — capture, layout, release, bring-up.", items: ["KiCad 9/10", "Schematic capture", "PCB layout & routing", "ERC / DRC", "Impedance-controlled stackups", "100 Ω differential pairs", "eFuse protection chains", "Power-supply design", "SELV design", "Capacitive-touch electrode layout", "Gerber / CAM release", "BOM & sourcing", "Bring-up, rework & fault-finding", "Raspberry Pi 5", "ESP32 / ESP32-S3", "STM32"], core: ["KiCad 9/10", "Schematic capture", "PCB layout & routing"] },
+  { name: "UI & Tooling", blurb: "The build flow, IDEs, and front-end that ship the work.", items: ["Qt6/QML", "Git / GitHub", "STM32CubeIDE", "ESP-IDF", "kas", "BitBake", "pcbnew scripting"], core: [] },
 ];
 
 export const protocols = ["UART", "SPI", "I²C", "CAN", "RS485 (MODBUS RTU)", "MQTT", "D-Bus", "BLE", "Wi-Fi", "ESP-NOW", "LoRa", "UWB"];
