@@ -16,13 +16,22 @@ until the résumé is refreshed.
 
 ### Added
 
-- **Three flagship cards.** *eOS Room Controller* (FIG. 02) — the 24 V per-room
+- **Five flagship cards.** *eOS Room Controller* (FIG. 02) — the 24 V per-room
   board, schematic captured in code with atopile and laid out in KiCad 9, v1
   fabbed and in the field, v2 re-spun at 57 % less area. *eOS Zone Controller*
   (FIG. 04) — 48 V, 16 channels, four layers on an impedance-controlled stackup,
   one board per floor across 25 floors; in routing, fabrication on hold.
   *pcbrouter* (FIG. 05) — a KiCad-native autorouter and routing verifier in Rust,
   built on exact integer geometry and judged by KiCad's own DRC.
+  *eOS Switchboard* (FIG. 05) — the SELV wall keypad that switches nothing
+  itself: capacitive slider on an external touch controller, twelve tactile
+  switches under six keys, CAN uplink; fabricated, board #1 brought up.
+  *Ember* (FIG. 06) — a personal OS with systemd removed and replaced by two
+  programs written from scratch in Rust: `spark`, a PID 1 and service manager,
+  and `hearth`, the login shell. Boots an HP Victus over UEFI with signed A/B
+  updates and unaided rollback.
+  Scope for the last two was extended by the owner mid-pass; the reasoning and
+  the attribution re-check are in the spec's H1a addendum.
 - **`metrics[]` on flagship cards (T1.1):** measured outcomes as a bordered
   datasheet table, distinct from `params` — params say what a thing is, metrics
   say what was measured. Every row is sourced in the build spec's evidence table.
@@ -37,6 +46,9 @@ until the résumé is refreshed.
   inserting a project no longer means hand-renumbering the ones below it.
   Experience cross-references resolve their label through `figOf(slug)`, which
   throws at build time rather than shipping a broken reference.
+- **Linux Internals skills** now describe authoring an init rather than only
+  using one — PID 1, service supervision, cgroup v2, epoll loops, signal
+  reaping — since Ember removes systemd and replaces it.
 - **PCB & Hardware skills** rewritten around the actual practice — atopile,
   ERC/DRC, impedance stackups, differential pairs, eFuse protection chains,
   CAM release, bring-up and rework — instead of "KiCad, schematic capture,

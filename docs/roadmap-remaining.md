@@ -7,9 +7,10 @@ roadmap with full implementation sketches), `audit-data-2026-07-16.json`
 §7 lists. Update the Status column as items land; delete rows only when shipped.
 
 **Hardware & PCB pass, 2026-09-07 (branch, awaiting owner review and the CV
-refresh before merge):** three new flagship cards — eOS Room Controller, eOS
-Zone Controller and pcbrouter — plus the `metrics[]` and `image` fields they
-introduced, a rewritten PCB & Hardware skills group, the Elipse hardware bullet
+refresh before merge):** five new flagship cards — eOS Room Controller, eOS
+Zone Controller, eOS Switchboard, pcbrouter and Ember (scope extended by the
+owner mid-pass; see the spec's H1a addendum) — plus the `metrics[]` and
+`image` fields they introduced, a rewritten PCB & Hardware skills group, the Elipse hardware bullet
 and hardware SEO terms. Build spec: [`design-specs/h1-hardware-and-pcb.md`](design-specs/h1-hardware-and-pcb.md).
 **Merge blocker:** the June 2026 CV export describes none of this work, so
 D-016 holds the branch out of `main` until the résumé is refreshed.
@@ -39,7 +40,7 @@ See CHANGELOG and the 2026-07-17 checkpoint.
 
 | # | Item | Effort | Status |
 |---|---|---|---|
-| T1.1 | Measured outcomes as datasheet tables on every flagship (`metrics[]` per project) | M | **PARTIAL 2026-09-07** — `metrics[]` shipped, carried by the three hardware cards (H1); eOS, anti-collision and voice still need I1 |
+| T1.1 | Measured outcomes as datasheet tables on every flagship (`metrics[]` per project) | M | **PARTIAL 2026-09-07** — `metrics[]` shipped, carried by five new cards (H1); eOS, anti-collision and voice still need I1 |
 | T1.2 | Restructure for the 30-second screen | M | **SHIPPED 2026-07-17** |
 | T1.3 | Scope-honest verbs + D-016 rule | S | **SHIPPED 2026-07-17** |
 | T1.4 | Contact conversion: EMAIL ME + CV in sticky nav, prefilled mailto subject, logistics rows in contact | S | partial (needs I2) |
