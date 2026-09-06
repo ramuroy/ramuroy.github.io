@@ -16,17 +16,18 @@ until the résumé is refreshed.
 
 ### Added
 
-- **Five flagship cards.** *eOS Room Controller* (FIG. 02) — the 24 V per-room
+- **Five flagship cards.** Section order after this pass: eOS · Room Controller ·
+  Anti-Collision · Zone Controller · Switchboard · pcbrouter · Ember · Voice.
+  FIG labels are derived from that order, so they are not quoted here. *eOS Room Controller* — the 24 V per-room
   board, schematic captured in code with atopile and laid out in KiCad 9, v1
-  fabbed and in the field, v2 re-spun at 57 % less area. *eOS Zone Controller*
-  (FIG. 04) — 48 V, 16 channels, four layers on an impedance-controlled stackup,
+  fabbed and in the field, v2 re-spun at 57 % less area. *eOS Zone Controller* — 48 V, 16 channels, four layers on an impedance-controlled stackup,
   one board per floor across 25 floors; in routing, fabrication on hold.
-  *pcbrouter* (FIG. 05) — a KiCad-native autorouter and routing verifier in Rust,
+  *pcbrouter* — a KiCad-native autorouter and routing verifier in Rust,
   built on exact integer geometry and judged by KiCad's own DRC.
-  *eOS Switchboard* (FIG. 05) — the SELV wall keypad that switches nothing
+  *eOS Switchboard* — the SELV wall keypad that switches nothing
   itself: capacitive slider on an external touch controller, twelve tactile
   switches under six keys, CAN uplink; fabricated, board #1 brought up.
-  *Ember* (FIG. 06) — a personal OS with systemd removed and replaced by two
+  *Ember* — a personal OS with systemd removed and replaced by two
   programs written from scratch in Rust: `spark`, a PID 1 and service manager,
   and `hearth`, the login shell. Boots an HP Victus over UEFI with signed A/B
   updates and unaided rollback.

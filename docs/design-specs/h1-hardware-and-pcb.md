@@ -105,9 +105,12 @@ overruled that the same day:** "Add about Ember and Switchboard also. Even if
 not in front, somewhere." The original §5 is left as written — D-017 keeps
 specs as historical documents — and this addendum records what changed.
 
-**Added:** *eOS Switchboard* (FIG. 05) and *Ember* (FIG. 06). Eight flagship
-cards now, which also happens to pair evenly in the two-column grid: two
-full-width cards followed by three rows of two.
+**Added:** *eOS Switchboard* and *Ember*. Eight flagship cards now, in the
+order eOS · Room Controller · Anti-Collision · Zone Controller · Switchboard ·
+pcbrouter · Ember · Voice — which also pairs evenly in the two-column grid:
+two full-width cards followed by three rows of two. FIG labels are derived
+from that order and deliberately not quoted in prose, because inserting the
+switchboard mid-pass already shifted pcbrouter and Ember by one.
 
 **Attribution, re-checked for the switchboard.** Its own prose — `README.md`,
 the fabrication handoff, `THEORY-OF-OPERATION.md` and a review — names a
