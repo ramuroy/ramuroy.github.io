@@ -36,7 +36,10 @@ export const seo = {
     "wake-word detection", "Whisper STT", "Piper TTS", "ONNX tract", "MQTT",
     "D-Bus", "systemd", "UWB ranging", "MODBUS RTU", "RS485", "ESP-NOW",
     "device tree", "BSP", "Qt6 QML", "KiCad PCB design", "sensor fusion",
-    "FreeRTOS", "Hyderabad", "Telangana", "Andhra Pradesh",
+    "FreeRTOS", "atopile", "PCB layout", "PCB autorouter", "schematic capture",
+    "impedance-controlled stackup", "differential pair routing", "eFuse",
+    "hardware design engineer", "LAN9354", "PCA9685", "48V lighting control",
+    "Hyderabad", "Telangana", "Andhra Pradesh",
   ],
 };
 
