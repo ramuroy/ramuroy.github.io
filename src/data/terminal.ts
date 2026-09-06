@@ -2,10 +2,11 @@
    TERMINAL DATA (T3.5) — every output line is derived from site.ts
    (D-009). No resume claims are authored here (D-016); the only literals
    are shell furniture and public datasheet constants (AHT10 = 0x38,
-   ADS1115 = 0x48), and the i2c output labels itself as bench parts from
-   FIG. 02, not properties of this webpage.
+   ADS1115 = 0x48), and the i2c output labels itself as bench parts from the
+   anti-collision card — resolved through figOf, never typed — rather than as
+   properties of this webpage.
    ===================================================================== */
-import { bootLines, education, experience, flagship, gridProjects, hero, nav, profile, termPrompt } from "./site";
+import { bootLines, education, experience, figOf, flagship, gridProjects, hero, nav, profile, termPrompt } from "./site";
 
 export const PROMPT = termPrompt;
 export const sectionIds = nav.map((n) => n.href.slice(1));
@@ -86,9 +87,14 @@ export const i2cLines = [
   "60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --",
   "70: -- -- -- -- -- -- -- --",
 ];
-export const i2cNote = "# 0x38 aht10 · 0x48 ads1115 — bench parts (fig. 02), not this webpage";
+/* The AHT10 and ADS1115 are the STM32 bench parts of the anti-collision build,
+   so both strings point at that card by slug. The literals that used to live
+   here went stale the moment new cards were inserted above it. */
+const benchFig = figOf("industrial-anti-collision-system");
+const benchFigNum = parseInt(benchFig.replace(/\D/g, ""), 10);
+export const i2cNote = `# 0x38 aht10 · 0x48 ads1115 — bench parts (${benchFig.toLowerCase()}), not this webpage`;
 export const i2cSummary =
-  "i2c scan: devices at 0x38 (AHT10) and 0x48 (ADS1115) — bench parts from figure 2, not this webpage.";
+  `i2c scan: devices at 0x38 (AHT10) and 0x48 (ADS1115) — bench parts from figure ${benchFigNum}, not this webpage.`;
 
 export const motdLine = "connected /dev/ttyPF0 115200 8N1 — type 'help'";
 export const sudoLine = "rr is not in the sudoers file. this incident will be reported.";

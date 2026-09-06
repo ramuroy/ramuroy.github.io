@@ -123,7 +123,7 @@ holds for this board on the evidence, not only on the owner's word.
 
 **One nuance recorded for honesty:** on the *zone controller*, the v1
 `.kicad_pcb` / `.kicad_sch` are the colleague's (32 and 11 commits). The v2
-board that FIG. 04 actually describes is not — its schematics are 36 commits
+board the zone-controller card actually describes is not — its schematics are 36 commits
 by the owner and its board file 8, with none by the colleague — and the card's
 single v1 claim is the routing closeout, which is the owner's work in a folder
 where he leads 113 commits to 53.

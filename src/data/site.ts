@@ -444,10 +444,10 @@ export const flagship: Flagship[] = flagshipOrder.map((project, i) => ({
 }));
 
 /** Resolve a card's derived FIG label by slug, so cross-references elsewhere on
-    the page (the experience entries) survive a reorder. Throws rather than
+    the page (the experience entries, the terminal's i2c note) survive a reorder. Throws rather than
     returning a placeholder: a broken cross-reference should fail the build,
     not ship as "Full detail: above". */
-const figOf = (slug: string): string => {
+export const figOf = (slug: string): string => {
   const card = flagship.find((project) => project.slug === slug);
   if (!card) throw new Error(`figOf: no flagship card has the slug "${slug}"`);
   return card.fig;
