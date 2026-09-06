@@ -3,6 +3,56 @@
 This project follows a lightweight, date-based changelog. Entries describe changes
 that affect the source, generated site, development workflow, or deployment safety.
 
+## Unreleased — 2026-09-07: the hardware and PCB pass
+
+Branch: `codex/site-hardening-20260713`. Built from
+[`docs/design-specs/h1-hardware-and-pcb.md`](docs/design-specs/h1-hardware-and-pcb.md)
+per D-017, after a sweep of the owner's eOS and personal repositories established
+what board work exists and who authored it (git shortlog, per board).
+
+**Not merge-ready.** The June 2026 CV export describes none of this work, so
+D-016 — the site must never outbid the résumé — holds this branch out of `main`
+until the résumé is refreshed.
+
+### Added
+
+- **Three flagship cards.** *eOS Room Controller* (FIG. 02) — the 24 V per-room
+  board, schematic captured in code with atopile and laid out in KiCad 9, v1
+  fabbed and in the field, v2 re-spun at 57 % less area. *eOS Zone Controller*
+  (FIG. 04) — 48 V, 16 channels, four layers on an impedance-controlled stackup,
+  one board per floor across 25 floors; in routing, fabrication on hold.
+  *pcbrouter* (FIG. 05) — a KiCad-native autorouter and routing verifier in Rust,
+  built on exact integer geometry and judged by KiCad's own DRC.
+- **`metrics[]` on flagship cards (T1.1):** measured outcomes as a bordered
+  datasheet table, distinct from `params` — params say what a thing is, metrics
+  say what was measured. Every row is sourced in the build spec's evidence table.
+- **`image` on flagship cards (T2.2):** board renders with a required intrinsic
+  size, so the card cannot reflow as the picture decodes, and a caption that
+  states the image is a CAD render rather than a photograph. First asset: the
+  Room Controller v2 render (WebP, 123 KB).
+
+### Changed
+
+- **FIG numbers are derived from array order**, not authored per card, so
+  inserting a project no longer means hand-renumbering the ones below it.
+  Experience cross-references resolve their label through `figOf(slug)`, which
+  throws at build time rather than shipping a broken reference.
+- **PCB & Hardware skills** rewritten around the actual practice — atopile,
+  ERC/DRC, impedance stackups, differential pairs, eFuse protection chains,
+  CAM release, bring-up and rework — instead of "KiCad, schematic capture,
+  layout", which described a student project equally well.
+- **Elipse role** gains a board-design bullet and names the control boards in
+  its summary. Declared deviation from T1.2's three-bullet limit: the fourth
+  bullet covers a domain the other three do not touch.
+- **About** says the boards are sent to fabrication, not merely drawn; SEO
+  keywords gain the hardware vocabulary.
+
+### Fixed
+
+- **Metrics table column count follows the card, not the viewport.** Keyed to a
+  media query, a half-width card took two columns at desktop widths and shredded
+  its values across three lines; it is now an inline-size container query.
+
 ## Released 2026-07-18 — Tier 3: platform craft and the terminal
 
 Branch: `codex/site-hardening-20260713`. Implemented from committed build specs
