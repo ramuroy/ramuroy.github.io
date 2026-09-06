@@ -19,7 +19,7 @@ until the résumé is refreshed.
 - **Five flagship cards.** Section order after this pass: eOS · Room Controller ·
   Anti-Collision · Zone Controller · Switchboard · pcbrouter · Ember · Voice.
   FIG labels are derived from that order, so they are not quoted here. *eOS Room Controller* — the 24 V per-room
-  board, schematic captured in code with atopile and laid out in KiCad 9, v1
+  board, schematic and layout in KiCad 9, v1
   fabbed and in the field, v2 re-spun at 57 % less area. *eOS Zone Controller* — 48 V, 16 channels, four layers on an impedance-controlled stackup,
   one board per floor across 25 floors; in routing, fabrication on hold.
   *pcbrouter* — a KiCad-native autorouter and routing verifier in Rust,
@@ -50,8 +50,8 @@ until the résumé is refreshed.
 - **Linux Internals skills** now describe authoring an init rather than only
   using one — PID 1, service supervision, cgroup v2, epoll loops, signal
   reaping — since Ember removes systemd and replaces it.
-- **PCB & Hardware skills** rewritten around the actual practice — atopile,
-  ERC/DRC, impedance stackups, differential pairs, eFuse protection chains,
+- **PCB & Hardware skills** rewritten around the actual practice — schematic
+  capture, ERC/DRC, impedance stackups, differential pairs, eFuse protection chains,
   CAM release, bring-up and rework — instead of "KiCad, schematic capture,
   layout", which described a student project equally well.
 - **Elipse role** gains a board-design bullet and names the control boards in

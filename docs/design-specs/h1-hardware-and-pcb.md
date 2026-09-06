@@ -57,8 +57,8 @@ cluster follows, and the two in-progress cards sit last:
 
 ### 3.3 Supporting content
 
-- Skills: a **PCB & Hardware** group rewritten around real practice (atopile,
-  KiCad 9, ERC/DRC, impedance stackups, eFuse protection chains, gerber/CAM
+- Skills: a **PCB & Hardware** group rewritten around real practice (KiCad 9,
+  schematic capture, ERC/DRC, impedance stackups, eFuse protection chains, gerber/CAM
   release, bring-up and rework).
 - Experience: one Elipse bullet for the board work.
 - SEO keywords and description gain the hardware terms.
@@ -115,7 +115,7 @@ switchboard mid-pass already shifted pcbrouter and Ember by one.
 **Attribution, re-checked for the switchboard.** Its own prose — `README.md`,
 the fabrication handoff, `THEORY-OF-OPERATION.md` and a review — names a
 colleague as "PCB designer" / "board author". The design sources say
-otherwise: `main.ato` (the atopile schematic) is 27 commits, all the owner's,
+otherwise: the schematic source is 27 commits, all the owner's,
 and the released `switchboardwithoutslider.kicad_pcb` is 24, also all his; the
 colleague's commits in that folder are bring-up notes, purchasing quantities
 and Arduino bench firmware, and touch no design file. Decision H-a therefore
@@ -128,6 +128,13 @@ by the owner and its board file 8, with none by the colleague — and the card's
 single v1 claim is the routing closeout, which is the owner's work in a folder
 where he leads 113 commits to 53.
 
+**Tooling names are omitted from published copy** (owner instruction,
+2026-09-07): the site and these documents do not name the schematic-capture
+tool used for the boards, nor the router pcbrouter is benchmarked against. No
+claim depends on either name — the boards were laid out in KiCad and the cards
+say so, and the benchmark is described by its method and its corpus. A later
+session must not reintroduce them as "missing detail".
+
 **Cover node** stays out of scope; it has a design spec and research note but
 no fabricated board or measured outcome to carry a card.
 
@@ -135,7 +142,7 @@ no fabricated board or measured outcome to carry a card.
 
 | Claim | Source |
 |---|---|
-| Switchboard: 1.4 %/mm over 69 mm, 24 indicators, v0.2's 26 mm at 3.8 %/mm | `eos-switchboard/main.ato` header, LOCKED SPEC |
+| Switchboard: 1.4 %/mm over 69 mm, 24 indicators, v0.2's 26 mm at 3.8 %/mm | `eos-switchboard` schematic source header, LOCKED SPEC |
 | S3 touch peripheral disqualified on Espressif's conducted-susceptibility statement | ibid. |
 | 14 segments at 0.19 mm error vs 24 at 1.62 mm; three-point centroid | ibid. |
 | Two Alps SKQG per key at ±9 mm, 160 gf each | ibid. |
