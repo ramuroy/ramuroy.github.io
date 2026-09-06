@@ -428,14 +428,19 @@ html.boot-hold .hero .po, html.boot-hold .hero__lead em::after { animation-play-
 
 /* Measured-outcome table (T1.1). Deliberately heavier than .spec: params are
    description, metrics are evidence, and the card should read that difference. */
-.metrics { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--code-bg); overflow: hidden; }
+/* A container query, not a media query: a half-width card is narrow at every
+   viewport size, so column count has to follow the card's own width or the
+   values wrap to three lines on desktop. */
+.metrics { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--code-bg); overflow: hidden; container-type: inline-size; }
 .metrics__label { font-family: var(--font-mono); font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.14em; color: var(--silkscreen); padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
 /* -1px + overflow:hidden clips the final row's rule whatever the row count is,
    so no :nth-child arithmetic has to know how many metrics a card has. */
-.metrics__list { display: grid; grid-template-columns: 1fr 1fr; margin-bottom: -1px; }
-@media (max-width: 620px) { .metrics__list { grid-template-columns: 1fr; } }
+.metrics__list { display: grid; grid-template-columns: 1fr; margin-bottom: -1px; }
 .metrics__row { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); min-width: 0; }
-@media (min-width: 621px) { .metrics__row:nth-child(odd):not(:last-child) { border-right: 1px solid var(--border); } }
+@container (min-width: 34rem) {
+  .metrics__list { grid-template-columns: 1fr 1fr; }
+  .metrics__row:nth-child(odd):not(:last-child) { border-right: 1px solid var(--border); }
+}
 .metrics__row dt { font-family: var(--font-mono); font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.1em; color: var(--label); }
 .metrics__row dd { text-align: right; min-width: 0; }
 .metrics__v { display: block; color: var(--accent-text); font-size: var(--fs-small); font-weight: 500; font-variant-numeric: tabular-nums; }
