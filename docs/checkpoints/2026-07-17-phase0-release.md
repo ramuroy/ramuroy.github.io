@@ -45,9 +45,9 @@ Pages deploy run 29531079537 succeeded. The release bundled:
 
 - **Ship Phase 0 before Tier 1 content.** Small verified diffs, highest
   user-visible impact; content work is blocked on owner inputs anyway.
-- **Two hard commit rules** (owner instruction, codified in `CLAUDE.md`):
+- **Two hard commit rules** (owner instruction, codified in `CONTRIBUTING.md`):
   one atomic commit per distinct change (debuggability/revertability), and
-  never any AI co-author/contribution attribution in commits.
+  never any co-author or contribution attribution in commits.
 - **Origin remote switched to SSH** (owner-approved): the stored HTTPS OAuth
   token lacks the `workflow` scope, so pushes touching
   `.github/workflows/` were rejected; the machine's SSH key (authenticating
@@ -91,7 +91,7 @@ Pages deploy run 29531079537 succeeded. The release bundled:
 | Browser test suite | `scripts/browser-smoke.mjs` |
 | Session records | `docs/checkpoints/2026-07-16-full-audit.md`, this file |
 
-The only machine-local remains are the raw multi-agent transcripts and
+The only machine-local remains are the raw audit transcripts and
 Lighthouse JSON on the original workstation — their conclusions are fully
 captured in the files above.
 

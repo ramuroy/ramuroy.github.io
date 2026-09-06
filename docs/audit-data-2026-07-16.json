@@ -3,7 +3,7 @@
   "date": "2026-07-16",
   "branch": "codex/site-hardening-20260713",
   "commitAudited": "9ecaab2",
-  "method": "10 dimension auditors + 4-lens enhancement panel + judge + completeness critic; every finding adversarially verified by an independent agent (verdicts: CONFIRMED = fact reproduced, PLAUSIBLE = premise verified/severity is judgment). Two orchestrated runs (wf_9fb9e162-4b6, wf_830b9476-c13), 266 agents total.",
+  "method": "10 audit dimensions + 4-lens enhancement panel + judged roadmap + completeness critic; every finding adversarially verified by an independent agent (verdicts: CONFIRMED = fact reproduced, PLAUSIBLE = premise verified/severity is judgment). Two orchestrated runs (wf_9fb9e162-4b6, wf_830b9476-c13), 266 agents total.",
   "humanReadableReport": "docs/site-audit-2026-07-16.md",
   "counts": {
    "findings": 245,

@@ -25,7 +25,9 @@ Use these documents in this order:
 9. [Project changelog](../CHANGELOG.md) — user- and developer-visible changes by
    release/checkpoint.
 
-The root [README](../README.md) remains the quick-start and content-editing guide.
+The root [README](../README.md) remains the quick-start and content-editing guide,
+and [CONTRIBUTING](../CONTRIBUTING.md) carries the working rules — commit
+discipline, branch safety, and the documentation-first process.
 
 ## Documentation maintenance rules
 

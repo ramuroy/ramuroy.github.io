@@ -1,7 +1,7 @@
 # Site audit & improvement plan — 2026-07-16
 
 **Repo:** `ramuroy.github.io` @ `codex/site-hardening-20260713` (commit 9ecaab2)
-**Audited by:** Claude (10 specialized audit passes + 4-lens design panel + adversarial verification of every finding + independent line-by-line read)
+**Method:** 10 specialized audit passes + 4-lens design panel + adversarial verification of every finding + independent line-by-line read
 **Status:** COMPLETE — awaiting your review before any implementation begins
 
 ---
@@ -25,7 +25,7 @@ Nothing here requires a rewrite. The fixes are surgical, and the roadmap is deli
 
 - **Every line** of `src/` (14 components, layout, data model, 3 stylesheets, ~2,300 lines), plus `astro.config.mjs`, `tsconfig.json`, `package.json`, `.nvmrc`, `.gitignore`, `scripts/check-build.mjs`, `.github/workflows/deploy.yml`, `public/*`, `docs/*`, `README`, `CHANGELOG`, and the built `dist/` output.
 - **10 specialized audit passes**, each sweeping the full tree through one lens: code bugs, CSS quality, content consistency, accessibility, performance, SEO/meta, motion quality, responsive behavior, design polish, build/tooling.
-- **Adversarial verification:** every single finding was handed to an independent verifier agent instructed to *refute* it against the actual code before it was allowed into this document. **245 findings survived; exactly 1 was refuted** (recorded in Appendix B). Verdicts are marked: ✔ = confirmed fact, ~ = premise verified but severity is a judgment call. In total 266 agents ran across two orchestrated passes (~6.3 M tokens of analysis); a completeness critic then hunted for anything the ten dimensions missed and contributed 23 further verified findings (including two of the P1 bugs).
+- **Adversarial verification:** every single finding was taken up again independently and argued *against* the actual code before it was allowed into this document. **245 findings survived; exactly 1 was refuted** (recorded in Appendix B). Verdicts are marked: ✔ = confirmed fact, ~ = premise verified but severity is a judgment call. A completeness pass then hunted for anything the ten dimensions missed and contributed 23 further verified findings (including two of the P1 bugs).
 - **4-lens enhancement panel** (motion director, brand designer, hiring-manager/recruiter, technical showmanship) produced 45 proposals; a judge merged, killed, and ranked them into the roadmap in §10.
 - **Independent checks run directly:** full build gate (`npm run verify` — passes under Node 22), WCAG contrast ratios computed for every token pair, all 21 external URLs probed (all resolve), GitHub API queried (exactly 19 public repos — the stat is accurate), resume PDF cross-read against site content, `og.png` visually inspected.
 

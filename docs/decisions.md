@@ -239,7 +239,7 @@ generation.
 
 **Context:** A complete line-by-line audit (245 adversarially verified findings, a
 ranked enhancement roadmap, and 45 raw design proposals) was produced on
-2026-07-16 by a multi-agent process that is expensive to repeat. The user requires
+2026-07-16 by a process that is expensive to repeat. The user requires
 review and explicit approval before any finding is acted upon.
 
 **Decision:** Commit the full audit record to the repository as documentation

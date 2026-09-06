@@ -100,6 +100,6 @@ per-character typing/morph.
 ## Standing constraints (do not regress)
 
 No-JS baseline (D-006), `prefers-reduced-motion`, strict CSP with hash-gated
-inline scripts, atomic no-attribution commits (`CLAUDE.md`), site never
+inline scripts, atomic no-attribution commits (`CONTRIBUTING.md`), site never
 outbids the résumé (T1.3, once codified), owner approval before any `main`
 push.

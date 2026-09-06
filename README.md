@@ -11,6 +11,7 @@ progressively enhanced client JavaScript.
 
 ## Documentation
 
+- [Contributing — working rules](CONTRIBUTING.md)
 - [Architecture and maintenance guide](docs/architecture.md)
 - [Engineering decisions and rationale](docs/decisions.md)
 - [2026-07-16 full-site audit report and improvement roadmap](docs/site-audit-2026-07-16.md)

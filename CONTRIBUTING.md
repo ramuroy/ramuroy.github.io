@@ -1,15 +1,19 @@
-# Repository rules for AI-assisted work
+# Contributing
 
-## Commits — HARD RULES
+Working rules for this repository. They exist because this site deploys to a
+live domain from `main`, and because the audit trail in `docs/` is only useful
+if commits stay legible.
+
+## Commits — hard rules
 
 1. **Small, atomic commits — one commit per distinct change. Always.** Never
    bundle unrelated fixes into one commit; debugging and review depend on each
    commit being individually understandable and revertable. A commit should
    answer one question: "what single thing changed and why?"
-2. **Never add AI co-author or contribution attribution to commits.** No
-   `Co-Authored-By: Claude`, no "Generated with", no AI credit of any kind, in
-   any part of the commit message or metadata. (A global commit hook also
-   rejects these — but the rule stands regardless of the hook.)
+2. **No contribution or co-author attribution of any kind** in a commit message
+   or its metadata — no trailers, no "generated with" lines, no credit blocks.
+   Authorship is the commit author field and nothing else. A global commit hook
+   also rejects these, but the rule stands regardless of the hook.
 
 ## Commits — conventions
 
@@ -38,3 +42,9 @@
 - Substantive feature work starts from a build spec committed under
   `docs/design-specs/`; implementation deviations are declared in commit
   messages (D-017).
+
+## Content
+
+- Every claim on the site must be at or below the résumé's scope (D-016), and
+  every number must be traceable to a recorded source.
+- Project copy names the work, not the tooling behind it.

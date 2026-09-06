@@ -20,13 +20,13 @@ user reviews and approves.
 ## What was done
 
 A line-by-line audit of every source, config, CI, docs, and built-output file
-(~2,300 source lines), run as two orchestrated multi-agent passes:
+(~2,300 source lines), run as two orchestrated passes:
 
 1. Ten dimension auditors (code bugs, CSS quality, content consistency,
    accessibility, performance, SEO/meta, motion quality, responsive, design
    polish, build/tooling), each sweeping the whole tree through one lens.
-2. **Adversarial verification of every single finding** by an independent agent
-   instructed to refute it against the actual code. 245 findings survived;
+2. **Adversarial verification of every single finding**, each one taken up
+   again independently and argued against the actual code. 245 findings survived;
    exactly 1 was refuted. Verdicts: CONFIRMED (fact reproduced) vs PLAUSIBLE
    (premise verified; severity is a judgment call).
 3. A 4-lens enhancement panel (motion director, brand designer, recruiter/hiring
@@ -92,15 +92,13 @@ re-run in a second orchestration. Nothing was lost.
   the stat actually derived is the *programming*-language count. Corrected in
   both places. Why now: pure documentation fixes belong to this documentation
   pass and carry no site-behavior risk.
-- **Hosted artifact retracted.** An HTML copy of the audit was briefly published
-  as a private Claude artifact; at the user's request it was overwritten with a
-  retraction stub so the audit exists only in this repository and on the
-  original workstation. Why: the user wants the material scoped to machines
-  with repo access. (Full deletion of the stub requires one click in the
-  claude.ai artifacts gallery.)
+- **Hosted copy retracted.** An HTML copy of the audit was briefly published to
+  a private URL; at the owner's request it was overwritten with a retraction
+  stub so the audit exists only in this repository and on the original
+  workstation. Why: the material should stay scoped to machines with repo
+  access.
 - **Git identity unchanged.** Commits continue as `Ramu Roy
-  <royramu694429@gmail.com>` (global gitconfig), confirmed by the user;
-  machine-authored commits carry a `Co-Authored-By: Claude` trailer.
+  <royramu694429@gmail.com>` (global gitconfig).
 - **Proposed phasing (pending user approval, not yet started):**
   Phase 0 = fix B1–B31 + hygiene + PR-validation CI (needs no user input);
   Phase 1 = roadmap Tier 1 recruiter content (needs the inputs below);
@@ -125,7 +123,7 @@ re-run in a second orchestration. Nothing was lost.
 1. ~~User reads the audit and approves scope.~~ **Done — Phase 0 approved and
    COMPLETED on 2026-07-16** (see the Phase 0 section in `CHANGELOG.md`).
    All B1–B31 defects are fixed in individually verifiable atomic commits
-   (one fix per commit, per the repo rule in `CLAUDE.md`); `npm run verify`
+   (one fix per commit, per the repo rule in `CONTRIBUTING.md`); `npm run verify`
    was green before every commit, and every fix was grep-verified in the
    built output. Deferred P3 items are listed in the changelog.
 2. **Manual browser checks still worth a human eyeball** (headless capture
