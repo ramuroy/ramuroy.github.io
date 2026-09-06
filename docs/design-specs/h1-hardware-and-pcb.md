@@ -94,3 +94,51 @@ here so the constraint is not lost between sessions.
 - Any claim of thermal, current-rating or Ethernet compliance qualification for
   the zone controller — the source explicitly records these as **not yet
   hardware-qualified**, and the card says so.
+
+---
+
+## 6. Addendum H1a — scope extended by the owner, 2026-09-07
+
+§5 above put the switchboard and the `ember` personal OS out of scope, on the
+reasoning that three cards already carried the hardware argument. **The owner
+overruled that the same day:** "Add about Ember and Switchboard also. Even if
+not in front, somewhere." The original §5 is left as written — D-017 keeps
+specs as historical documents — and this addendum records what changed.
+
+**Added:** *eOS Switchboard* (FIG. 05) and *Ember* (FIG. 06). Eight flagship
+cards now, which also happens to pair evenly in the two-column grid: two
+full-width cards followed by three rows of two.
+
+**Attribution, re-checked for the switchboard.** Its own prose — `README.md`,
+the fabrication handoff, `THEORY-OF-OPERATION.md` and a review — names a
+colleague as "PCB designer" / "board author". The design sources say
+otherwise: `main.ato` (the atopile schematic) is 27 commits, all the owner's,
+and the released `switchboardwithoutslider.kicad_pcb` is 24, also all his; the
+colleague's commits in that folder are bring-up notes, purchasing quantities
+and Arduino bench firmware, and touch no design file. Decision H-a therefore
+holds for this board on the evidence, not only on the owner's word.
+
+**One nuance recorded for honesty:** on the *zone controller*, the v1
+`.kicad_pcb` / `.kicad_sch` are the colleague's (32 and 11 commits). The v2
+board that FIG. 04 actually describes is not — its schematics are 36 commits
+by the owner and its board file 8, with none by the colleague — and the card's
+single v1 claim is the routing closeout, which is the owner's work in a folder
+where he leads 113 commits to 53.
+
+**Cover node** stays out of scope; it has a design spec and research note but
+no fabricated board or measured outcome to carry a card.
+
+**Evidence sources for the added cards**
+
+| Claim | Source |
+|---|---|
+| Switchboard: 1.4 %/mm over 69 mm, 24 indicators, v0.2's 26 mm at 3.8 %/mm | `eos-switchboard/main.ato` header, LOCKED SPEC |
+| S3 touch peripheral disqualified on Espressif's conducted-susceptibility statement | ibid. |
+| 14 segments at 0.19 mm error vs 24 at 1.62 mm; three-point centroid | ibid. |
+| Two Alps SKQG per key at ±9 mm, 160 gf each | ibid. |
+| Snap ratio uncomputable; 85.7 % withdrawn as another switch's figure | ibid. |
+| 30 × WS2812B at 1.02 A against a ~1.2 A ceiling | ibid. |
+| ₹1,901 for 5 bare boards, Lion Circuits, placed 2026-08-01 | `SESSION-2026-08-01-fab-order-and-verification.md` |
+| Board #1's three faults were all solder joints | `BRINGUP-2026-08-21-board1-defect2-resolved.md` (branch `switchboard/board1-bringup`) |
+| Ember: 341 workspace tests, 5 unsafe blocks, 8.32 s to login shell, 59-check smoke, 1,065 KB spark, 147.0 MiB bundle | `ember/docs/benchmarks.md` |
+| spark's design — one epoll loop, SystemOps seam, panic-hook behaviour, SIGCHLD drain | `ember/README.md`, ADR-0002 / ADR-0004 |
