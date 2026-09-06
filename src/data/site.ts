@@ -340,6 +340,43 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
     noRepoNote: "personal project · repo not yet public",
   },
   {
+    slug: "ember",
+    title: "Ember",
+    tagline: "A personal OS whose init and shell I wrote from scratch in Rust",
+    description:
+      "An existing Linux kernel and a reproducible Yocto userland, with systemd removed entirely and replaced by two programs written from scratch: spark, a Rust init and service manager running as PID 1, and hearth, a shell that ships as root's login shell. It boots a real laptop from UEFI, updates over signed A/B images, and rolls itself back unaided.",
+    pills: [
+      { label: "Boots on real hardware", variant: "deployed" },
+      { label: "Active dev", variant: "production" },
+    ],
+    highlights: [
+      "Wrote spark, a single-threaded Rust PID 1 that is a complete service manager in one epoll loop: a declared TOML service fleet with a dependency graph, readiness-driven parallel startup, window-bounded doubling restart backoff with permanent parking, boot targets with a bootloader rescue lever, and every service contained in its own cgroup v2.",
+      "Designed it so PID 1 cannot die — a PID 1 that exits panics the kernel — with no unwrap on the live path, `panic = \"abort\"`, and a panic hook that logs to `/dev/kmsg` and hangs alive rather than terminating. It also refuses to act as init unless it really is PID 1.",
+      "Put every syscall behind a single trait, so the reap, mount and supervision logic lives in a library that stays `#![forbid(unsafe_code)]` and is unit-tested against a fake kernel: spark never has to be PID 1 to be tested. The FFI is a thin binary holding two justified, SAFETY-argued unsafe blocks.",
+      "Drains SIGCHLD correctly rather than naively — one signal can mean several dead children because the signal coalesces, so it calls `waitpid(-1, WNOHANG)` until the kernel says stop, with a pid-to-service map that makes every death attributable.",
+      "Wrote hearth, the shell: lexer, parser, expansion, evaluator, operators, job control and a line-editor layer, shipped as root's login shell on the running system and held by 122 unit tests, 34 CLI tests and 40 pty assertions.",
+      "Built the distro as a Yocto layer with spark registered as a first-class init manager. The x86-64 image carries signed A/B RAUC slots, read-only roots, autonomous rollback and persistent home and SSH identity, and boots an HP Victus from a USB stick through UEFI and GRUB-EFI.",
+    ],
+    tech: ["Rust", "Yocto / OpenEmbedded", "PID 1 / init", "cgroup v2", "epoll", "RAUC A/B", "GRUB-EFI", "musl", "Smithay / Wayland", "QEMU"],
+    params: [
+      { k: "Init", v: "spark v0.8 — Rust PID 1", active: true },
+      { k: "Shell", v: "hearth v0.2.0 — login shell", active: true },
+      { k: "systemd", v: "removed entirely" },
+      { k: "Base", v: "Linux kernel + Yocto userland" },
+      { k: "Targets", v: "x86-64 and aarch64" },
+      { k: "Metal", v: "HP Victus — UEFI → GRUB → wic" },
+    ],
+    metrics: [
+      { k: "Workspace tests", v: "341", note: "spark 166 · hearth 156 · probe 19" },
+      { k: "Authored unsafe", v: "5 blocks", note: "each SAFETY-argued; the libraries forbid it" },
+      { k: "Kernel → login shell", v: "8.32 s", note: "0.06 s of it inside spark, on the Victus" },
+      { k: "Hardware smoke", v: "59 checks pass", note: "on the Victus, signed bundle v0.15" },
+      { k: "spark binary", v: "1,065 KB", note: "static musl, unstripped" },
+      { k: "Update bundle", v: "147.0 MiB", note: "verity-signed RAUC, A/B slots" },
+    ],
+    noRepoNote: "personal project · repo not yet public",
+  },
+  {
     slug: "on-device-voice-subsystem",
     title: "On-Device Voice Subsystem",
     tagline: "A fully on-device, Rust voice pipeline: wake word → STT → TTS",
