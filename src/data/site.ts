@@ -114,6 +114,7 @@ export const about = {
 export type Pill = { label: string; variant: "deployed" | "production" | "oss" | "wip" };
 
 export type Flagship = {
+  /** Derived from array order — see `flagship` below. Never authored by hand. */
   fig: string;
   slug: string;
   title: string;
@@ -146,9 +147,12 @@ export type Flagship = {
   full?: boolean;
 };
 
-export const flagship: Flagship[] = [
+/* FIG numbers are positional labels, so they are derived from the order of this
+   array rather than typed into it: inserting or reordering a card must never
+   mean hand-renumbering the ones below it (the same single-source rule as
+   D-009). Everything else about a card is authored here. */
+const flagshipOrder: Omit<Flagship, "fig">[] = [
   {
-    fig: "FIG. 01",
     slug: "eos",
     title: "eOS",
     tagline: "A custom Yocto Linux distribution for the Raspberry Pi 5",
@@ -183,7 +187,6 @@ export const flagship: Flagship[] = [
     full: true,
   },
   {
-    fig: "FIG. 02",
     slug: "industrial-anti-collision-system",
     title: "Industrial Anti-Collision System",
     tagline: "UWB crane anti-collision safety system, deployed at Tata Steel BlueScope",
@@ -218,7 +221,6 @@ export const flagship: Flagship[] = [
     stars: 1,
   },
   {
-    fig: "FIG. 03",
     slug: "on-device-voice-subsystem",
     title: "On-Device Voice Subsystem",
     tagline: "A fully on-device, Rust voice pipeline: wake word → STT → TTS",
@@ -242,6 +244,11 @@ export const flagship: Flagship[] = [
     noRepoNote: "part of eOS",
   },
 ];
+
+export const flagship: Flagship[] = flagshipOrder.map((project, i) => ({
+  ...project,
+  fig: `FIG. ${String(i + 1).padStart(2, "0")}`,
+}));
 
 export type GridProject = {
   title: string;
