@@ -419,6 +419,13 @@ html.boot-hold .hero .po, html.boot-hold .hero__lead em::after { animation-play-
 .star { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--warn); display: inline-flex; align-items: center; gap: 0.3em; }
 
 /* Partition-map exhibit (T2.5) */
+/* Board render (T2.2). The dark board art sits on the card's own surface, so
+   the frame is a hairline rather than a panel — the image is evidence, not
+   decoration, and shouldn't read as a hero banner. */
+.board { margin: 0; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--code-bg); }
+.board__img { display: block; width: 100%; height: auto; }
+.board__caption { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--silkscreen); letter-spacing: 0.08em; padding: 0.5rem 0.75rem; border-top: 1px solid var(--border); }
+
 /* Measured-outcome table (T1.1). Deliberately heavier than .spec: params are
    description, metrics are evidence, and the card should read that difference. */
 .metrics { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--code-bg); overflow: hidden; }

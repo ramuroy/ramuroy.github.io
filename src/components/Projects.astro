@@ -36,6 +36,21 @@ const showDot = (v: string) => v === "deployed" || v === "production";
 
           <p class="pcard__desc">{p.description}</p>
 
+          {p.image && (
+            <figure class="board">
+              <img
+                class="board__img"
+                src={p.image.src}
+                alt={p.image.alt}
+                width={p.image.w}
+                height={p.image.h}
+                loading="lazy"
+                decoding="async"
+              />
+              <figcaption class="board__caption">{p.image.caption}</figcaption>
+            </figure>
+          )}
+
           <div class="badges">
             {p.tech.map((t) => <span class="badge">{t}</span>)}
           </div>

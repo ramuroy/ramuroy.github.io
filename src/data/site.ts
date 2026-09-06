@@ -129,6 +129,11 @@ export type Flagship = {
       instruments, or a tool's own output. `note` carries the qualifier that
       keeps the number honest (see docs/design-specs/h1-hardware-and-pcb.md §4). */
   metrics?: { k: string; v: string; note?: string }[];
+  /** Board render or photograph (T2.2). `caption` states what the image *is*,
+      so a CAD render is never mistaken for a photograph of a built board.
+      Dimensions are required — the intrinsic size reserves layout space and
+      keeps the card from reflowing as the image decodes. */
+  image?: { src: string; alt: string; caption: string; w: number; h: number };
   /** Partition/slot exhibit (T2.5). Weights are visual proportions only —
       captions say "scheme"/"layout" deliberately; no sizes are claimed (D-016). */
   partitions?: {
