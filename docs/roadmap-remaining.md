@@ -12,15 +12,32 @@ Zone Controller, eOS Switchboard, pcbrouter and Ember (scope extended by the
 owner mid-pass; see the spec's H1a addendum) — plus the `metrics[]` and
 `image` fields they introduced, a rewritten PCB & Hardware skills group, the Elipse hardware bullet
 and hardware SEO terms. Build spec: [`design-specs/h1-hardware-and-pcb.md`](design-specs/h1-hardware-and-pcb.md).
-**Verified 2026-09-07** by an adversarial audit of all five cards against their
-source documents: 354 claims checked, 41 suspected, 18 confirmed and fixed.
-Caveat on that audit's completeness — 13 refuter agents and all 5 gap-assessment
-agents died on a session limit, so the Zone Controller's issue list may be
-understated and the CV / GitHub / LinkedIn / roadmap assessments never ran.
-Re-running both is the first item below.
+**Verification status 2026-09-07 — OPEN, not clear.** A first adversarial round
+checked 354 claims across the five cards: 41 suspected, 18 confirmed and fixed.
+A second, independent double-audit then ran against the *corrected* cards and
+produced **48 candidate findings, unadjudicated** — including two criticals
+introduced by the first round's own corrections, both still live in
+`src/data/site.ts`. An arithmetic pass recomputed all 48 derived numbers and
+found one error (`githubRepoCount`, since fixed). Findings and the resume
+command: [2026-09-07 checkpoint](checkpoints/2026-09-07-hardware-pass.md) §3.
 
-**Merge blocker:** the June 2026 CV export describes none of this work, so
-D-016 holds the branch out of `main` until the résumé is refreshed.
+**Merge blockers — two, both open:**
+
+1. **D-016** — the June 2026 CV export describes none of this work, so the
+   branch stays out of `main` until the résumé is refreshed (H-v5 below).
+2. **D-021** — substantive content is adversarially audited before it can merge.
+   The second round's 48 candidates are not yet adjudicated (H-v1 below).
+
+## Outstanding from the 2026-09-07 hardware pass
+
+| # | Item | Effort | Status |
+|---|---|---|---|
+| H-v1 | Adjudicate the second audit's 48 candidate findings — replays the completed audits from cache, runs only the refuters | S | **blocks merge (D-021)** |
+| H-v2 | Fix what survives adjudication, one commit per card. Two criticals are already known: the Zone Controller describes a clock buffer as an oscillator, and states a fabrication hold that the same day's later records supersede | M | blocked on H-v1 |
+| H-v3 | Settle the schematic-wording tension (owner input I8) — accuracy and D-018 conflict on one sentence across three cards | S | blocked on I8 |
+| H-v4 | Split `metrics[]` rows into measured and modelled, or move the soft rows to `params` — the field as shipped does not yet honour D-019 | M | ready |
+| H-v5 | CV refresh: a hardware/PCB block in the Elipse role covering the three boards, and hobby Projects replaced by pcbrouter and Ember, with a cut manifest holding two pages. Clears I7's defects in the same export | M | **blocks merge (D-016)** |
+| H-v6 | Add the Zone Controller and Switchboard renders — cleared by H-c, not yet done | S | ready |
 
 **Already done and shipped 2026-07-17:** all 31 curated defects B1–B31, CI
 verify workflow, branded 404, font preloads, dependabot, full 15-project
@@ -41,13 +58,14 @@ See CHANGELOG and the 2026-07-17 checkpoint.
 | I4 | Employer permission for bench/deployment photos (Radiogeet, Elipse) | T2.2 — **CAD renders cleared 2026-09-07** (owner decision H-c, Elipse logo included); bench/deployment photographs still open |
 | I5 | Go/no-go on publishing a wake-word repo + eOS architecture write-up | T2.1 — owner confirmed 2026-09-07 that **nothing about eOS is confidential**; only the write-and-host decision remains |
 | I6 | Portrait photo (for `Person.image`, possibly the site) | SEO polish |
-| I7 | Next CV export: fix "IN4007"→"1N4007" typo; add PDF Title/Author metadata + tagging | resume artifact |
+| I7 | Next CV export: fix "IN4007"→"1N4007" typo; add PDF Title/Author metadata + tagging | resume artifact, H-v5 |
+| I8 | Schematic wording: two auditors found the board schematics are generated from code, not drawn in KiCad, so "drew the schematic … in KiCad 9" is inaccurate — but naming the tool is forbidden by D-018. Proposed resolution: wording that names neither tool and claims neither method | H-v2, H-v3 |
 
 ## Tier 1 — recruiter-critical content (highest screening impact)
 
 | # | Item | Effort | Status |
 |---|---|---|---|
-| T1.1 | Measured outcomes as datasheet tables on every flagship (`metrics[]` per project) | M | **PARTIAL 2026-09-07** — `metrics[]` shipped, carried by five new cards (H1); eOS, anti-collision and voice still need I1 |
+| T1.1 | Measured outcomes as datasheet tables on every flagship (`metrics[]` per project) | M | **PARTIAL 2026-09-07** — `metrics[]` shipped, carried by five new cards (H1); eOS, anti-collision and voice still need I1. Open defect: rows mix measured and modelled figures without distinguishing them, which D-019 requires (H-v4) |
 | T1.2 | Restructure for the 30-second screen | M | **SHIPPED 2026-07-17** |
 | T1.3 | Scope-honest verbs + D-016 rule | S | **SHIPPED 2026-07-17** |
 | T1.4 | Contact conversion: EMAIL ME + CV in sticky nav, prefilled mailto subject, logistics rows in contact | S | partial (needs I2) |
@@ -61,7 +79,7 @@ See CHANGELOG and the 2026-07-17 checkpoint.
 | # | Item | Effort | Status |
 |---|---|---|---|
 | T2.1 | Public wake-word repo (train→ONNX→tract benchmark README) + eOS architecture write-up; link as flagship REFs | L | blocked on I5 |
-| T2.2 | Visual evidence: bench photos, KiCad renders, voice-pipeline SVG block diagram with latency annotations | L | **PARTIAL 2026-09-07** — `image` field shipped, Room Controller v2 KiCad render live (H1); bench photos and the voice block diagram remain |
+| T2.2 | Visual evidence: bench photos, KiCad renders, voice-pipeline SVG block diagram with latency annotations | L | **PARTIAL 2026-09-07** — `image` field shipped, but only **one** render across eight cards (Room Controller v2). Zone Controller and Switchboard renders are cleared by H-c and not yet added (H-v6); bench photos still need I4; the voice block diagram remains |
 | T2.3 | Protocol-decode trace dividers (correct UART/I²C/SPI frames computed at build time; replaces the stretching generic divider) | M | ready |
 | T2.4 | Three-voice palette: copper (static PCB), cyan (live signal), phosphor (terminal) — token surgery restoring accent hierarchy | M | ready |
 | T2.5 | Partition-map exhibits | M | **SHIPPED 2026-07-17** |
@@ -117,5 +135,13 @@ per-character typing/morph.
 
 No-JS baseline (D-006), `prefers-reduced-motion`, strict CSP with hash-gated
 inline scripts, atomic no-attribution commits (`CONTRIBUTING.md`), site never
-outbids the résumé (T1.3, once codified), owner approval before any `main`
-push.
+outbids the résumé (D-016), owner approval before any `main` push.
+
+Added 2026-09-07 and easy to regress: published copy — **including `docs/` and
+`CHANGELOG.md`, since the repository is public** — names the work, not the
+tooling behind it, and never records AI assistance (D-018); `metrics[]` carries
+only what was measured, with evidence behind every row (D-019); FIG labels are
+derived from array order and referenced by slug through `figOf()`, never
+hand-authored (D-020); substantive content is adversarially audited before it
+merges, findings whose refuters fail are retained rather than dropped, and a
+partial audit is recorded as partial (D-021).
