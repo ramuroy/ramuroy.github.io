@@ -406,7 +406,7 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
     metrics: [
       { k: "Workspace tests", v: "341", note: "spark 166 · hearth 156 · probe 19" },
       { k: "Authored unsafe", v: "5 blocks", note: "each SAFETY-argued; the libraries forbid it" },
-      { k: "Kernel → login shell", v: "8.32 s", note: "0.06 s of it inside spark, on the Victus" },
+      { k: "Kernel → interactive shell", v: "8.32 s", note: "0.06 s of it inside spark; target default at 13.27 s" },
       { k: "Hardware smoke", v: "59 checks pass", note: "on the Victus, signed bundle v0.15" },
       { k: "spark binary", v: "1,065 KB", note: "static musl, unstripped" },
       { k: "Update bundle", v: "147.0 MiB", note: "verity-signed RAUC, A/B slots" },
