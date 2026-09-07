@@ -115,13 +115,14 @@ until the résumé is refreshed. State, open findings and resume instructions:
   defect, where two were fixed, the third is suspected with its reflow not
   attempted, and the same document lists two footprint defects for the next spin.
 
-- **Board image swapped to the Zone Controller v2 four-layer copper plot.** The
-  Room Controller render showed its terminal blocks out of position, and the
-  Zone Controller is the stronger board to show — four layers with high-speed
-  Ethernet. Built with `kicad-cli`, one export per copper layer composited by
-  alpha so all four read at once. A copper plot rather than a 3D render, both
-  because `kicad-packages3d` is absent here and because the layers, the
-  differential pairs and the routing density are the point.
+- **Board image swapped to a Zone Controller v2 3D render.** The Room Controller
+  render showed its terminal blocks out of position, and the Zone Controller is
+  the stronger board to show — four layers with high-speed Ethernet. Rendered
+  with `kicad-cli` after installing `kicad-packages3d`, which was absent and
+  without which the render came out as bare pads. Transparent background,
+  cropped to the board, composited onto the site's own ground. 107 of 284
+  footprints carry no model in the board file — the custom lugs and RJ45
+  magnetics — so those show as bare pads; that is the board as drawn.
 
 ### Known open
 
