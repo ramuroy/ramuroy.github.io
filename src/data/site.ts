@@ -199,13 +199,6 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       { label: "v2 in the field", variant: "deployed" },
       { label: "qualification open", variant: "wip" },
     ],
-    image: {
-      src: "/eos-room-controller-v2.webp",
-      alt: "KiCad 3D render of the eOS Room Controller v2 board: screw terminals along the top edge, four dual MOSFET packages, a PCA9685 in the centre, electrolytic bulk capacitors, and two long header rows for the socketed ESP32-S3-ETH module.",
-      caption: "kicad 3d render — room controller v2, 125 × 100 mm",
-      w: 1200,
-      h: 836,
-    },
     highlights: [
       "Designed the board in KiCad 9 — schematic through layout to the fabrication package; v1 was fabbed and put into service (PCB1–PCB3), and v2 re-spun the whole design at 125 × 100 mm — 57% less board area.",
       "Rebuilt the power path around what actually failed: v1's MP1584 burned twice and its AMS1117 drifted to ~4.4 V and killed a W5500 rated 3.63 V absolute maximum. v2 answers with five protection stages — 6.3 A SMD fuse → TPS26631 60 V eFuse (reverse polarity, 6 A OCP, 33 V OVP, 18 V UVLO, inrush control) → SMCJ24A TVS → tap fuse → TPS25947 eFuse guarding the whole 5 V rail.",
@@ -232,7 +225,6 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       { k: "Decisions closed", v: "40 of 40", note: "D1–D40, no open verdicts" },
     ],
     noRepoNote: "Elipse · no public repo",
-    full: true,
   },
   {
     slug: "industrial-anti-collision-system",
@@ -286,6 +278,13 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       "Closed the first board's routing at zero unconnected and zero shorts after roughly twelve strategies, the decisive one being that connections reported as closed were not touching: endpoints were being reached on the wrong copper layer, so a front pad was 'met' from the back.",
       "Regenerated the schematic to 180 nets and 912 nodes with ERC clean and zero waivers, then closed the four-layer routing at zero unconnected and cut the fabrication package. The DC figures remain copper screens — not a qualified current rating, thermal result or Ethernet compliance claim — and the card says so where they appear.",
     ],
+    image: {
+      src: "/zone-controller-v2.webp",
+      alt: "Four-layer copper plot of the eOS Zone Controller v2: sixteen output driver channels in four groups down the left edge, the 48 V power section through the middle, and dense Ethernet PHY and switch routing at the right. Front copper in orange, the inner reference planes in cyan and violet, back copper in slate.",
+      caption: "four-layer copper plot — zone controller v2, 201 × 120 mm",
+      w: 1600,
+      h: 956,
+    },
     tech: ["KiCad", "48 V DC", "ESP32", "LAN9354", "RMII", "PCA9685", "4-layer stackup", "100 Ω differential", "12-bit PWM dimming", "Addressable RGBW"],
     params: [
       { k: "Bus", v: "48 V DC" },
@@ -304,6 +303,7 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       { k: "Ground return", v: "1.00 W / 44 mV", note: "at 24.16 A on the final copper" },
     ],
     noRepoNote: "Elipse · no public repo",
+    full: true,
   },
   {
     slug: "eos-switchboard",
