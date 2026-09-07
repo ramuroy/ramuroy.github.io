@@ -12,6 +12,13 @@ Zone Controller, eOS Switchboard, pcbrouter and Ember (scope extended by the
 owner mid-pass; see the spec's H1a addendum) — plus the `metrics[]` and
 `image` fields they introduced, a rewritten PCB & Hardware skills group, the Elipse hardware bullet
 and hardware SEO terms. Build spec: [`design-specs/h1-hardware-and-pcb.md`](design-specs/h1-hardware-and-pcb.md).
+**Verified 2026-09-07** by an adversarial audit of all five cards against their
+source documents: 354 claims checked, 41 suspected, 18 confirmed and fixed.
+Caveat on that audit's completeness — 13 refuter agents and all 5 gap-assessment
+agents died on a session limit, so the Zone Controller's issue list may be
+understated and the CV / GitHub / LinkedIn / roadmap assessments never ran.
+Re-running both is the first item below.
+
 **Merge blocker:** the June 2026 CV export describes none of this work, so
 D-016 holds the branch out of `main` until the résumé is refreshed.
 

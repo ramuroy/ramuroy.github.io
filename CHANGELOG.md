@@ -62,6 +62,16 @@ until the résumé is refreshed.
 
 ### Fixed
 
+- **Eighteen factual errors on the new cards, found by an adversarial audit.**
+  Five auditors re-derived every claim from the source documents (354 claims
+  checked, 41 suspected, 18 surviving refutation by two adversarial lenses each).
+  The Zone Controller card had fused two different boards, denying a component
+  while quoting its arithmetic; the Room Controller doubled its channel count
+  and had its fleet status inverted, calling the deployed revision "on the
+  bench"; the Switchboard sold a capacitive slider that was cut before
+  fabrication; pcbrouter claimed zero new DRC violations against a source that
+  lists them by name; Ember labelled a console-shell boot stamp as the login
+  shell. Each is corrected in its own commit with the source quoted.
 - **Metrics table column count follows the card, not the viewport.** Keyed to a
   media query, a half-width card took two columns at desktop widths and shredded
   its values across three lines; it is now an inline-size container query.
