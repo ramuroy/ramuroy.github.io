@@ -80,6 +80,11 @@ until the résumé is refreshed. State, open findings and resume instructions:
 
 ### Fixed
 
+- **The image pair never went two-column.** `.boards` carried `container-type`
+  while the `@container` rule targeted that same element — an element cannot
+  query its own width, so the query matched no container and the pair stayed one
+  column at every size. The wrapper now carries the container. Caught in the
+  browser, not by reading the CSS.
 - **Eighteen factual errors on the new cards**, found by an adversarial audit
   that re-derived every claim from source (354 claims checked, 41 suspected, 18
   surviving refutation). The Zone Controller card had fused two different boards,
@@ -115,6 +120,14 @@ until the résumé is refreshed. State, open findings and resume instructions:
   defect, where two were fixed, the third is suspected with its reflow not
   attempted, and the same document lists two footprint defects for the next spin.
 
+- **The Zone Controller card carries two images: a black-mask 3D render and the
+  four-layer copper layout.** `Flagship.image` became `Flagship.images`, an
+  ordered set rendered side by side on a wide card and stacked on a narrow one.
+  The render shows what the board is; the layout shows what the card claims —
+  four layers and dense differential routing — and neither proves that alone.
+  The board file specifies no stackup colour, so KiCad rendered its default
+  green; a custom mask colour plus `--use-board-stackup-colors` gives the black
+  board with white silk. The override lives in a working copy, not the eOS repo.
 - **Board image swapped to a Zone Controller v2 3D render.** The Room Controller
   render showed its terminal blocks out of position, and the Zone Controller is
   the stronger board to show — four layers with high-speed Ethernet. Rendered
