@@ -327,3 +327,123 @@ rationale survives for future sessions.
 **Consequences:** Small fixes and content edits are exempt; judgement applies.
 Specs are historical documents once shipped — corrections land in the code
 and the deviation note, not by rewriting the spec.
+
+## D-018 — Published copy names the work, not the tooling
+
+**Status:** Accepted (2026-09-07, owner instruction)
+
+**Context:** The hardware cards initially named the schematic-capture tool used
+for the boards and the router `pcbrouter` is benchmarked against. The owner's
+instruction was that the portfolio should read as his own work end to end, and
+that neither the tooling behind it nor any AI assistance should be named.
+
+**Decision:** Site copy, tracked documentation and commit messages describe the
+**act**, not the tool. "Drew the schematic" rather than the generator that
+produced it; "loaded a published board, stripped every track and via, re-routed
+it from nothing" rather than the competitor it was scored against. No claim may
+depend on an omitted name, so nothing becomes untrue by the omission.
+
+**Why:** Omission is not inaccuracy — a portfolio is not a bill of materials,
+and no reader is misled by not being told which IDE, generator or reference
+implementation was involved. The owner judged that naming them invites a reader
+to discount the engineering.
+
+**Consequences:** Applies to the whole repository, which is public: `docs/` and
+`CHANGELOG.md` are as visible as the rendered page. The rules file for assisted
+sessions was removed from the repository and excluded via `.git/info/exclude`
+rather than `.gitignore`, so that the exclusion itself does not name it; its
+tracked content moved to `CONTRIBUTING.md`. Kept deliberately: KiCad, because
+the boards genuinely are KiCad projects, and the verification libraries behind
+`pcbrouter`'s own correctness claims — naming what you validated against is
+evidence of rigour, not of borrowing.
+
+**Open tension (2026-09-07, unresolved):** two independent auditors found that
+the board schematics are generated from code rather than drawn in KiCad, so
+"drew the schematic … in KiCad 9" is inaccurate — but naming the actual tool is
+what this decision forbids. Accuracy and this rule pull against each other on
+that one sentence. The proposed resolution is wording that names neither tool
+and claims neither method. Owner decision pending; see
+`docs/checkpoints/2026-09-07-hardware-pass.md` §3.
+
+## D-019 — Measured outcomes are a separate field from specifications
+
+**Status:** Accepted (2026-09-07)
+
+**Context:** The 2026-07-16 audit's top recruiter-critical finding (T1.1) was
+that no flagship card carried a measured number. The existing `params` field
+was the obvious place to put them, and the wrong one.
+
+**Decision:** `Flagship.metrics[]` is a distinct field from `Flagship.params[]`
+and renders as a distinct, heavier element. **Params describe what a thing is;
+metrics record what was measured.** Every metric row must be a number with
+evidence behind it — an invoice, an instrument, or a tool's own recorded output
+— and the build spec's evidence table names the source for each one. The
+optional `note` carries the qualifier that keeps the number honest.
+
+**Why:** Mixing the two erases the distinction that gives the numbers their
+weight. "48 V DC" and "46.544 mV against a 50 mV budget" are different kinds of
+claim, and a reader who cannot tell them apart discounts both.
+
+**Consequences:** A card with no defensible numbers gets no metrics table
+rather than a padded one — three of the eight cards still have none, and that
+asymmetry is a visible weakness to be closed by supplying numbers, not by
+loosening the rule. A later audit found the table currently mixes measured and
+modelled rows without distinguishing them; adding a per-row kind flag is the
+open follow-up.
+
+## D-020 — Positional labels are derived, never authored
+
+**Status:** Accepted (2026-09-07)
+
+**Context:** Each flagship card carried a hand-typed `fig: "FIG. 02"`. Inserting
+a project meant renumbering every card below it, and prose in the changelog, the
+build spec and the footer terminal quoted those numbers as literals.
+
+**Decision:** Cards are authored in `flagshipOrder` without a fig; `flagship`
+derives the zero-padded label from array index. Cross-references resolve through
+`figOf(slug)`, which **throws at build time** when a slug stops matching. Prose
+in documentation names cards, and states the section order once rather than
+repeating per-card numbers.
+
+**Why:** This is D-009's single-source rule applied to a value that looked too
+trivial to derive. The cost of getting it wrong was demonstrated the same day:
+inserting the Switchboard shifted two cards, and the footer terminal's
+`i2cdetect` output — which labels two I²C addresses as bench parts from a named
+figure — began pointing at a 24 V lighting board instead of the anti-collision
+work. A hardcoded label had silently become a lie.
+
+**Consequences:** A broken cross-reference fails the build instead of shipping
+as "Full detail: above". Any future surface that references a card must resolve
+it by slug.
+
+## D-021 — Substantive content is adversarially audited before it can merge
+
+**Status:** Accepted (2026-09-07)
+
+**Context:** Five new cards carried eighteen numbers transcribed from source
+documents, describing a named employer, a named industrial customer and
+fabricated hardware. Nothing had been checked by anything but the process that
+wrote it.
+
+**Decision:** Content making factual claims about real work is audited against
+its sources before merge: independent auditors per card working different
+lenses, findings adjudicated by adversarial refuters, and a separate pass that
+recomputes every derived number. **A finding whose refuters fail is retained and
+marked, never dropped.**
+
+**Why:** The first round found eighteen real errors in 354 claims — a card that
+described two different boards as one, a fleet status inverted so the deployed
+revision was called "on the bench", a datasheet capacity sold as built
+capability, a debugging hypothesis presented as a diagnosis, and a "zero DRC
+violations" claim against a source that lists the violations by name. The second
+round then found two criticals **in the first round's own corrections**, which is
+the finding that justifies the rule: a fix pass needs verifying like any other
+change.
+
+**Consequences:** Audits are run in the background and cost real time and
+tokens; that is the price of publishing checkable claims. Partial audits must be
+recorded as partial — the first run lost thirteen refuters and five assessments
+to a session limit, and reporting it as complete would have been the exact
+failure the audit exists to prevent. The arithmetic pass is not optional: it
+caught a hand-maintained repository count that had drifted from 19 to 20 in the
+most visible band on the page.
