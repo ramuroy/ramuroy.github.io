@@ -152,3 +152,30 @@ no fabricated board or measured outcome to carry a card.
 | Board #1's three faults were all solder joints | `BRINGUP-2026-08-21-board1-defect2-resolved.md` (branch `switchboard/board1-bringup`) |
 | Ember: 341 workspace tests, 5 unsafe blocks, 8.32 s to login shell, 59-check smoke, 1,065 KB spark, 147.0 MiB bundle | `ember/docs/benchmarks.md` |
 | spark's design — one epoll loop, SystemOps seam, panic-hook behaviour, SIGCHLD drain | `ember/README.md`, ADR-0002 / ADR-0004 |
+
+---
+
+## 7. Addendum H1b — what the audits found, 2026-09-07
+
+Two adversarial audit rounds ran against the cards this spec produced. Recorded
+here because the spec's §4 evidence table is what they were checked against, and
+because the second round's result changes how §4 should be read.
+
+**Round one — 354 claims checked, 41 suspected, 18 confirmed and fixed.** Every
+confirmed finding was a claim this spec's evidence table had blessed. The table
+was not wrong about where the numbers came from; it was silent about *which
+revision or which board* each source described, and that is where all eighteen
+errors lived — a card fusing two boards, a fleet status inverted, a datasheet
+capacity read as built capability, a debugging hypothesis read as a diagnosis.
+
+**Round two — 48 candidate findings, unadjudicated.** Two of them are criticals
+introduced by round one's own corrections. That is the durable lesson: a
+correction pass is a change like any other and needs the same verification.
+
+**What this means for future specs.** An evidence table must name not just the
+source file but the **revision and board the figure describes**, and must record
+whether the source states it as measured, modelled, targeted or hypothesised.
+Three of the eighteen errors would have been impossible to write with that
+column present. D-021 codifies the audit itself; this is the spec-side half.
+
+The findings are listed in `docs/checkpoints/2026-09-07-hardware-pass.md` §3.

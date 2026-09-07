@@ -47,4 +47,13 @@ if commits stay legible.
 
 - Every claim on the site must be at or below the résumé's scope (D-016), and
   every number must be traceable to a recorded source.
-- Project copy names the work, not the tooling behind it.
+- Project copy names the work, not the tooling behind it (D-018).
+- `params` say what a thing *is*; `metrics` say what was *measured* (D-019).
+  A card with no defensible numbers gets no metrics table rather than a padded one.
+- Positional labels — FIG numbers — are derived, never authored. Refer to a card
+  by slug through `figOf()`, which fails the build if the slug stops matching (D-020).
+- Content making factual claims about real work is adversarially audited against
+  its sources before it merges (D-021): independent auditors per subject, findings
+  adjudicated by refuters, and a pass that recomputes every derived number. A
+  finding whose refuters fail is retained and marked, never dropped, and a partial
+  audit is recorded as partial.
