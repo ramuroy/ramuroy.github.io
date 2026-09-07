@@ -330,7 +330,7 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       { k: "MCU", v: "ESP32-S3-WROOM-1-N8" },
       { k: "Touch (v0.3)", v: "CY8CMBR3116 — cut before fab" },
       { k: "Indicators", v: "30 × WS2812B-2020" },
-      { k: "State", v: "fabbed · board #1 brought up", active: true },
+      { k: "State", v: "fabbed · board #1 in bring-up", active: true },
     ],
     metrics: [
       { k: "Slider precision", v: "1.4% per mm", note: "v0.3 design study — slider cut before fab" },
@@ -338,7 +338,7 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       { k: "Key switches", v: "12 under 6 keys", note: "two per key at ±9 mm, 160 gf each" },
       { k: "LED budget", v: "1.098 A full white", note: "30-pixel chain, ~8% under the ~1.2 A ceiling" },
       { k: "Bare PCB order", v: "₹1,901 for 5", note: "Lion Circuits, placed 2026-08-01" },
-      { k: "Board #1 faults", v: "3 — all solder joints", note: "no component or design fault found" },
+      { k: "Board #1 faults", v: "2 fixed · 1 suspected", note: "solder joints, not components; 2 footprint defects logged" },
     ],
     noRepoNote: "Elipse · no public repo",
   },
