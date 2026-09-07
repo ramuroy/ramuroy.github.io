@@ -209,7 +209,7 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
     highlights: [
       "Drew the schematic and laid the board out in KiCad 9; v1 was fabbed and put into service (PCB1–PCB3), and v2 re-spun the whole design at 125 × 100 mm — 57% less board area.",
       "Rebuilt the power path around what actually failed: v1's MP1584 burned twice and its AMS1117 drifted to ~4.4 V and killed a W5500 rated 3.63 V absolute maximum. v2 answers with five protection stages — 6.3 A SMD fuse → TPS26631 60 V eFuse (reverse polarity, 6 A OCP, 33 V OVP, 18 V UVLO, inrush control) → SMCJ24A TVS → tap fuse → TPS25947 eFuse guarding the whole 5 V rail.",
-      "Ran the PCA9685 at 5 V so it drives the FET gates directly, which deleted all four UCC27524 gate drivers; eight TO-220s and their axial diodes became four dual SMD packages. 81 hand-soldered through-hole parts became roughly 34 placement classes on a stencil-and-reflow board.",
+      "Ran the PCA9685 at 5 V so it drives the FET gates directly, which deleted all four UCC27524 gate drivers; eight TO-220 FETs became four dual SMD packages, and the axial flyback diodes collapsed to a single dual Schottky serving the two fan channels. The board went from 81 hand-soldered through-hole parts to about 34 placement classes on a stencil-and-reflow board — though the populated part count rose to 119, because the growth is the protection network v1 did not have.",
       "Merged the MCU and Ethernet into one socketed Waveshare ESP32-S3-ETH module — four plug-in modules down to one, five SPI GPIOs freed, and a dead PHY becomes a 30-second swap in a ceiling instead of board surgery.",
       "Recorded 40 dated design decisions (D1–D40) with rationale and closed every one, including two standing rules the fleet still works to: cut only true redundancy, never performance (D36), and read a part's datasheet before designing it in (D40) — written after a missed common-ground destroyed a radar and two ESP32s.",
       "Narrowed a total 24 V rail collapse on the bench to a single suspect: the input eFuse's dV/dT pin reads 0.5 V while its soft-start capacitor pad reads 0 V — two points on one net disagreeing, which would leave inrush retrying forever and the rail never establishing. The continuity check and the repair are still outstanding.",
@@ -225,7 +225,7 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
     ],
     metrics: [
       { k: "Board area", v: "−57%", note: "173×168 → 125×100 mm" },
-      { k: "Bare PCB cost", v: "₹1,260 / board", note: "down from ₹2,120 — invoiced, ex-GST" },
+      { k: "Bare PCB cost", v: "₹1,260 / board", note: "conditional — 6 of 10 delivered, ₹5,040 unresolved" },
       { k: "Plug-in modules", v: "4 → 1", note: "one socketed ESP32-S3-ETH" },
       { k: "Protection stages", v: "0 → 5", note: "fuse · eFuse · TVS · fuse · eFuse" },
       { k: "Dimmer channels", v: "8, on zero MCU pins", note: "PCA9685 — 16-ch part, 8 wired" },
