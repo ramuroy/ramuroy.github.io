@@ -207,7 +207,7 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       h: 836,
     },
     highlights: [
-      "Drew the schematic and laid the board out in KiCad 9; v1 was fabbed and put into service (PCB1–PCB3), and v2 re-spun the whole design at 125 × 100 mm — 57% less board area.",
+      "Designed the board in KiCad 9 — schematic through layout to the fabrication package; v1 was fabbed and put into service (PCB1–PCB3), and v2 re-spun the whole design at 125 × 100 mm — 57% less board area.",
       "Rebuilt the power path around what actually failed: v1's MP1584 burned twice and its AMS1117 drifted to ~4.4 V and killed a W5500 rated 3.63 V absolute maximum. v2 answers with five protection stages — 6.3 A SMD fuse → TPS26631 60 V eFuse (reverse polarity, 6 A OCP, 33 V OVP, 18 V UVLO, inrush control) → SMCJ24A TVS → tap fuse → TPS25947 eFuse guarding the whole 5 V rail.",
       "Ran the PCA9685 at 5 V so it drives the FET gates directly, which deleted all four UCC27524 gate drivers; eight TO-220 FETs became four dual SMD packages, and the axial flyback diodes collapsed to a single dual Schottky serving the two fan channels. The board went from 81 hand-soldered through-hole parts to about 34 placement classes on a stencil-and-reflow board — though the populated part count rose to 119, because the growth is the protection network v1 did not have.",
       "Merged the MCU and Ethernet into one socketed Waveshare ESP32-S3-ETH module — four plug-in modules down to one, five SPI GPIOs freed, and a dead PHY becomes a 30-second swap in a ceiling instead of board surgery.",
