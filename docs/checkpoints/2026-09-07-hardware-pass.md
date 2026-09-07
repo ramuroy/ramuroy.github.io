@@ -1,7 +1,8 @@
 # Checkpoint — 2026-09-07, the hardware & PCB pass
 
-Written at a deliberate pause. Branch `codex/site-hardening-20260713`, working
-tree clean, `npm run verify` green, **31 commits ahead of `main`, nothing pushed.**
+Written at a deliberate pause, then completed with a full documentation pass.
+Branch `codex/site-hardening-20260713`, working tree clean, `npm run verify` green,
+**pushed to `origin` — the branch deploys nothing; only `main` does (D-001).**
 
 ## 1. What shipped this session
 
@@ -126,6 +127,35 @@ KiCad kept only where it is genuinely the tool used.
   mixes measured and modelled rows without saying which is which, and that
   distinction is the table's whole value.
 
+## 4a. Documentation brought current, 2026-09-07
+
+Every tracked document was audited against the code by an independent reader
+(38 stale statements, 36 gaps). What that produced:
+
+- **Four decision records, D-018 to D-021** — copy names the work not the tooling;
+  metrics are separate from params; positional labels are derived; substantive
+  content is adversarially audited before merge. Each with its context, reasoning
+  and consequences, and D-018 carries its unresolved tension openly.
+- **Three older decisions corrected.** D-001 said `main` was untouched while `main`
+  had moved; D-003 described a three-step release gate that has been four steps
+  since the font check landed; D-016 read as a caution when it is a live blocker.
+- **`architecture.md`** — had been stale since July, still documenting a `featured`
+  filter removed when D-010 was superseded. Now covers the new fields, derived FIG
+  labels, the container query and why it is not a media query, the two JSON-LD
+  blocks (it claimed one), the grid's real ordering invariant, and the font gate.
+- **`README.md`** — how to add a card without writing a `fig`, what evidence a
+  metrics row needs, why an image caption must say what the image is.
+- **`docs/README.md`** — the index gave two contradictory reading orders, filed the
+  newest spec under the wrong entry, and had no maintenance rule for the two
+  documents most likely to go stale. Fixed, plus the rule that D-018 governs
+  `docs/` because the repository is public.
+- **`roadmap-remaining.md`** — said "Verified" while two criticals were live. Now
+  records both merge blockers, tracks H-v1 to H-v6, and adds owner input I8.
+- **`CHANGELOG.md`** — its card descriptions still carried the pre-audit errors.
+  Rewritten, plus a Released entry for the one change that reached `main`.
+- **`CONTRIBUTING.md`** — the tooling rule was scoped to "project copy", the exact
+  under-reading that would let it be regressed in docs and commit messages.
+
 ## 5. Resume here
 
 1. Re-run adjudication over the 48 candidates before changing anything —
@@ -134,3 +164,11 @@ KiCad kept only where it is genuinely the tool used.
 2. Fix what survives, one commit per card as before.
 3. Settle the schematic-wording tension with the owner (§3).
 4. Then the CV — it is the merge gate and every other surface should derive from it.
+   Drafted shape is in the roadmap as H-v5; it also closes input I7.
+
+The five gap assessments (CV, GitHub, LinkedIn, roadmap, consistency) completed
+with drafted text in hand — CV bullets with a cut manifest holding two pages, a
+LinkedIn headline counted against the 220-character cap, an About draft, GitHub
+profile README content. Those drafts live in the session transcript, not the
+repository; §4 records their conclusions so the work can be re-derived if the
+drafts are gone.
