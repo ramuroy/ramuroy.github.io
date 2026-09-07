@@ -8,52 +8,69 @@ that affect the source, generated site, development workflow, or deployment safe
 Branch: `codex/site-hardening-20260713`. Built from
 [`docs/design-specs/h1-hardware-and-pcb.md`](docs/design-specs/h1-hardware-and-pcb.md)
 per D-017, after a sweep of the owner's eOS and personal repositories established
-what board work exists and who authored it (git shortlog, per board).
+what board work exists and who authored it (git shortlog, per design file).
 
 **Not merge-ready.** The June 2026 CV export describes none of this work, so
 D-016 — the site must never outbid the résumé — holds this branch out of `main`
-until the résumé is refreshed.
+until the résumé is refreshed. State, open findings and resume instructions:
+[2026-09-07 checkpoint](docs/checkpoints/2026-09-07-hardware-pass.md).
 
 ### Added
 
-- **Five flagship cards.** Section order after this pass: eOS · Room Controller ·
-  Anti-Collision · Zone Controller · Switchboard · pcbrouter · Ember · Voice.
-  FIG labels are derived from that order, so they are not quoted here. *eOS Room Controller* — the 24 V per-room
-  board, schematic and layout in KiCad 9, v1
-  fabbed and in the field, v2 re-spun at 57 % less area. *eOS Zone Controller* — 48 V, 16 channels, four layers on an impedance-controlled stackup,
-  one board per floor across 25 floors; in routing, fabrication on hold.
-  *pcbrouter* — a KiCad-native autorouter and routing verifier in Rust,
-  built on exact integer geometry and judged by KiCad's own DRC.
-  *eOS Switchboard* — the SELV wall keypad that switches nothing
-  itself: capacitive slider on an external touch controller, twelve tactile
-  switches under six keys, CAN uplink; fabricated, board #1 brought up.
-  *Ember* — a personal OS with systemd removed and replaced by two
-  programs written from scratch in Rust: `spark`, a PID 1 and service manager,
-  and `hearth`, the login shell. Boots an HP Victus over UEFI with signed A/B
-  updates and unaided rollback.
+- **Five flagship cards**, taking the section from three to eight. Order after
+  this pass: eOS · Room Controller · Anti-Collision · Zone Controller ·
+  Switchboard · pcbrouter · Ember · Voice. FIG labels derive from that order and
+  are deliberately not quoted in prose.
+  - *eOS Room Controller* — the 24 V per-room board of the eOS fleet, eight
+    dimmable channels and two RGB outputs, wired Ethernet to the hub, an I²S
+    microphone bridge. v2 is live in three rooms and has replaced v1, at 57 %
+    less board area and ₹370 less per populated board.
+  - *eOS Zone Controller* — 48 V, sixteen independently dimmed channels,
+    1.5 A each to 24 A and 1,152 W, on four layers of an impedance-controlled
+    stackup with native Ethernet. In routing; fabrication held.
+  - *eOS Switchboard* — the SELV wall keypad that switches nothing itself: the
+    room controller drives the loads, this panel senses intent and renders
+    state. The fabricated board is the no-slider revision; board #1 is in
+    bring-up.
+  - *pcbrouter* — a KiCad-native autorouter and routing verifier in Rust, built
+    on exact integer geometry and judged by KiCad's own DRC.
+  - *Ember* — a personal OS with systemd removed and replaced by two programs
+    written from scratch in Rust: `spark`, a PID 1 and service manager, and
+    `hearth`, the login shell. Boots an HP Victus over UEFI with signed A/B
+    updates and unaided rollback.
+
   Scope for the last two was extended by the owner mid-pass; the reasoning and
-  the attribution re-check are in the spec's H1a addendum.
-- **`metrics[]` on flagship cards (T1.1):** measured outcomes as a bordered
-  datasheet table, distinct from `params` — params say what a thing is, metrics
-  say what was measured. Every row is sourced in the build spec's evidence table.
-- **`image` on flagship cards (T2.2):** board renders with a required intrinsic
-  size, so the card cannot reflow as the picture decodes, and a caption that
-  states the image is a CAD render rather than a photograph. First asset: the
-  Room Controller v2 render (WebP, 123 KB).
+  the attribution re-check are in the build spec's H1a addendum.
+- **`metrics[]` on flagship cards (T1.1)** — measured outcomes as a bordered
+  datasheet table, deliberately distinct from `params` (D-019). Every row is
+  sourced in the build spec's evidence table.
+- **`image` on flagship cards (T2.2)** — board renders with a required intrinsic
+  size, so a card cannot reflow as the picture decodes, and a caption stating
+  the image is a CAD render rather than a photograph of a built board. First
+  asset: the Room Controller v2 render (WebP, 123 KB).
+- **`CONTRIBUTING.md`** — the working rules as plain repository conventions.
+- **Four decision records, D-018 to D-021** — copy names the work not the
+  tooling; metrics are separate from params; positional labels are derived;
+  substantive content is adversarially audited before merge.
 
 ### Changed
 
-- **FIG numbers are derived from array order**, not authored per card, so
-  inserting a project no longer means hand-renumbering the ones below it.
-  Experience cross-references resolve their label through `figOf(slug)`, which
-  throws at build time rather than shipping a broken reference.
-- **Linux Internals skills** now describe authoring an init rather than only
-  using one — PID 1, service supervision, cgroup v2, epoll loops, signal
-  reaping — since Ember removes systemd and replaces it.
-- **PCB & Hardware skills** rewritten around the actual practice — schematic
-  capture, ERC/DRC, impedance stackups, differential pairs, eFuse protection chains,
-  CAM release, bring-up and rework — instead of "KiCad, schematic capture,
-  layout", which described a student project equally well.
+- **FIG numbers derive from array order** rather than being authored per card
+  (D-020), with cross-references resolving through `figOf(slug)`, which throws
+  at build time instead of shipping a broken reference.
+- **Published copy no longer names third-party tooling** (D-018, owner
+  instruction). Applied to the site, to every tracked document, and to this
+  branch's commit messages. No claim depended on an omitted name.
+- **The assisted-session rules file left the repository.** Its tracked content
+  moved to `CONTRIBUTING.md`; the file remains on disk, excluded through
+  `.git/info/exclude` rather than `.gitignore` so the exclusion does not name it.
+- **`main` cleaned and deployed** (`2a403d8`): the rules file removed from the
+  root, the July audit documents scrubbed of method attribution. Docs-only, no
+  `src/` change, so the deployed page was unaffected. Pages green in 44 s.
+- **Skills** — Linux Internals now describes authoring an init rather than only
+  using one (PID 1, supervision, cgroup v2, epoll, signal reaping); PCB &
+  Hardware describes the real practice (ERC/DRC, impedance stackups,
+  differential pairs, eFuse chains, CAM release, bring-up and rework).
 - **Elipse role** gains a board-design bullet and names the control boards in
   its summary. Declared deviation from T1.2's three-bullet limit: the fourth
   bullet covers a domain the other three do not touch.
@@ -62,19 +79,33 @@ until the résumé is refreshed.
 
 ### Fixed
 
-- **Eighteen factual errors on the new cards, found by an adversarial audit.**
-  Five auditors re-derived every claim from the source documents (354 claims
-  checked, 41 suspected, 18 surviving refutation by two adversarial lenses each).
-  The Zone Controller card had fused two different boards, denying a component
-  while quoting its arithmetic; the Room Controller doubled its channel count
-  and had its fleet status inverted, calling the deployed revision "on the
-  bench"; the Switchboard sold a capacitive slider that was cut before
-  fabrication; pcbrouter claimed zero new DRC violations against a source that
-  lists them by name; Ember labelled a console-shell boot stamp as the login
-  shell. Each is corrected in its own commit with the source quoted.
+- **Eighteen factual errors on the new cards**, found by an adversarial audit
+  that re-derived every claim from source (354 claims checked, 41 suspected, 18
+  surviving refutation). The Zone Controller card had fused two different boards,
+  denying a component while quoting its arithmetic; the Room Controller doubled
+  its channel count and had its fleet status inverted, calling the deployed
+  revision "on the bench"; the Switchboard sold a capacitive slider that was cut
+  before fabrication; pcbrouter claimed zero new DRC violations against a source
+  that lists them by name; Ember labelled a console-shell boot stamp as the login
+  shell. Each corrected in its own commit with the source quoted.
+- **The footer terminal's `i2cdetect` pointed at the wrong project.** Inserting
+  cards shifted the anti-collision card, and the note naming its bench parts was
+  a hardcoded label — so the console sent anyone running the command to a 24 V
+  lighting board. Now resolved through `figOf(slug)`.
+- **A stale repository count** — `githubRepoCount` was 19 against a live 20,
+  in the Stats band directly under the hero. Found by an arithmetic pass that
+  recomputed all 48 derived numbers on the page.
 - **Metrics table column count follows the card, not the viewport.** Keyed to a
   media query, a half-width card took two columns at desktop widths and shredded
-  its values across three lines; it is now an inline-size container query.
+  its values across three lines; now an inline-size container query.
+
+### Known open
+
+A second double-audit of the corrected cards produced **48 candidate findings**
+and was stopped before adjudication; two of them are criticals introduced by the
+first round's own corrections. They are recorded, unadjudicated, in the
+[checkpoint](docs/checkpoints/2026-09-07-hardware-pass.md) §3 — with the first
+round's 41-to-18 survival rate stated so the list is not mistaken for confirmed.
 
 ## Released 2026-07-18 — Tier 3: platform craft and the terminal
 
