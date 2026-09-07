@@ -13,7 +13,7 @@ export const profile = {
   phone: "+91 94936 52315",
   github: "https://github.com/ramuroy",
   githubHandle: "github.com/ramuroy",
-  githubRepoCount: 19,
+  githubRepoCount: 20,
   linkedin: "https://www.linkedin.com/in/ramu-roy-b780382b7/",
   linkedinLabel: "Ramu Roy",
   resumeUrl: "/Ramu_Roy_Resume.pdf",
