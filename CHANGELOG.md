@@ -24,10 +24,11 @@ until the résumé is refreshed. State, open findings and resume instructions:
   - *eOS Room Controller* — the 24 V per-room board of the eOS fleet, eight
     dimmable channels and two RGB outputs, wired Ethernet to the hub, an I²S
     microphone bridge. v2 is live in three rooms and has replaced v1, at 57 %
-    less board area and ₹370 less per populated board.
+    less board area. (The per-board cost comparison is conditional — see Fixed.)
   - *eOS Zone Controller* — 48 V, sixteen independently dimmed channels,
     1.5 A each to 24 A and 1,152 W, on four layers of an impedance-controlled
-    stackup with native Ethernet. In routing; fabrication held.
+    stackup with native Ethernet. Routing closed at zero unconnected, DC review
+    run on the final copper, fabrication package cut; not yet fabricated.
   - *eOS Switchboard* — the SELV wall keypad that switches nothing itself: the
     room controller drives the loads, this panel senses intent and renders
     state. The fabricated board is the no-slider revision; board #1 is in
@@ -99,13 +100,29 @@ until the résumé is refreshed. State, open findings and resume instructions:
   media query, a half-width card took two columns at desktop widths and shredded
   its values across three lines; now an inline-size container query.
 
+- **Fifteen further defects, found by a second double-audit and adjudicated.**
+  Two independent auditors per card produced 48 candidates; ten judges working
+  two lenses held 29 and collapsed 14 of those as duplicates, leaving 15 distinct
+  defects — all now fixed except the schematic wording, which is an owner
+  decision (input I8). The largest: the Zone Controller card described a board
+  still in routing when its routing had closed at zero unconnected, its DC review
+  had been re-run on the final copper (19.9 mV against a 50 mV bound, not the
+  46.544 mV two-layer figure the card quoted) and its fabrication package was
+  cut; the Room Controller quoted ₹1,260 a board as invoiced when it is
+  conditional on an unresolved ₹5,040 — only 6 of 10 boards were delivered, and
+  if the loss is absorbed the figure is ₹2,100 and the cheaper-than-v1 headline
+  reverses; and the Switchboard reported three solder-joint faults and no design
+  defect, where two were fixed, the third is suspected with its reflow not
+  attempted, and the same document lists two footprint defects for the next spin.
+
 ### Known open
 
-A second double-audit of the corrected cards produced **48 candidate findings**
-and was stopped before adjudication; two of them are criticals introduced by the
-first round's own corrections. They are recorded, unadjudicated, in the
-[checkpoint](docs/checkpoints/2026-09-07-hardware-pass.md) §3 — with the first
-round's 41-to-18 survival rate stated so the list is not mistaken for confirmed.
+The second audit is now adjudicated and its 15 distinct defects are fixed, with
+one exception: **the schematic wording** (owner input I8). Two auditors found the
+board schematics are generated from code rather than drawn in KiCad, so "drew the
+schematic … in KiCad 9" is inaccurate — but naming the tool is what D-018
+forbids. Accuracy and that rule conflict on one sentence across two cards, and
+the resolution is the owner's to make.
 
 ## Released 2026-09-07 — documentation scrub on `main`
 

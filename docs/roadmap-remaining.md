@@ -12,6 +12,12 @@ Zone Controller, eOS Switchboard, pcbrouter and Ember (scope extended by the
 owner mid-pass; see the spec's H1a addendum) — plus the `metrics[]` and
 `image` fields they introduced, a rewritten PCB & Hardware skills group, the Elipse hardware bullet
 and hardware SEO terms. Build spec: [`design-specs/h1-hardware-and-pcb.md`](design-specs/h1-hardware-and-pcb.md).
+**Verification status 2026-09-08 — one item from clear.** Round two is
+adjudicated: 48 candidates → 29 held → 15 distinct after duplicates, all fixed
+except the schematic wording (I8). The history below is kept because the numbers
+matter: two correction rounds were themselves audited, and each found real
+defects in the one before it.
+
 **Verification status 2026-09-07 — OPEN, not clear.** A first adversarial round
 checked 354 claims across the five cards: 41 suspected, 18 confirmed and fixed.
 A second, independent double-audit then ran against the *corrected* cards and
@@ -26,15 +32,16 @@ command: [2026-09-07 checkpoint](checkpoints/2026-09-07-hardware-pass.md) §3.
 1. **D-016** — the June 2026 CV export describes none of this work, so the
    branch stays out of `main` until the résumé is refreshed (H-v5 below).
 2. **D-021** — substantive content is adversarially audited before it can merge.
-   The second round's 48 candidates are not yet adjudicated (H-v1 below).
+   Adjudication is done and 14 of the 15 confirmed defects are fixed; the gate
+   clears once the schematic wording is settled (I8 / H-v3 below).
 
 ## Outstanding from the 2026-09-07 hardware pass
 
 | # | Item | Effort | Status |
 |---|---|---|---|
-| H-v1 | Adjudicate the second audit's 48 candidate findings — replays the completed audits from cache, runs only the refuters | S | **blocks merge (D-021)** |
-| H-v2 | Fix what survives adjudication, one commit per card. Two criticals are already known: the Zone Controller describes a clock buffer as an oscillator, and states a fabrication hold that the same day's later records supersede | M | blocked on H-v1 |
-| H-v3 | Settle the schematic-wording tension (owner input I8) — accuracy and D-018 conflict on one sentence across three cards | S | blocked on I8 |
+| H-v1 | Adjudicate the second audit's 48 candidate findings | S | **DONE 2026-09-08** — 10 judges, 2 lenses per card, 0 failures: 29 held, 19 refuted, 14 of the held marked duplicates → **15 distinct defects** |
+| H-v2 | Fix what survives adjudication, one commit per card | M | **DONE 2026-09-08** — 14 of 15 fixed across four commits; the fifteenth is the schematic wording, held for I8 |
+| H-v3 | Settle the schematic-wording tension (owner input I8) — accuracy and D-018 conflict on one sentence across two cards | S | **the only thing left before D-021 clears** |
 | H-v4 | Split `metrics[]` rows into measured and modelled, or move the soft rows to `params` — the field as shipped does not yet honour D-019 | M | ready |
 | H-v5 | CV refresh: a hardware/PCB block in the Elipse role covering the three boards, and hobby Projects replaced by pcbrouter and Ember, with a cut manifest holding two pages. Clears I7's defects in the same export | M | **blocks merge (D-016)** |
 | H-v6 | Add the Zone Controller and Switchboard renders — cleared by H-c, not yet done | S | ready |
