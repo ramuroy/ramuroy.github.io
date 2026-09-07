@@ -13,16 +13,19 @@ Use these documents in this order:
    Companions: [unabridged findings](audit-findings-full-2026-07-16.md) (all 245
    with complete evidence) and [machine-readable data](audit-data-2026-07-16.json)
    (findings + roadmap + raw design proposals).
-5. [2026-07-18 Tier 3 release checkpoint](checkpoints/2026-07-18-tier3-release.md) —
+5. [2026-09-07 hardware & PCB pass checkpoint](checkpoints/2026-09-07-hardware-pass.md) —
+   five new cards, the metrics and image fields, two audits, and the 48 candidate
+   findings still awaiting adjudication. **Read this first when resuming.**
+6. [2026-07-18 Tier 3 release checkpoint](checkpoints/2026-07-18-tier3-release.md) —
    the trio + terminal: process, decisions, review evidence, resume steps.
    Build specs live in [design-specs/](design-specs/) (D-017).
-6. [2026-07-17 Phase 0 release checkpoint](checkpoints/2026-07-17-phase0-release.md) —
+7. [2026-07-17 Phase 0 release checkpoint](checkpoints/2026-07-17-phase0-release.md) —
    what shipped, every decision with rationale, release evidence, resume steps.
-7. [2026-07-16 audit checkpoint](checkpoints/2026-07-16-full-audit.md) — what the
+8. [2026-07-16 audit checkpoint](checkpoints/2026-07-16-full-audit.md) — what the
    audit session did and decided.
-8. [2026-07-13 site-hardening checkpoint](checkpoints/2026-07-13-site-hardening.md) —
+9. [2026-07-13 site-hardening checkpoint](checkpoints/2026-07-13-site-hardening.md) —
    the hardening work log and evidence boundary.
-9. [Project changelog](../CHANGELOG.md) — user- and developer-visible changes by
+10. [Project changelog](../CHANGELOG.md) — user- and developer-visible changes by
    release/checkpoint.
 
 The root [README](../README.md) remains the quick-start and content-editing guide,
