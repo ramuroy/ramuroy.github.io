@@ -68,7 +68,7 @@ The portfolio content has one primary source of truth: `src/data/site.ts`.
 | Navigation and section labels | `nav`, `sections` |
 | Hero copy, key specifications, ticker | `hero` |
 | About copy and at-a-glance data | `about` |
-| Flagship project cards | `flagship` |
+| Flagship project cards | `flagshipOrder` (exported as `flagship`) |
 | Project grid (all entries, strongest first) | `gridProjects` |
 | Employment and education | `experience`, `education` |
 | Skills and protocols | `skillGroups`, `protocols` |
@@ -77,6 +77,29 @@ The portfolio content has one primary source of truth: `src/data/site.ts`.
 All `gridProjects` entries render, in the array's order — strongest work first;
 re-rank a project by moving its line. Aggregate project statistics are derived
 from the full arrays rather than duplicated as hard-coded display values.
+
+**Adding or reordering a flagship card.** Author it in `flagshipOrder` — do not
+write a `fig` field, because the FIG label is derived from array position and
+renumbering is automatic (D-020). Anything that refers to a card from elsewhere
+must resolve it with `figOf(slug)`, which fails the build if the slug stops
+matching, rather than quoting a number that will drift.
+
+Two fields on a flagship card are optional and carry rules:
+
+- `metrics[]` — measured outcomes, rendered as a datasheet table separate from
+  `params` (D-019). `params` say what a thing *is*; `metrics` say what was
+  *measured*. Every row needs evidence behind it — an invoice, an instrument, or
+  a tool's recorded output — and `note` carries the qualifier that keeps the
+  number honest. A card with no defensible numbers gets no table.
+- `image` — a board render or photograph. `w` and `h` are required so the card
+  reserves its layout box, and `caption` must say what the image *is*, so a CAD
+  render is never mistaken for a photograph of built hardware.
+
+Two content rules bind every edit: no claim may exceed what the résumé says
+(D-016), and copy names the work rather than the tooling behind it (D-018).
+
+`profile.githubRepoCount` is the one value that is not derived — check it against
+`https://api.github.com/users/ramuroy` when repository visibility changes.
 
 The résumé download is `public/Ramu_Roy_Resume.pdf`. Social images, favicons, and
 `robots.txt` also live in `public/`.

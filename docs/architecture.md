@@ -42,18 +42,32 @@ framework.
 `src/data/site.ts` is the canonical content source. Components should consume or
 derive values from it rather than repeating content literals.
 
+Flagship projects are authored in `flagshipOrder` and exported as `flagship`.
+Each entry carries `params` (what the thing *is*) and, optionally, `metrics`
+(what was *measured* — a separate field by D-019, rendered as a distinct
+datasheet table) and `image` (a board render; its `w`/`h` are required so the
+card reserves layout space and cannot reflow as the picture decodes).
+
 Current derived values include:
 
-- the repository count in the hero ticker and statistics band;
 - total projects from flagship plus complete grid-project arrays;
 - protocol count;
 - programming-language count (from the Languages skill group);
 - availability labels and indicators; and
-- the curated project grid from `gridProjects.filter(project => project.featured)`.
+- **FIG labels**, derived from `flagshipOrder` position and never authored
+  (D-020). Cross-references resolve through the exported `figOf(slug)`, which
+  **throws at build time** if a slug stops matching — used by the experience
+  entries and by `terminal.ts` for the `i2cdetect` note.
+
+The one value that is *not* derived is `profile.githubRepoCount`: it is an
+externally observed fact (D-009) and drifts silently. It was found stale at 19
+against a live 20 on 2026-09-07. Re-check it against
+`https://api.github.com/users/ramuroy` whenever repository visibility changes.
 
 This prevents a content update in one section from silently leaving another section
 stale. When adding a new aggregate, derive it close to the component that renders it
 unless multiple components need it; shared derivations belong with the data model.
+Anything that names a project by number or position must resolve it by slug.
 
 ## Rendering and trust boundaries
 
@@ -134,6 +148,14 @@ Treat `src/styles/tokens.css` as the design-system API. Prefer changing or addin
 token instead of scattering literal values through component rules. Keep semantic
 content and decorative circuit/trace elements separate, with decoration hidden from
 assistive technology.
+
+The measured-outcome table (`.metrics`) is an **inline-size container query**, not
+a media query: a half-width flagship card is narrow at every viewport, so its
+column count has to follow the card's own width. Keying that to the viewport was a
+real defect — values shredded across three lines on desktop. Any future component
+whose layout depends on the width of the card it sits in should do the same.
+Print styles re-theme at the token level, so both `.metrics` and `.board` print
+correctly without per-selector overrides.
 
 `src/styles/fonts.css` imports one Latin variable WOFF2 file for each family directly
 from installed Fontsource packages. This keeps rendering deterministic, removes the
