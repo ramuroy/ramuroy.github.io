@@ -172,6 +172,15 @@ capacity read as built capability, a debugging hypothesis read as a diagnosis.
 introduced by round one's own corrections. That is the durable lesson: a
 correction pass is a change like any other and needs the same verification.
 
+**§3.2 and §4 above are superseded and kept as history** (D-017 — a shipped spec
+is corrected by addendum, not rewritten). §3.2's FIG table predates the
+switchboard and Ember being added, so its labels and order are wrong; the live
+order is in H1a. Several §4 evidence rows describe claims the audit then
+corrected — the Room Controller's fleet status, its "8 → 16 PWM channels", the
+switchboard's slider figures and Ember's login-shell stamp. §3.1's `image` block
+also predates the type: the shipped field requires `w` and `h`. `src/data/site.ts`
+is the authority for all of it.
+
 **What this means for future specs.** An evidence table must name not just the
 source file but the **revision and board the figure describes**, and must record
 whether the source states it as measured, modelled, targeted or hypothesised.

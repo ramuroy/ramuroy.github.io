@@ -22,6 +22,13 @@ the live site to a broad, partially audited change set.
 **Consequences:** Pushing this branch is safe and does not deploy. The branch must be
 merged later before users see the improvements.
 
+**Amended 2026-09-07:** one commit has since been made directly to `main`
+(`2a403d8`) under the owner's explicit instruction — a docs-only change removing
+the assisted-session rules file from the repository and scrubbing method
+attribution from the July audit documents, with no `src/` change, so the deployed
+page was unaffected. The rule is unchanged: `main` moves only on an explicit
+instruction naming that change. The hardening branch itself remains unmerged.
+
 ## D-002 — Upgrade to Astro 7 and standardize on Node 22.12+
 
 **Status:** Accepted
@@ -46,8 +53,11 @@ building. A final clean-install audit remains part of the release checklist.
 **Context:** The previous deployment workflow built the site but did not run source
 diagnostics or assert properties of the generated output.
 
-**Decision:** Define `npm run verify` as `check`, `build`, then `check:build`; run the
-same command in CI before uploading the Pages artifact.
+**Decision:** Define `npm run verify` as the release gate and run the same command in
+CI before uploading the Pages artifact. It is now four steps —
+`check` → `check:fonts` → `build` → `check:build` — the font step having been added
+with D-004's subsetting to assert that the shipped subsets still carry the OpenType
+features the stylesheets depend on.
 
 **Why:** Source correctness and build success do not prove that canonical metadata,
 anchors, CSP, assets, and structured data were emitted correctly. A shared local/CI
@@ -303,6 +313,12 @@ repos, checkable stats). One inflated verb puts all of it in doubt.
 **Consequences:** Content edits in `src/data/site.ts` should be checked
 against `public/Ramu_Roy_Resume.pdf` before merging. Applied 2026-07-17 to
 the About paragraph, the Elipse experience entry, and the eOS flagship card.
+
+**Live as a merge blocker since 2026-09-07.** The hardware pass added five
+projects the June 2026 CV export does not mention at all, so this rule is what
+currently holds the branch out of `main` — not as a caution but as a gate. The
+owner chose site-first deliberately, knowing the sequencing. It clears when the
+résumé is refreshed (roadmap H-v5, which also closes input I7).
 
 ## D-017 — Feature work follows committed build specs
 

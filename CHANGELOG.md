@@ -107,6 +107,20 @@ first round's own corrections. They are recorded, unadjudicated, in the
 [checkpoint](docs/checkpoints/2026-09-07-hardware-pass.md) §3 — with the first
 round's 41-to-18 survival rate stated so the list is not mistaken for confirmed.
 
+## Released 2026-09-07 — documentation scrub on `main`
+
+The only thing that reached `main` this session (`2a403d8`), under the owner's
+explicit instruction and with no `src/` change, so the deployed page is
+byte-identical to the 2026-07-18 release. Pages deploy green in 44 s.
+
+- The assisted-session rules file left the repository; its tracked content moved
+  to a new `CONTRIBUTING.md` written as plain repository conventions. The file
+  remains on disk, excluded through `.git/info/exclude` rather than `.gitignore`
+  so the exclusion itself does not name it.
+- The July audit documents describe their method rather than attributing it, and
+  nine further documents that referenced the old filename or the old wording were
+  updated (D-018).
+
 ## Released 2026-07-18 — Tier 3: platform craft and the terminal
 
 Branch: `codex/site-hardening-20260713`. Implemented from committed build specs

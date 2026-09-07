@@ -28,6 +28,10 @@ if commits stay legible.
 - Work happens on the hardening branch; **never push or merge `main` without
   the owner's explicit instruction** — pushes to `main` deploy the live site
   (see `docs/decisions.md` D-001).
+- Two gates currently hold this branch out of `main`, both open: **D-016** (the
+  résumé describes none of the hardware work, so the site would outbid it) and
+  **D-021** (the second audit's findings are not yet adjudicated). Pushing the
+  *branch* is safe and deploys nothing.
 
 ## Process
 
@@ -47,7 +51,9 @@ if commits stay legible.
 
 - Every claim on the site must be at or below the résumé's scope (D-016), and
   every number must be traceable to a recorded source.
-- Project copy names the work, not the tooling behind it (D-018).
+- Copy names the work, not the tooling behind it, and never records AI assistance
+  (D-018). This is **not limited to project copy**: the repository is public, so it
+  binds `docs/`, `CHANGELOG.md` and commit messages exactly as it binds the site.
 - `params` say what a thing *is*; `metrics` say what was *measured* (D-019).
   A card with no defensible numbers gets no metrics table rather than a padded one.
 - Positional labels — FIG numbers — are derived, never authored. Refer to a card
