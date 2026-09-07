@@ -115,6 +115,14 @@ until the résumé is refreshed. State, open findings and resume instructions:
   defect, where two were fixed, the third is suspected with its reflow not
   attempted, and the same document lists two footprint defects for the next spin.
 
+- **Board image swapped to the Zone Controller v2 four-layer copper plot.** The
+  Room Controller render showed its terminal blocks out of position, and the
+  Zone Controller is the stronger board to show — four layers with high-speed
+  Ethernet. Built with `kicad-cli`, one export per copper layer composited by
+  alpha so all four read at once. A copper plot rather than a 3D render, both
+  because `kicad-packages3d` is absent here and because the layers, the
+  differential pairs and the routing density are the point.
+
 ### Known open
 
 The second audit is now adjudicated and its 15 distinct defects are fixed, with
