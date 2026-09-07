@@ -43,7 +43,7 @@ command: [2026-09-07 checkpoint](checkpoints/2026-09-07-hardware-pass.md) §3.
 | H-v2 | Fix what survives adjudication, one commit per card | M | **DONE 2026-09-08** — 14 of 15 fixed across four commits; the fifteenth is the schematic wording, held for I8 |
 | H-v3 | Settle the schematic-wording tension (owner input I8) | S | **DONE 2026-09-08** — owner chose to claim neither method and state ownership scope instead; D-018 amended with the general rule |
 | H-v4 | Split `metrics[]` rows into measured and modelled, or move the soft rows to `params` — the field as shipped does not yet honour D-019 | M | ready |
-| H-v5 | CV refresh: a hardware/PCB block in the Elipse role covering the three boards, and hobby Projects replaced by pcbrouter and Ember, with a cut manifest holding two pages. Clears I7's defects in the same export | M | **blocks merge (D-016)** |
+| H-v5 | CV refresh | M | **DRAFTED 2026-09-08** — full delta in [`cv-refresh-brief-2026-09-08.md`](cv-refresh-brief-2026-09-08.md). **Blocked on owner input I9: the `.tex` source is not on this machine.** Still the only merge gate |
 | H-v6 | Add the Zone Controller and Switchboard renders — cleared by H-c, not yet done | S | ready |
 
 **Already done and shipped 2026-07-17:** all 31 curated defects B1–B31, CI
@@ -66,6 +66,7 @@ See CHANGELOG and the 2026-07-17 checkpoint.
 | I5 | Go/no-go on publishing a wake-word repo + eOS architecture write-up | T2.1 — owner confirmed 2026-09-07 that **nothing about eOS is confidential**; only the write-and-host decision remains |
 | I6 | Portrait photo (for `Person.image`, possibly the site) | SEO polish |
 | I7 | Next CV export: fix "IN4007"→"1N4007" typo; add PDF Title/Author metadata + tagging | resume artifact, H-v5 |
+| I9 | The résumé's LaTeX source. The PDF is pdfTeX-built (2026-06-14) but no `.tex` exists on this machine — likely Overleaf. `pdflatex` and `lualatex` are installed locally, so the drafted edits can be applied and recompiled here once the source is available | H-v5, and with it D-016 |
 | I8 | ~~Schematic wording~~ **ANSWERED 2026-09-08:** claim neither method; state ownership scope instead. Applied, and the general rule is recorded in D-018 | — |
 
 ## Tier 1 — recruiter-critical content (highest screening impact)

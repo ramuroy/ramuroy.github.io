@@ -1,5 +1,9 @@
 # Documentation index
 
+**Executing the CV refresh?** The brief is
+[`cv-refresh-brief-2026-09-08.md`](cv-refresh-brief-2026-09-08.md) — exact text
+to add and cut, with the page arithmetic. It is the last merge gate (D-016).
+
 **Resuming work?** Start with the
 [2026-09-07 hardware pass checkpoint](checkpoints/2026-09-07-hardware-pass.md) —
 it carries the current state, the open findings and the resume steps. The list
