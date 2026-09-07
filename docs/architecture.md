@@ -19,9 +19,9 @@ framework.
 | Design tokens | `src/styles/tokens.css` | Shared colour, typography, spacing, layout, shadow, and motion values |
 | Global styles | `src/styles/global.css` | Reset, components, responsive behaviour, print, and reduced motion |
 | Font declarations | `src/styles/fonts.css` | Exact self-hosted Latin variable-font subsets |
-| Static assets | `public/` | Résumé, Open Graph image, favicons, and crawler policy |
+| Static assets | `public/` | Résumé, Open Graph image, favicons, crawler policy, and flagship board renders |
 | Build configuration | `astro.config.mjs` | Site URL, sitemap, CSP, compression, and static-build behaviour |
-| Release validation | `scripts/check-build.mjs` | Invariants checked against generated output |
+| Release validation | `scripts/check-fonts.mjs`, `scripts/check-build.mjs` | Shipped font subsets, and invariants checked against generated output |
 | Deployment | `.github/workflows/deploy.yml` | Verification and GitHub Pages publication from `main` only |
 
 ## Build and request lifecycle
@@ -41,6 +41,11 @@ framework.
 
 `src/data/site.ts` is the canonical content source. Components should consume or
 derive values from it rather than repeating content literals.
+
+The project grid renders `gridProjects` whole, in the array's authored order. That
+order **is** the editorial control — strongest engineering first — and there is no
+featured flag and no star sort, deliberately: a starred hobby board must not outrank
+stronger firmware work (D-010, superseded). To re-rank, move lines in `site.ts`.
 
 Flagship projects are authored in `flagshipOrder` and exported as `flagship`.
 Each entry carries `params` (what the thing *is*) and, optionally, `metrics`
@@ -76,9 +81,11 @@ default. Do not introduce `set:html` for ordinary content. The About annotations
 boot status labels deliberately split strings into Astro-rendered fragments so HTML
 characters remain escaped.
 
-Person JSON-LD is the one intentional inline structured-data block. It is constructed
-from known data, serialized with `JSON.stringify`, and replaces `<` with its Unicode
-escape to prevent a value from terminating the script element.
+Structured data is the intentional exception: `Layout.astro` emits a **Person block
+and a WebSite block**. Both are constructed from known data and serialized through the
+shared `escapeLd` helper, which `JSON.stringify`s the object and replaces `<` with its
+Unicode escape so no value can terminate the script element. Any further
+structured-data block must go through that same helper.
 
 External links opened in a new tab must carry both `noopener` and `noreferrer`.
 `scripts/check-build.mjs` enforces this in generated output.
@@ -167,7 +174,7 @@ Fontsource dependency explicitly.
 
 The site URL is declared in `astro.config.mjs`. `Layout.astro` derives the canonical
 URL from `Astro.site` and the current path, then uses it consistently for canonical,
-Open Graph, Twitter, and Person JSON-LD data. `public/robots.txt` points crawlers to
+Open Graph, Twitter, and both JSON-LD blocks (Person and WebSite). `public/robots.txt` points crawlers to
 the generated sitemap index.
 
 Keep the following public assets present and non-empty:
