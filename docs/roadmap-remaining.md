@@ -12,6 +12,8 @@ Zone Controller, eOS Switchboard, pcbrouter and Ember (scope extended by the
 owner mid-pass; see the spec's H1a addendum) — plus the `metrics[]` and
 `image` fields they introduced, a rewritten PCB & Hardware skills group, the Elipse hardware bullet
 and hardware SEO terms. Build spec: [`design-specs/h1-hardware-and-pcb.md`](design-specs/h1-hardware-and-pcb.md).
+**Merge status 2026-09-08 — both gates cleared; the branch is merge-ready pending owner review.**
+
 **Verification status 2026-09-08 — CLEAR.** Round two is adjudicated: 48
 candidates → 29 held → 15 distinct after duplicates, **all 15 fixed**. D-021 is
 satisfied; D-016 (the résumé) is the only remaining merge gate. The history below is kept because the numbers
@@ -27,10 +29,11 @@ introduced by the first round's own corrections, both still live in
 found one error (`githubRepoCount`, since fixed). Findings and the resume
 command: [2026-09-07 checkpoint](checkpoints/2026-09-07-hardware-pass.md) §3.
 
-**Merge blockers — one open (D-021 cleared 2026-09-08):**
+**Merge blockers — NONE OPEN as of 2026-09-08.**
 
-1. **D-016** — the June 2026 CV export describes none of this work, so the
-   branch stays out of `main` until the résumé is refreshed (H-v5 below).
+1. ~~**D-016** — the June 2026 CV export describes none of this work.~~
+   **CLEARED:** the résumé now covers all eight flagship cards at or above site
+   scope, verified term by term (H-v5).
 2. ~~**D-021** — substantive content is adversarially audited before it can
    merge.~~ **CLEARED 2026-09-08:** round two adjudicated, all 15 confirmed
    defects fixed including the schematic wording. **D-016 is now the only gate.**
@@ -43,7 +46,7 @@ command: [2026-09-07 checkpoint](checkpoints/2026-09-07-hardware-pass.md) §3.
 | H-v2 | Fix what survives adjudication, one commit per card | M | **DONE 2026-09-08** — 14 of 15 fixed across four commits; the fifteenth is the schematic wording, held for I8 |
 | H-v3 | Settle the schematic-wording tension (owner input I8) | S | **DONE 2026-09-08** — owner chose to claim neither method and state ownership scope instead; D-018 amended with the general rule |
 | H-v4 | Split `metrics[]` rows into measured and modelled, or move the soft rows to `params` — the field as shipped does not yet honour D-019 | M | ready |
-| H-v5 | CV refresh | M | **DRAFTED 2026-09-08** — full delta in [`cv-refresh-brief-2026-09-08.md`](cv-refresh-brief-2026-09-08.md). **Blocked on owner input I9: the `.tex` source is not on this machine.** Still the only merge gate |
+| H-v5 | CV refresh | M | **DONE 2026-09-08** — source found in the private `profile-workspace` repo, edits applied and recompiled locally (4 → 3 pages), PDF installed. **D-016 CLEARED** |
 | H-v6 | Add the Zone Controller and Switchboard renders — cleared by H-c, not yet done | S | ready |
 
 **Already done and shipped 2026-07-17:** all 31 curated defects B1–B31, CI
@@ -65,8 +68,8 @@ See CHANGELOG and the 2026-07-17 checkpoint.
 | I4 | Employer permission for bench/deployment photos (Radiogeet, Elipse) | T2.2 — **CAD renders cleared 2026-09-07** (owner decision H-c, Elipse logo included); bench/deployment photographs still open |
 | I5 | Go/no-go on publishing a wake-word repo + eOS architecture write-up | T2.1 — owner confirmed 2026-09-07 that **nothing about eOS is confidential**; only the write-and-host decision remains |
 | I6 | Portrait photo (for `Person.image`, possibly the site) | SEO polish |
-| I7 | Next CV export: fix "IN4007"→"1N4007" typo; add PDF Title/Author metadata + tagging | resume artifact, H-v5 |
-| I9 | The résumé's LaTeX source. The PDF is pdfTeX-built (2026-06-14) but no `.tex` exists on this machine — likely Overleaf. `pdflatex` and `lualatex` are installed locally, so the drafted edits can be applied and recompiled here once the source is available | H-v5, and with it D-016 |
+| I7 | ~~Next CV export~~ **DONE 2026-09-08** — Title/Author metadata set via hyperref; the IN4007 typo went with the hobby-project entry that was cut. Tagging remains, a `tagpdf` job for a later export | — |
+| I9 | ~~The résumé's LaTeX source~~ **FOUND 2026-09-08** in the private `ramuroy/profile-workspace` repo (`Resume.tex`, self-contained `article` class). Edits applied on branch `cv/hardware-refresh-2026-09-08`, pushed | — |
 | I8 | ~~Schematic wording~~ **ANSWERED 2026-09-08:** claim neither method; state ownership scope instead. Applied, and the general rule is recorded in D-018 | — |
 
 ## Tier 1 — recruiter-critical content (highest screening impact)
