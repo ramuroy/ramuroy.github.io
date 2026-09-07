@@ -25,9 +25,9 @@ Branch `codex/site-hardening-20260713`, working tree clean, `npm run verify` gre
 
 | | |
 |---|---|
-| Branch | `codex/site-hardening-20260713`, 31 commits ahead, **unpushed** |
+| Branch | `codex/site-hardening-20260713`, pushed to `origin`; pushing a branch deploys nothing |
 | `origin/main` | `2a403d8` — scrubbed and deployed; carries none of the hardware work |
-| Merge gate | **D-016** — the June 2026 CV describes none of these five projects |
+| Merge gates | **D-016** (the June 2026 CV describes none of these five projects) and **D-021** (the second audit is unadjudicated) — both open |
 | Backup ref | `backup/pre-msg-rewrite-2026-09-07` (pre commit-message rewrite) |
 
 ## 3. Open — a second audit found 48 more candidate findings
