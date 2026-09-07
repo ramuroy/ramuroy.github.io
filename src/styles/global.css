@@ -424,7 +424,10 @@ html.boot-hold .hero .po, html.boot-hold .hero__lead em::after { animation-play-
    decoration, and shouldn't read as a hero banner.
    A pair sits side by side, but only where the card is wide enough to keep both
    legible: a container query again, for the same reason as .metrics. */
-.boards { display: grid; gap: var(--space-4); container-type: inline-size; }
+/* The container must be an ANCESTOR of what queries it — an element cannot query
+   its own width — so the wrapper carries container-type, not the grid itself. */
+.boards-wrap { container-type: inline-size; }
+.boards { display: grid; gap: var(--space-4); }
 @container (min-width: 44rem) { .boards--pair { grid-template-columns: 1fr 1fr; } }
 .board { margin: 0; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--code-bg); display: flex; flex-direction: column; }
 .board__img { flex: 1 1 auto; object-fit: contain; }

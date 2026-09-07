@@ -37,6 +37,7 @@ const showDot = (v: string) => v === "deployed" || v === "production";
           <p class="pcard__desc">{p.description}</p>
 
           {p.images && (
+            <div class="boards-wrap">
             <div class:list={["boards", { "boards--pair": p.images.length > 1 }]}>
               {p.images.map((img) => (
                 <figure class="board">
@@ -52,6 +53,7 @@ const showDot = (v: string) => v === "deployed" || v === "production";
                   <figcaption class="board__caption">{img.caption}</figcaption>
                 </figure>
               ))}
+            </div>
             </div>
           )}
 
