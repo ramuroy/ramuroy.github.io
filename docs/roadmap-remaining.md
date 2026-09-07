@@ -12,9 +12,9 @@ Zone Controller, eOS Switchboard, pcbrouter and Ember (scope extended by the
 owner mid-pass; see the spec's H1a addendum) — plus the `metrics[]` and
 `image` fields they introduced, a rewritten PCB & Hardware skills group, the Elipse hardware bullet
 and hardware SEO terms. Build spec: [`design-specs/h1-hardware-and-pcb.md`](design-specs/h1-hardware-and-pcb.md).
-**Verification status 2026-09-08 — one item from clear.** Round two is
-adjudicated: 48 candidates → 29 held → 15 distinct after duplicates, all fixed
-except the schematic wording (I8). The history below is kept because the numbers
+**Verification status 2026-09-08 — CLEAR.** Round two is adjudicated: 48
+candidates → 29 held → 15 distinct after duplicates, **all 15 fixed**. D-021 is
+satisfied; D-016 (the résumé) is the only remaining merge gate. The history below is kept because the numbers
 matter: two correction rounds were themselves audited, and each found real
 defects in the one before it.
 
@@ -27,13 +27,13 @@ introduced by the first round's own corrections, both still live in
 found one error (`githubRepoCount`, since fixed). Findings and the resume
 command: [2026-09-07 checkpoint](checkpoints/2026-09-07-hardware-pass.md) §3.
 
-**Merge blockers — two, both open:**
+**Merge blockers — one open (D-021 cleared 2026-09-08):**
 
 1. **D-016** — the June 2026 CV export describes none of this work, so the
    branch stays out of `main` until the résumé is refreshed (H-v5 below).
-2. **D-021** — substantive content is adversarially audited before it can merge.
-   Adjudication is done and 14 of the 15 confirmed defects are fixed; the gate
-   clears once the schematic wording is settled (I8 / H-v3 below).
+2. ~~**D-021** — substantive content is adversarially audited before it can
+   merge.~~ **CLEARED 2026-09-08:** round two adjudicated, all 15 confirmed
+   defects fixed including the schematic wording. **D-016 is now the only gate.**
 
 ## Outstanding from the 2026-09-07 hardware pass
 
@@ -41,7 +41,7 @@ command: [2026-09-07 checkpoint](checkpoints/2026-09-07-hardware-pass.md) §3.
 |---|---|---|---|
 | H-v1 | Adjudicate the second audit's 48 candidate findings | S | **DONE 2026-09-08** — 10 judges, 2 lenses per card, 0 failures: 29 held, 19 refuted, 14 of the held marked duplicates → **15 distinct defects** |
 | H-v2 | Fix what survives adjudication, one commit per card | M | **DONE 2026-09-08** — 14 of 15 fixed across four commits; the fifteenth is the schematic wording, held for I8 |
-| H-v3 | Settle the schematic-wording tension (owner input I8) — accuracy and D-018 conflict on one sentence across two cards | S | **the only thing left before D-021 clears** |
+| H-v3 | Settle the schematic-wording tension (owner input I8) | S | **DONE 2026-09-08** — owner chose to claim neither method and state ownership scope instead; D-018 amended with the general rule |
 | H-v4 | Split `metrics[]` rows into measured and modelled, or move the soft rows to `params` — the field as shipped does not yet honour D-019 | M | ready |
 | H-v5 | CV refresh: a hardware/PCB block in the Elipse role covering the three boards, and hobby Projects replaced by pcbrouter and Ember, with a cut manifest holding two pages. Clears I7's defects in the same export | M | **blocks merge (D-016)** |
 | H-v6 | Add the Zone Controller and Switchboard renders — cleared by H-c, not yet done | S | ready |
@@ -66,7 +66,7 @@ See CHANGELOG and the 2026-07-17 checkpoint.
 | I5 | Go/no-go on publishing a wake-word repo + eOS architecture write-up | T2.1 — owner confirmed 2026-09-07 that **nothing about eOS is confidential**; only the write-and-host decision remains |
 | I6 | Portrait photo (for `Person.image`, possibly the site) | SEO polish |
 | I7 | Next CV export: fix "IN4007"→"1N4007" typo; add PDF Title/Author metadata + tagging | resume artifact, H-v5 |
-| I8 | Schematic wording: two auditors found the board schematics are generated from code, not drawn in KiCad, so "drew the schematic … in KiCad 9" is inaccurate — but naming the tool is forbidden by D-018. Proposed resolution: wording that names neither tool and claims neither method | H-v2, H-v3 |
+| I8 | ~~Schematic wording~~ **ANSWERED 2026-09-08:** claim neither method; state ownership scope instead. Applied, and the general rule is recorded in D-018 | — |
 
 ## Tier 1 — recruiter-critical content (highest screening impact)
 

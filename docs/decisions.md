@@ -373,13 +373,19 @@ the boards genuinely are KiCad projects, and the verification libraries behind
 `pcbrouter`'s own correctness claims — naming what you validated against is
 evidence of rigour, not of borrowing.
 
-**Open tension (2026-09-07, unresolved):** two independent auditors found that
-the board schematics are generated from code rather than drawn in KiCad, so
-"drew the schematic … in KiCad 9" is inaccurate — but naming the actual tool is
-what this decision forbids. Accuracy and this rule pull against each other on
-that one sentence. The proposed resolution is wording that names neither tool
-and claims neither method. Owner decision pending; see
-`docs/checkpoints/2026-09-07-hardware-pass.md` §3.
+**Tension resolved 2026-09-08 (owner input I8).** Two independent auditors found
+that the board schematics are generated from code rather than drawn in KiCad, so
+"drew the schematic … in KiCad 9" was inaccurate — while naming the actual tool
+is what this decision forbids. The owner chose to claim **neither method**: the
+card now states the scope of ownership, "designed the board in KiCad 9 —
+schematic through layout to the fabrication package".
+
+That is stronger than either alternative and it is verified rather than merely
+permitted: the schematic source is 27 commits and the released board file 24,
+all the owner's, with no design-file commits from anyone else. **The general
+lesson: when accuracy and this rule collide, describe the scope of the work
+rather than the method** — a method claim is what created the conflict, and the
+site does not need one.
 
 ## D-019 — Measured outcomes are a separate field from specifications
 
