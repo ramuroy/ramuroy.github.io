@@ -280,10 +280,10 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
     ],
     image: {
       src: "/zone-controller-v2.webp",
-      alt: "Four-layer copper plot of the eOS Zone Controller v2: sixteen output driver channels in four groups down the left edge, the 48 V power section through the middle, and dense Ethernet PHY and switch routing at the right. Front copper in orange, the inner reference planes in cyan and violet, back copper in slate.",
-      caption: "four-layer copper plot — zone controller v2, 201 × 120 mm",
+      alt: "KiCad 3D render of the eOS Zone Controller v2 board: four groups of output driver ICs and screw terminals down the left edge, the 48 V power section with a shielded inductor and TO-263 regulator through the middle, and the ESP32 module, Ethernet switch and two RJ45 magnetics positions at the right.",
+      caption: "kicad 3d render — zone controller v2, 201 × 120 mm, four layers",
       w: 1600,
-      h: 956,
+      h: 990,
     },
     tech: ["KiCad", "48 V DC", "ESP32", "LAN9354", "RMII", "PCA9685", "4-layer stackup", "100 Ω differential", "12-bit PWM dimming", "Addressable RGBW"],
     params: [
