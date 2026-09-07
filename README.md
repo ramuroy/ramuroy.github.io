@@ -18,7 +18,9 @@ progressively enhanced client JavaScript.
   (with [unabridged findings](docs/audit-findings-full-2026-07-16.md) and
   [raw data](docs/audit-data-2026-07-16.json))
 - [Remaining-work roadmap](docs/roadmap-remaining.md) and
-  [release checkpoints](docs/checkpoints/) (latest: 2026-07-18 Tier 3)
+  [release checkpoints](docs/checkpoints/) — **latest:
+  [2026-09-07 hardware pass](docs/checkpoints/2026-09-07-hardware-pass.md), the
+  right place to start when resuming**
 - [Feature build specs](docs/design-specs/) (D-017)
 - [Change history](CHANGELOG.md)
 
@@ -101,8 +103,9 @@ Two content rules bind every edit: no claim may exceed what the résumé says
 `profile.githubRepoCount` is the one value that is not derived — check it against
 `https://api.github.com/users/ramuroy` when repository visibility changes.
 
-The résumé download is `public/Ramu_Roy_Resume.pdf`. Social images, favicons, and
-`robots.txt` also live in `public/`.
+The résumé download is `public/Ramu_Roy_Resume.pdf`. Social images, favicons,
+`robots.txt` and flagship card artwork also live in `public/` — a board render
+goes there and is referenced by a card's `image.src` as a root-relative path.
 
 ## Editing presentation
 

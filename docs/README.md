@@ -1,6 +1,9 @@
 # Documentation index
 
-Use these documents in this order:
+**Resuming work?** Start with the
+[2026-09-07 hardware pass checkpoint](checkpoints/2026-09-07-hardware-pass.md) —
+it carries the current state, the open findings and the resume steps. The list
+below is the reading order for everything else.
 
 1. [Remaining work from the audit](roadmap-remaining.md) — the canonical,
    statused list of everything still to do, with blocking owner inputs.
@@ -15,10 +18,11 @@ Use these documents in this order:
    (findings + roadmap + raw design proposals).
 5. [2026-09-07 hardware & PCB pass checkpoint](checkpoints/2026-09-07-hardware-pass.md) —
    five new cards, the metrics and image fields, two audits, and the 48 candidate
-   findings still awaiting adjudication. **Read this first when resuming.**
+   findings still awaiting adjudication. Its build spec is
+   [`design-specs/h1-hardware-and-pcb.md`](design-specs/h1-hardware-and-pcb.md).
 6. [2026-07-18 Tier 3 release checkpoint](checkpoints/2026-07-18-tier3-release.md) —
    the trio + terminal: process, decisions, review evidence, resume steps.
-   Build specs live in [design-specs/](design-specs/) (D-017).
+   All build specs live in [design-specs/](design-specs/) (D-017).
 7. [2026-07-17 Phase 0 release checkpoint](checkpoints/2026-07-17-phase0-release.md) —
    what shipped, every decision with rationale, release evidence, resume steps.
 8. [2026-07-16 audit checkpoint](checkpoints/2026-07-16-full-audit.md) — what the
@@ -30,7 +34,9 @@ Use these documents in this order:
 
 The root [README](../README.md) remains the quick-start and content-editing guide,
 and [CONTRIBUTING](../CONTRIBUTING.md) carries the working rules — commit
-discipline, branch safety, and the documentation-first process.
+discipline, branch safety, the documentation-first process, and the content rules
+governing what may be written (résumé scope, tooling omission, metrics evidence,
+derived labels, and the pre-merge audit).
 
 ## Documentation maintenance rules
 
@@ -41,5 +47,13 @@ discipline, branch safety, and the documentation-first process.
 - Add or supersede a decision in `decisions.md` when a material trade-off changes.
 - Add a dated checkpoint before pausing broad work or handing it to another session.
 - Update `CHANGELOG.md` for every branch intended to become a release.
+- Update `roadmap-remaining.md` as items land — change the Status column, annotate
+  owner inputs as they are partly answered, and delete a row only when shipped.
+- Add a build spec under `design-specs/` before substantive feature work (D-017).
+  A shipped spec is a historical document: corrections land in the code and the
+  commit's deviation note, or in a dated addendum, never by rewriting it.
 - Keep completed and pending verification clearly separated; never convert an
   intended check into a claimed result.
+- **These documents are public.** D-018 governs `docs/` and `CHANGELOG.md` exactly
+  as it governs the rendered page: describe the work, not the tooling behind it,
+  and never record AI assistance.
