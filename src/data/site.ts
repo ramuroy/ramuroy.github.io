@@ -133,11 +133,12 @@ export type Flagship = {
       instruments, or a tool's own output. `note` carries the qualifier that
       keeps the number honest (see docs/design-specs/h1-hardware-and-pcb.md §4). */
   metrics?: { k: string; v: string; note?: string }[];
-  /** Board render or photograph (T2.2). `caption` states what the image *is*,
-      so a CAD render is never mistaken for a photograph of a built board.
-      Dimensions are required — the intrinsic size reserves layout space and
-      keeps the card from reflowing as the image decodes. */
-  image?: { src: string; alt: string; caption: string; w: number; h: number };
+  /** Board renders, layout views or photographs (T2.2). Each `caption` states
+      what the image *is*, so a CAD render is never mistaken for a photograph of
+      a built board. Dimensions are required — the intrinsic size reserves layout
+      space and keeps the card from reflowing as the image decodes. Two images
+      sit side by side on a full-width card and stack on a narrow one. */
+  images?: { src: string; alt: string; caption: string; w: number; h: number }[];
   /** Partition/slot exhibit (T2.5). Weights are visual proportions only —
       captions say "scheme"/"layout" deliberately; no sizes are claimed (D-016). */
   partitions?: {
@@ -278,13 +279,22 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       "Closed the first board's routing at zero unconnected and zero shorts after roughly twelve strategies, the decisive one being that connections reported as closed were not touching: endpoints were being reached on the wrong copper layer, so a front pad was 'met' from the back.",
       "Regenerated the schematic to 180 nets and 912 nodes with ERC clean and zero waivers, then closed the four-layer routing at zero unconnected and cut the fabrication package. The DC figures remain copper screens — not a qualified current rating, thermal result or Ethernet compliance claim — and the card says so where they appear.",
     ],
-    image: {
-      src: "/zone-controller-v2.webp",
-      alt: "KiCad 3D render of the eOS Zone Controller v2 board: four groups of output driver ICs and screw terminals down the left edge, the 48 V power section with a shielded inductor and TO-263 regulator through the middle, and the ESP32 module, Ethernet switch and two RJ45 magnetics positions at the right.",
-      caption: "kicad 3d render — zone controller v2, 201 × 120 mm, four layers",
-      w: 1600,
-      h: 990,
-    },
+    images: [
+      {
+        src: "/zone-controller-v2.webp",
+        alt: "KiCad 3D render of the eOS Zone Controller v2 board on black solder mask: four groups of output driver ICs and screw terminals down the left edge, the 48 V power section with a shielded inductor and TO-263 regulator through the middle, and the ESP32 module, Ethernet switch and two RJ45 magnetics positions at the right.",
+        caption: "kicad 3d render — 201 × 120 mm, black mask",
+        w: 1600,
+        h: 990,
+      },
+      {
+        src: "/zone-controller-v2-layout.webp",
+        alt: "Copper layout of the same board with all four layers overlaid: front copper in orange, the two inner reference planes in cyan and violet, back copper in slate. The sixteen output channels are visible as four driver groups at the left and the dense Ethernet routing at the right.",
+        caption: "all four copper layers — front, two inner planes, back",
+        w: 1600,
+        h: 956,
+      },
+    ],
     tech: ["KiCad", "48 V DC", "ESP32", "LAN9354", "RMII", "PCA9685", "4-layer stackup", "100 Ω differential", "12-bit PWM dimming", "Addressable RGBW"],
     params: [
       { k: "Bus", v: "48 V DC" },

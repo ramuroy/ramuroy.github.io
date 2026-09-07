@@ -36,19 +36,23 @@ const showDot = (v: string) => v === "deployed" || v === "production";
 
           <p class="pcard__desc">{p.description}</p>
 
-          {p.image && (
-            <figure class="board">
-              <img
-                class="board__img"
-                src={p.image.src}
-                alt={p.image.alt}
-                width={p.image.w}
-                height={p.image.h}
-                loading="lazy"
-                decoding="async"
-              />
-              <figcaption class="board__caption">{p.image.caption}</figcaption>
-            </figure>
+          {p.images && (
+            <div class:list={["boards", { "boards--pair": p.images.length > 1 }]}>
+              {p.images.map((img) => (
+                <figure class="board">
+                  <img
+                    class="board__img"
+                    src={img.src}
+                    alt={img.alt}
+                    width={img.w}
+                    height={img.h}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <figcaption class="board__caption">{img.caption}</figcaption>
+                </figure>
+              ))}
+            </div>
           )}
 
           <div class="badges">
