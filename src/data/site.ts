@@ -305,7 +305,7 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
   {
     slug: "eos-switchboard",
     title: "eOS Switchboard",
-    tagline: "A SELV wall keypad that switches nothing — capacitive slider, tactile keys, CAN",
+    tagline: "A SELV wall keypad that switches nothing — tactile keys, addressable indicators, CAN",
     description:
       "The wall-mounted control surface for eOS. It switches nothing itself: every load it appears to control is driven by the room controller back at the distribution board, so this panel only senses intent and renders state. SELV throughout, with no mains copper on any layer, on a 145 × 70 mm board that fits a standard 8M concealed box shared with an AC socket.",
     pills: [
@@ -313,8 +313,8 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       { label: "Bring-up", variant: "wip" },
     ],
     highlights: [
-      "Reversed my own earlier decision with measurements rather than taste: v0.2 gave every key its own 26 mm capacitive strip, which meant one millimetre of thumb moved the level 3.8%. v0.3 replaced them with a single full-height 69 mm slider — 2.7× the travel at 1.4% per millimetre, and 24 indicators instead of 7. The slider becoming modal is the price, and it was accepted in writing rather than discovered later.",
-      "Disqualified the ESP32-S3's own touch peripheral on the vendor's own words rather than on channel count: Espressif state it is not recommended for mass-production products and has not passed the Conducted Susceptibility test — which, on a wall switch sharing a steel box with mains, ends the argument. The slider runs on an external CY8CMBR3116 used deliberately as a 16-channel front end, with centroids computed on the S3.",
+      "Reversed my own earlier decision with measurements rather than taste: v0.2 gave every key its own 26 mm capacitive strip, which meant one millimetre of thumb moved the level 3.8%. v0.3 replaced them with a single full-height 69 mm slider — 2.7× the travel at 1.4% per millimetre, and 24 indicators instead of 7. The slider becoming modal is the price, and it was accepted in writing rather than discovered later — then the whole slider was cut before fabrication, and the board that exists is the no-slider revision.",
+      "Disqualified the ESP32-S3's own touch peripheral on the vendor's own words rather than on channel count: Espressif state it is not recommended for mass-production products and has not passed the Conducted Susceptibility test — which, on a wall switch sharing a steel box with mains, ends the argument. The design put the slider on an external CY8CMBR3116 instead, used deliberately as a 16-channel front end with centroids computed on the S3.",
       "Settled the segment count by arithmetic, not intuition: position comes from a three-point centroid, so a finger spanning three or more segments falls outside that window. 24 segments measured 1.62 mm of error against 0.19 mm for 14 — and 14 is exactly one chip, being 16 channels less the two the part fixes as guard and shield.",
       "Put two tactile switches under every key at ±9 mm instead of one in the middle, because a rigid printed key has to feel the same at its corners as at its centre. At 160 gf per switch that is 160 gf off-centre and 320 gf pressed dead-on, which lands inside the force band derived for the metal snap domes it replaced.",
       "Gave the logic and the LEDs independent bucks rather than one buck and an LDO: slider sensitivity tracks logic-rail noise, so 30 addressable pixels stepping current must not land on that rail. The 3.3 V buck's input is Schottky-ORed between the 24 V tap and USB VBUS, so the board comes up and flashes on USB alone with the 5 V LED rail dead.",
@@ -325,15 +325,15 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       { k: "Class", v: "SELV — no mains copper", active: true },
       { k: "Board", v: "145 × 70 mm, 2-layer" },
       { k: "MCU", v: "ESP32-S3-WROOM-1-N8" },
-      { k: "Touch", v: "CY8CMBR3116 — 14 segments" },
+      { k: "Touch (v0.3)", v: "CY8CMBR3116 — cut before fab" },
       { k: "Indicators", v: "30 × WS2812B-2020" },
       { k: "State", v: "fabbed · board #1 brought up", active: true },
     ],
     metrics: [
-      { k: "Slider precision", v: "1.4% per mm", note: "69 mm travel — 2.7× the v0.2 strips" },
-      { k: "Segment error", v: "0.19 mm", note: "14 segments; 24 measured 1.62 mm" },
+      { k: "Slider precision", v: "1.4% per mm", note: "v0.3 design study — slider cut before fab" },
+      { k: "Segment error", v: "0.19 mm", note: "design study — 14 segments vs 1.62 mm at 24" },
       { k: "Key switches", v: "12 under 6 keys", note: "two per key at ±9 mm, 160 gf each" },
-      { k: "LED budget", v: "1.02 A full white", note: "against a ~1.2 A thermal ceiling" },
+      { k: "LED budget", v: "1.098 A full white", note: "30-pixel chain, ~8% under the ~1.2 A ceiling" },
       { k: "Bare PCB order", v: "₹1,901 for 5", note: "Lion Circuits, placed 2026-08-01" },
       { k: "Board #1 faults", v: "3 — all solder joints", note: "no component or design fault found" },
     ],
