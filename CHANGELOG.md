@@ -3,20 +3,30 @@
 This project follows a lightweight, date-based changelog. Entries describe changes
 that affect the source, generated site, development workflow, or deployment safety.
 
-## Unreleased — 2026-09-07: the hardware and PCB pass
+## Released 2026-09-08 — the hardware and PCB pass
 
-Branch: `codex/site-hardening-20260713`. Built from
+Merged to `main` and deployed. Built on `codex/site-hardening-20260713` from
 [`docs/design-specs/h1-hardware-and-pcb.md`](docs/design-specs/h1-hardware-and-pcb.md)
-per D-017, after a sweep of the owner's eOS and personal repositories established
-what board work exists and who authored it (git shortlog, per design file).
+and [`h2-board-lightbox.md`](docs/design-specs/h2-board-lightbox.md) per D-017,
+after a sweep of the owner's eOS and personal repositories established what board
+work exists and who authored it (git shortlog, per design file).
 
-**Not merge-ready.** The June 2026 CV export describes none of this work, so
-D-016 — the site must never outbid the résumé — holds this branch out of `main`
-until the résumé is refreshed. State, open findings and resume instructions:
-[2026-09-07 checkpoint](docs/checkpoints/2026-09-07-hardware-pass.md).
+**Both merge gates cleared before the merge**, in this order: **D-021** by
+adjudicating the second audit's findings, then **D-016** by refreshing the
+résumé so the site no longer outbids it. The branch fast-forwarded — no merge
+commit — and the Pages deploy went green. Session record:
+[2026-09-08 checkpoint](docs/checkpoints/2026-09-08-release-and-profiles.md).
 
 ### Added
 
+- **A refreshed résumé** (`public/Ramu_Roy_Resume.pdf`), rebuilt from its LaTeX
+  source and cut from 4 pages to 3. Gains a Hardware/PCB block in the Elipse role
+  covering all three boards, and pcbrouter and Ember as Projects, in place of nine
+  2024–25 hobby entries. Verified term by term against all eight flagship cards so
+  the site sits at or below it (D-016). Also closes roadmap **I7**: the PDF now
+  carries Title and Author metadata, and the `IN4007` typo left with the entry that
+  contained it. Delta and reasoning:
+  [`cv-refresh-brief-2026-09-08.md`](docs/cv-refresh-brief-2026-09-08.md).
 - **Five flagship cards**, taking the section from three to eight. Order after
   this pass: eOS · Room Controller · Anti-Collision · Zone Controller ·
   Switchboard · pcbrouter · Ember · Voice. FIG labels derive from that order and
@@ -161,14 +171,24 @@ until the résumé is refreshed. State, open findings and resume instructions:
   footprints carry no model in the board file — the custom lugs and RJ45
   magnetics — so those show as bare pads; that is the board as drawn.
 
+- **The public surfaces were brought in line (D-023).** The GitHub profile README
+  now leads with the 2026 work instead of a table of 2024–25 Arduino builds, and
+  states plainly where each project lives, since most are employer or private
+  repositories. Repo metadata was corrected: `IN4007` → `1N4007` on the
+  most-starred pinned repo (the same typo the résumé carried), ten topics added
+  to `aegis`, which had none, and four descriptions rewritten to say what the
+  thing does. The LinkedIn draft was regenerated against the new résumé — it
+  cannot be posted by an agent, so it ships as paste-ready text measured against
+  the real field caps.
+
 ### Known open
 
-The second audit is now adjudicated and its 15 distinct defects are fixed, with
-one exception: **the schematic wording** (owner input I8). Two auditors found the
-board schematics are generated from code rather than drawn in KiCad, so "drew the
-schematic … in KiCad 9" is inaccurate — but naming the tool is what D-018
-forbids. Accuracy and that rule conflict on one sentence across two cards, and
-the resolution is the owner's to make.
+Nothing blocks the site. What remains needs the owner: pasting the LinkedIn
+draft, merging the résumé branch in `profile-workspace`, deciding whether to make
+`pcbrouter` public, and supplying figures (**input I1**) for the three cards that
+still carry no table — eOS, Anti-Collision and Voice. Five of eight cards carry
+six figures each; those three carry none, and that asymmetry is now the most
+visible weakness on the page.
 
 ## Released 2026-09-07 — documentation scrub on `main`
 

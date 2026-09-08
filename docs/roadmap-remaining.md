@@ -12,7 +12,9 @@ Zone Controller, eOS Switchboard, pcbrouter and Ember (scope extended by the
 owner mid-pass; see the spec's H1a addendum) — plus the `metrics[]` and
 `image` fields they introduced, a rewritten PCB & Hardware skills group, the Elipse hardware bullet
 and hardware SEO terms. Build spec: [`design-specs/h1-hardware-and-pcb.md`](design-specs/h1-hardware-and-pcb.md).
-**Merge status 2026-09-08 — both gates cleared; the branch is merge-ready pending owner review.**
+**MERGED AND DEPLOYED 2026-09-08.** Both gates cleared — D-021 by adjudication,
+D-016 by the résumé refresh — then fast-forwarded to `main` and shipped. Current
+state and open items: [2026-09-08 checkpoint](checkpoints/2026-09-08-release-and-profiles.md).
 
 **Verification status 2026-09-08 — CLEAR.** Round two is adjudicated: 48
 candidates → 29 held → 15 distinct after duplicates, **all 15 fixed**. D-021 is
@@ -47,7 +49,18 @@ command: [2026-09-07 checkpoint](checkpoints/2026-09-07-hardware-pass.md) §3.
 | H-v3 | Settle the schematic-wording tension (owner input I8) | S | **DONE 2026-09-08** — owner chose to claim neither method and state ownership scope instead; D-018 amended with the general rule |
 | H-v4 | Reconcile `metrics[]` with D-019 | M | **DONE 2026-09-08** — the over-claim was the table header, not the rows: 8 of 30 are design ratings or computed screens. Header is now "Key figures"; D-019 amended. Per-row tagging was rejected as re-hedging |
 | H-v5 | CV refresh | M | **DONE 2026-09-08** — source found in the private `profile-workspace` repo, edits applied and recompiled locally (4 → 3 pages), PDF installed. **D-016 CLEARED** |
-| H-v6 | Board imagery | S | **PARTIAL 2026-09-08** — Zone Controller carries a 3D render and a four-layer copper plot, with a click-to-full-size lightbox (spec H2). Switchboard has none; the Room Controller render was withdrawn (terminal blocks out of position) |
+| H-v6 | Board imagery | S | **PARTIAL 2026-09-08** — Zone Controller carries a black-mask 3D render and a four-layer copper plot, both click-to-full-size (spec H2). Switchboard has none; the Room Controller render was withdrawn by the owner (terminal blocks out of position) |
+
+## Public surfaces (D-023)
+
+| # | Item | Status |
+|---|---|---|
+| P1 | Résumé refreshed, 4 → 3 pages, D-016 cleared | **DONE 2026-09-08** — source in the private `profile-workspace` repo, branch `cv/hardware-refresh-2026-09-08`. **Owner: merge that branch** or the PDF and its source drift |
+| P2 | GitHub profile README leads with the 2026 work | **DONE 2026-09-08** |
+| P3 | Pinned repos | **DONE 2026-09-08 (owner)** — agents cannot pin; GitHub's API has no repository-pin mutation |
+| P4 | Repo metadata | **DONE 2026-09-08** — `IN4007`→`1N4007` on the most-starred repo, ten topics added to `aegis` (it had none), four descriptions rewritten |
+| P5 | LinkedIn | **DRAFTED 2026-09-08**, not posted. `LINKEDIN.md` in `profile-workspace`, every block measured against the real field caps. **Owner-only — no API, and a login is never handled** |
+| P6 | Make `pcbrouter` public | **owner decision** — Apache-2.0, re-runnable benchmarks, verifiable claims; the strongest artefact the owner controls and currently invisible |
 
 **Already done and shipped 2026-07-17:** all 31 curated defects B1–B31, CI
 verify workflow, branded 404, font preloads, dependabot, full 15-project

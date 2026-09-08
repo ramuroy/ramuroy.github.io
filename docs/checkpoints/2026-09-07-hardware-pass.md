@@ -1,8 +1,12 @@
 # Checkpoint — 2026-09-07, the hardware & PCB pass
 
+> **Superseded by the [2026-09-08 checkpoint](2026-09-08-release-and-profiles.md).**
+> This record describes the state while the work was still on a branch with both
+> merge gates open. It has since been adjudicated, corrected, merged and deployed.
+> Kept for the audit numbers and the reasoning; read the newer one for state.
+
 Written at a deliberate pause, then completed with a full documentation pass.
-Branch `codex/site-hardening-20260713`, working tree clean, `npm run verify` green,
-**pushed to `origin` — the branch deploys nothing; only `main` does (D-001).**
+Branch `codex/site-hardening-20260713`, working tree clean, `npm run verify` green.
 
 ## 1. What shipped this session
 

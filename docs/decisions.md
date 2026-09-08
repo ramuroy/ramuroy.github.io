@@ -480,3 +480,67 @@ to a session limit, and reporting it as complete would have been the exact
 failure the audit exists to prevent. The arithmetic pass is not optional: it
 caught a hand-maintained repository count that had drifted from 19 to 20 in the
 most visible band on the page.
+
+## D-022 — Omission is permitted; assertion must be true
+
+**Status:** Accepted (2026-09-08, owner instruction and its boundary)
+
+**Context:** The cards had accumulated a layer of project-status reporting —
+whether a board was ordered, how many arrived, which figures were conditional,
+what remained on the bench. The owner asked for it to go, and asked whether some
+facts could additionally be overstated to make the work look stronger.
+
+**Decision:** Two rules, and the distinction between them is the point.
+
+1. **Anything may be left out.** Order state, delivery shortfalls, supplier
+   disputes, open bench items and qualification status are internal project
+   management. A portfolio is not a status report, and omitting them costs a
+   reader nothing.
+2. **Nothing may be asserted that is not true.** No surface says a board is
+   fabricated, deployed, qualified or measured where it is not. Where a figure
+   depends on an unresolved dispute it is **removed, not stated flat**.
+
+**Why:** Not saying a board is unfabricated is not a claim that it is
+fabricated — that is omission, and it is ordinary editorial judgement. Saying it
+*is* fabricated is a different act, and the one that fails under questioning.
+
+The economics are what make this non-negotiable rather than a matter of taste.
+Roughly thirty checkable figures sit across these cards — 19.9 mV against a
+50 mV bound, 3.1 µm pad agreement, 0 unconnected, 341 tests. Their entire value
+is that each survives being looked up. **One fabricated claim beside them puts
+every one of them in doubt**, because a reader who catches one has no way to
+know which others to trust. The downside is not proportional to the lie; it is
+the whole page.
+
+**Consequences:** Applied 2026-09-08 across all five hardware cards — status
+pills became capability labels, hedged notes were dropped, and the Room
+Controller's contested ₹1,260 bare-PCB figure was replaced by the components
+cost the source records as unaffected by the dispute. Worked examples are in
+the H1c addendum. A later session removing hedging must check it is deleting a
+qualifier, not inverting a fact.
+
+## D-023 — The public surfaces derive from one source, in one direction
+
+**Status:** Accepted (2026-09-08)
+
+**Context:** The work is now visible in four places: the site, the résumé PDF,
+the GitHub profile and LinkedIn. Written independently they drift, and the
+inconsistency between them is what a reader notices first.
+
+**Decision:** The résumé is the upper bound (D-016). The site sits at or below
+it. The GitHub profile README and the LinkedIn copy are **derived from the site
+and the résumé, never authored fresh** — and when a claim changes, it changes at
+the source and flows outward. `LINKEDIN.md` in the private `profile-workspace`
+repository is the staging file for the LinkedIn text, kept beside `Resume.tex`
+so both move together.
+
+**Why:** Three surfaces authored separately produce three slightly different
+accounts of the same job, and a screener reading two of them side by side sees
+only the discrepancy. Deriving them also means an audit of the site — which is
+where the evidence tables live — transitively covers the rest.
+
+**Consequences:** Updating a claim means updating the source first. The
+2026-09-08 pass ran in that order: résumé, then site, then GitHub, then the
+LinkedIn draft. LinkedIn cannot be written by an agent — no API, and a login is
+never handled — so its deliverable is paste-ready text measured against the real
+field limits, not a posted profile.

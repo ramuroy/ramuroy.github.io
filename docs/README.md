@@ -5,9 +5,9 @@
 to add and cut, with the page arithmetic. It is the last merge gate (D-016).
 
 **Resuming work?** Start with the
-[2026-09-07 hardware pass checkpoint](checkpoints/2026-09-07-hardware-pass.md) —
-it carries the current state, the open findings and the resume steps. The list
-below is the reading order for everything else.
+[2026-09-08 release checkpoint](checkpoints/2026-09-08-release-and-profiles.md) —
+it carries the current state, what is open and who owns each item. The list below
+is the reading order for everything else.
 
 1. [Remaining work from the audit](roadmap-remaining.md) — the canonical,
    statused list of everything still to do, with blocking owner inputs.
@@ -20,21 +20,24 @@ below is the reading order for everything else.
    Companions: [unabridged findings](audit-findings-full-2026-07-16.md) (all 245
    with complete evidence) and [machine-readable data](audit-data-2026-07-16.json)
    (findings + roadmap + raw design proposals).
-5. [2026-09-07 hardware & PCB pass checkpoint](checkpoints/2026-09-07-hardware-pass.md) —
+5. [2026-09-08 release checkpoint](checkpoints/2026-09-08-release-and-profiles.md) —
+   the adjudication, the merge and deploy, the imagery rework, and the GitHub and
+   LinkedIn passes. **Current state lives here.**
+6. [2026-09-07 hardware & PCB pass checkpoint](checkpoints/2026-09-07-hardware-pass.md) —
    five new cards, the metrics and image fields, two audits, and the 48 candidate
    findings still awaiting adjudication. Its build specs are
    [`design-specs/h1-hardware-and-pcb.md`](design-specs/h1-hardware-and-pcb.md)
    and [`design-specs/h2-board-lightbox.md`](design-specs/h2-board-lightbox.md).
-6. [2026-07-18 Tier 3 release checkpoint](checkpoints/2026-07-18-tier3-release.md) —
+7. [2026-07-18 Tier 3 release checkpoint](checkpoints/2026-07-18-tier3-release.md) —
    the trio + terminal: process, decisions, review evidence, resume steps.
    All build specs live in [design-specs/](design-specs/) (D-017).
-7. [2026-07-17 Phase 0 release checkpoint](checkpoints/2026-07-17-phase0-release.md) —
+8. [2026-07-17 Phase 0 release checkpoint](checkpoints/2026-07-17-phase0-release.md) —
    what shipped, every decision with rationale, release evidence, resume steps.
-8. [2026-07-16 audit checkpoint](checkpoints/2026-07-16-full-audit.md) — what the
+9. [2026-07-16 audit checkpoint](checkpoints/2026-07-16-full-audit.md) — what the
    audit session did and decided.
-9. [2026-07-13 site-hardening checkpoint](checkpoints/2026-07-13-site-hardening.md) —
+10. [2026-07-13 site-hardening checkpoint](checkpoints/2026-07-13-site-hardening.md) —
    the hardening work log and evidence boundary.
-10. [Project changelog](../CHANGELOG.md) — user- and developer-visible changes by
+11. [Project changelog](../CHANGELOG.md) — user- and developer-visible changes by
    release/checkpoint.
 
 The root [README](../README.md) remains the quick-start and content-editing guide,
