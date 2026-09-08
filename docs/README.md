@@ -23,7 +23,8 @@ below is the reading order for everything else.
 5. [2026-09-07 hardware & PCB pass checkpoint](checkpoints/2026-09-07-hardware-pass.md) —
    five new cards, the metrics and image fields, two audits, and the 48 candidate
    findings still awaiting adjudication. Its build spec is
-   [`design-specs/h1-hardware-and-pcb.md`](design-specs/h1-hardware-and-pcb.md).
+   [`design-specs/h1-hardware-and-pcb.md`](design-specs/h1-hardware-and-pcb.md)
+   and [`design-specs/h2-board-lightbox.md`](design-specs/h2-board-lightbox.md).
 6. [2026-07-18 Tier 3 release checkpoint](checkpoints/2026-07-18-tier3-release.md) —
    the trio + terminal: process, decisions, review evidence, resume steps.
    All build specs live in [design-specs/](design-specs/) (D-017).

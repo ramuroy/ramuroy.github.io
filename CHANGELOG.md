@@ -120,6 +120,14 @@ until the résumé is refreshed. State, open findings and resume instructions:
   defect, where two were fixed, the third is suspected with its reflow not
   attempted, and the same document lists two footprint defects for the next spin.
 
+- **Board images open full size on click (spec H2).** Each image is wrapped in a
+  real `<a href>` pointing at the asset, so without JavaScript a click opens the
+  full-size image in the browser's own view — the lightbox is layered on a
+  working link rather than being the only way in (D-006). With JavaScript the
+  click opens a native `<dialog>`, which supplies the focus trap, Escape and
+  inert background from the platform; the script adds only what `showModal()`
+  does not, which is returning focus to the trigger. Modified clicks pass
+  through so open-in-new-tab still works.
 - **The Zone Controller card carries two images: a black-mask 3D render and the
   four-layer copper layout.** `Flagship.image` became `Flagship.images`, an
   ordered set rendered side by side on a wide card and stacked on a narrow one.

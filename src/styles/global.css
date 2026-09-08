@@ -433,6 +433,26 @@ html.boot-hold .hero .po, html.boot-hold .hero__lead em::after { animation-play-
 .board__img { flex: 1 1 auto; object-fit: contain; }
 .board__img { display: block; width: 100%; height: auto; }
 .board__caption { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--silkscreen); letter-spacing: 0.08em; padding: 0.5rem 0.75rem; border-top: 1px solid var(--border); }
+/* The zoom affordance is the cursor and a hairline lift — the image is the
+   control, so nothing overlays it. */
+.board__zoom { display: block; cursor: zoom-in; }
+@media (hover: hover) {
+  .board__zoom:hover .board__img { opacity: 0.88; }
+}
+.board__zoom:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.board__img { transition: opacity var(--t-fast); }
+
+/* Full-size board image (spec H2). A native <dialog>, so the focus trap,
+   Escape and inert background come from the platform. */
+.lightbox { border: 1px solid var(--border-bright); border-radius: var(--radius-lg); background: var(--bg-deep); color: var(--text); padding: 0; max-width: min(96vw, 1700px); max-height: 94vh; overflow: hidden; }
+.lightbox::backdrop { background: rgb(3 6 10 / 0.86); }
+.lightbox__img { display: block; max-width: 100%; max-height: calc(94vh - 5.5rem); width: auto; height: auto; margin: 0 auto; }
+.lightbox__caption { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--silkscreen); letter-spacing: 0.08em; padding: 0.6rem 0.9rem; border-top: 1px solid var(--border); margin: 0; }
+.lightbox__close { position: absolute; top: 0.6rem; right: 0.6rem; z-index: 1; font-family: var(--font-mono); font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.12em; color: var(--text); background: rgb(3 6 10 / 0.72); border: 1px solid var(--border-bright); border-radius: var(--radius-sm); padding: 0.4rem 0.7rem; cursor: pointer; display: inline-flex; gap: 0.5em; align-items: center; }
+.lightbox__close:hover { border-color: var(--accent); color: var(--accent-text); }
+.lightbox__close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.lightbox[open] { animation: lightbox-in var(--t) var(--ease-out) both; }
+@keyframes lightbox-in { from { opacity: 0; transform: scale(0.985); } to { opacity: 1; transform: none; } }
 
 /* Measured-outcome table (T1.1). Deliberately heavier than .spec: params are
    description, metrics are evidence, and the card should read that difference. */
@@ -747,7 +767,7 @@ body.cursor-on .cursor-glow { opacity: 1; }
     --silkscreen: #777;
   }
   *, *::before, *::after { animation: none !important; transition: none !important; box-shadow: none !important; text-shadow: none !important; }
-  .nav, .boot, .circuit, .cursor-glow, .signal-rail, .hero__canvas, .hero__scroll, .trace-div, .card-glow, .caret, .skip-link, .copy-btn, .term, .footer__term-hint { display: none !important; }
+  .nav, .boot, .circuit, .cursor-glow, .signal-rail, .hero__canvas, .hero__scroll, .trace-div, .card-glow, .caret, .skip-link, .copy-btn, .term, .footer__term-hint, .lightbox { display: none !important; }
   /* Print parity: the static colophon prints, the interactive button doesn't */
   .footer__term-open { display: none !important; }
   html.js .footer__colophon--static { display: block !important; }

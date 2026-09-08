@@ -41,15 +41,25 @@ const showDot = (v: string) => v === "deployed" || v === "production";
             <div class:list={["boards", { "boards--pair": p.images.length > 1 }]}>
               {p.images.map((img) => (
                 <figure class="board">
-                  <img
-                    class="board__img"
-                    src={img.src}
-                    alt={img.alt}
-                    width={img.w}
-                    height={img.h}
-                    loading="lazy"
-                    decoding="async"
-                  />
+                  {/* A real link: without JS this opens the full-size asset.
+                      The script upgrades it to a dialog (spec H2, D-006). */}
+                  <a
+                    class="board__zoom"
+                    href={img.src}
+                    data-zoom
+                    data-caption={img.caption}
+                    aria-label={`View full size: ${img.caption}`}
+                  >
+                    <img
+                      class="board__img"
+                      src={img.src}
+                      alt={img.alt}
+                      width={img.w}
+                      height={img.h}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </a>
                   <figcaption class="board__caption">{img.caption}</figcaption>
                 </figure>
               ))}
@@ -112,6 +122,15 @@ const showDot = (v: string) => v === "deployed" || v === "production";
       ))}
     </div>
 
+    {/* One lightbox for the page. Empty and inert until a zoom link is used. */}
+    <dialog class="lightbox" id="board-lightbox" aria-label="Board image, full size">
+      <button class="lightbox__close" type="button" data-lightbox-close>
+        Close <span aria-hidden="true">✕</span>
+      </button>
+      <img class="lightbox__img" alt="" />
+      <p class="lightbox__caption" data-lightbox-caption></p>
+    </dialog>
+
     <TraceDivider protocol="i2c" />
 
     <div class="projects__more">
@@ -154,3 +173,43 @@ const showDot = (v: string) => v === "deployed" || v === "production";
     </div>
   </div>
 </section>
+
+<script>
+  // Board images open full size. The markup is a working <a href> first, so
+  // this only ever upgrades behaviour that already exists (spec H2, D-006).
+  const dialog = document.getElementById("board-lightbox") as HTMLDialogElement | null;
+  if (dialog && typeof dialog.showModal === "function") {
+    const img = dialog.querySelector(".lightbox__img") as HTMLImageElement;
+    const cap = dialog.querySelector("[data-lightbox-caption]") as HTMLElement;
+    let opener: HTMLElement | null = null;
+
+    for (const link of document.querySelectorAll<HTMLAnchorElement>("[data-zoom]")) {
+      link.addEventListener("click", (event) => {
+        // Let modified clicks through — open in a new tab is a legitimate choice.
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+        event.preventDefault();
+        const source = link.querySelector("img");
+        opener = link;
+        img.src = link.href;
+        img.alt = source?.alt ?? "";
+        cap.textContent = link.dataset.caption ?? "";
+        dialog.showModal();
+      });
+    }
+
+    dialog.querySelector("[data-lightbox-close]")?.addEventListener("click", () => dialog.close());
+
+    // A click on the backdrop lands on the dialog itself, never on its children.
+    dialog.addEventListener("click", (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+
+    // showModal traps focus but does not restore it; do that ourselves. The
+    // image is left loaded on purpose — reopening is then instant, and an <img>
+    // stripped of its src flashes its alt text on the way out.
+    dialog.addEventListener("close", () => {
+      opener?.focus();
+      opener = null;
+    });
+  }
+</script>
