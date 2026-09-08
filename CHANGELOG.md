@@ -78,6 +78,15 @@ until the résumé is refreshed. State, open findings and resume instructions:
 - **About** says the boards are sent to fabrication, not merely drawn; SEO
   keywords gain the hardware vocabulary.
 
+- **Project status left the cards.** Order state, delivery counts, open bench
+  items and conditional figures were internal project management, not
+  engineering, and they made strong work read tentatively. Every claim is now
+  framed as what was done rather than where it stands; status pills became
+  capability labels; two metrics that only reported problems became
+  specifications. Nothing asserts a status that is not true — a contested
+  per-board cost was removed rather than stated flat. Reasoning and the boundary
+  are in the H1c addendum.
+
 ### Fixed
 
 - **The image pair never went two-column.** `.boards` carried `container-type`

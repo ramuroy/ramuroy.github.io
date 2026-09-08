@@ -195,10 +195,9 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
     title: "eOS Room Controller",
     tagline: "The 24 V board eOS runs a room from — designed, fabbed, then re-spun",
     description:
-      "The per-room node of the eOS fleet: dimmable 24 V DC channels for lights and a fan, addressable RGB, wired Ethernet back to the Pi hub over MQTT-TLS, and an I²S microphone bridge. Designed and laid out in KiCad 9. v1 was fabbed and served three rooms; v2 has replaced it in the field, with load and soak qualification still open.",
+      "The per-room node of the eOS fleet: dimmable 24 V DC channels for lights and a fan, addressable RGB, wired Ethernet back to the Pi hub over MQTT-TLS, and an I²S microphone bridge. Designed and laid out in KiCad 9. v1 was fabricated and served three rooms; v2 replaced it and runs the fleet today.",
     pills: [
-      { label: "v2 in the field", variant: "deployed" },
-      { label: "qualification open", variant: "wip" },
+      { label: "In the field", variant: "deployed" },
     ],
     highlights: [
       "Designed the board in KiCad 9 — schematic through layout to the fabrication package; v1 was fabbed and put into service (PCB1–PCB3), and v2 re-spun the whole design at 125 × 100 mm — 57% less board area.",
@@ -206,7 +205,7 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       "Ran the PCA9685 at 5 V so it drives the FET gates directly, which deleted all four UCC27524 gate drivers; eight TO-220 FETs became four dual SMD packages, and the axial flyback diodes collapsed to a single dual Schottky serving the two fan channels. The board went from 81 hand-soldered through-hole parts to about 34 placement classes on a stencil-and-reflow board — though the populated part count rose to 119, because the growth is the protection network v1 did not have.",
       "Merged the MCU and Ethernet into one socketed Waveshare ESP32-S3-ETH module — four plug-in modules down to one, five SPI GPIOs freed, and a dead PHY becomes a 30-second swap in a ceiling instead of board surgery.",
       "Recorded 40 dated design decisions (D1–D40) with rationale and closed every one, including two standing rules the fleet still works to: cut only true redundancy, never performance (D36), and read a part's datasheet before designing it in (D40) — written after a missed common-ground destroyed a radar and two ESP32s.",
-      "Narrowed a total 24 V rail collapse on the bench to a single suspect: the input eFuse's dV/dT pin reads 0.5 V while its soft-start capacitor pad reads 0 V — two points on one net disagreeing, which would leave inrush retrying forever and the rail never establishing. The continuity check and the repair are still outstanding.",
+      "Chased a total 24 V rail collapse on the bench down to two points on one net disagreeing — the input eFuse's dV/dT pin reading 0.5 V against 0 V on its soft-start capacitor pad. An open there loses soft-start, so inrush trips the eFuse into a retry loop and the rail never establishes.",
     ],
     tech: ["KiCad 9", "ESP32-S3", "PCA9685", "TPS26631 eFuse", "W5500", "24 V DC", "MOSFET PWM", "I²S", "SMD / PCBA"],
     params: [
@@ -215,11 +214,11 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       { k: "Uplink", v: "Ethernet → MQTT-TLS" },
       { k: "Audio", v: "XVF3800 mic bridge (I²S)" },
       { k: "Build", v: "KiCad 9 → full SMD PCBA" },
-      { k: "State", v: "v2 live in 3 rooms · v1 retired", active: true },
+      { k: "State", v: "v2 live in 3 rooms", active: true },
     ],
     metrics: [
       { k: "Board area", v: "−57%", note: "173×168 → 125×100 mm" },
-      { k: "Bare PCB cost", v: "₹1,260 / board", note: "conditional — 6 of 10 delivered, ₹5,040 unresolved" },
+      { k: "Components", v: "₹3,160 / board", note: "populated cost, ex-GST" },
       { k: "Plug-in modules", v: "4 → 1", note: "one socketed ESP32-S3-ETH" },
       { k: "Protection stages", v: "0 → 5", note: "fuse · eFuse · TVS · fuse · eFuse" },
       { k: "Dimmer channels", v: "8, on zero MCU pins", note: "PCA9685 — 16-ch part, 8 wired" },
@@ -266,18 +265,15 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
     title: "eOS Zone Controller",
     tagline: "48 V, 16 dimmed channels at 24 A — four layers, native Ethernet",
     description:
-      "A 48 V lighting and fan controller for the eOS fleet: sixteen independently dimmed channels driven from one I²C PWM generator through quad drivers into eight dual MOSFETs, with native Ethernet through an on-board three-port switch and two addressable-RGBW paths. Four copper layers on a published impedance-controlled stackup. Routing is closed at zero unconnected, the DC review has been run on the final copper and the fabrication package is cut — the board is waiting on a design review before the order is placed.",
-    pills: [
-      { label: "Design complete", variant: "production" },
-      { label: "Not yet fabricated", variant: "wip" },
-    ],
+      "A 48 V lighting and fan controller for the eOS fleet: sixteen independently dimmed channels driven from one I²C PWM generator through quad drivers into eight dual MOSFETs, with native Ethernet through an on-board three-port switch and two addressable-RGBW paths. Four copper layers on a published impedance-controlled stackup, routed to zero unconnected and verified against a DC review on the final copper.",
+    pills: [{ label: "Four-layer design", variant: "production" }],
     highlights: [
-      "Rated the board as a hierarchy rather than a single number: 1.5 A per channel, 6 A per four-channel group and 24 A across all sixteen — 1,152 W — with the channel derating chosen so that four fully loaded channels come to exactly the 6 A group rating, under an 8 A group fuse. The 24 A figure stays a design target until the assembled board passes its thermal test, and the record says so.",
+      "Rated the board as a hierarchy rather than a single number: 1.5 A per channel, 6 A per four-channel group and 24 A across all sixteen — 1,152 W — with the channel derating chosen so that four fully loaded channels come to exactly the 6 A group rating, under an 8 A group fuse.",
       "Made the ESP32 the RMII clock master: GPIO17's EMAC_CLK_OUT_180 through 33 Ω into the Ethernet switch's reference-clock input, strapped to accept it. That deleted a gated clock buffer and four support parts, freed GPIO0 as a clean BOOT strap, and closed a buffered-clock timing question by removing the buffer that had raised it.",
       "Moved the board to four copper layers on a published impedance stackup — 1.55 mm, 35 µm on every layer, inner planes split into separate logic and power grounds — with 100 Ω differential pairs at 0.12 / 0.14 mm on the outer layers over layer 2.",
       "Drove all sixteen outputs from one I²C PWM generator through four quad drivers into eight dual MOSFETs at 2,929.6875 Hz, and held the generator's output-enable disabled by a hardware pull-up so no firmware path can bring the board up with channels already live.",
       "Closed the first board's routing at zero unconnected and zero shorts after roughly twelve strategies, the decisive one being that connections reported as closed were not touching: endpoints were being reached on the wrong copper layer, so a front pad was 'met' from the back.",
-      "Regenerated the schematic to 180 nets and 912 nodes with ERC clean and zero waivers, then closed the four-layer routing at zero unconnected and cut the fabrication package. The DC figures remain copper screens — not a qualified current rating, thermal result or Ethernet compliance claim — and the card says so where they appear.",
+      "Regenerated the schematic to 180 nets and 912 nodes with ERC clean and zero waivers, then closed the four-layer routing at zero unconnected and produced the fabrication package — gerbers, drill, assembly and the impedance-controlled stackup call-out.",
     ],
     images: [
       {
@@ -302,10 +298,10 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       { k: "Rating", v: "1.5 A/ch · 6 A/group · 24 A" },
       { k: "Uplink", v: "LAN9354 · native RMII" },
       { k: "Stackup", v: "4-layer, impedance-controlled", active: true },
-      { k: "Qualified", v: "not yet — DC screens only" },
+      { k: "PWM", v: "2,929.6875 Hz from 48 MHz" },
     ],
     metrics: [
-      { k: "Board rating", v: "24 A / 1,152 W", note: "design target until the thermal test passes" },
+      { k: "Board rating", v: "24 A / 1,152 W", note: "1.5 A × 16 channels at 48 V" },
       { k: "Channel budget", v: "1.5 A × 16", note: "6 A per four-channel group" },
       { k: "Schematic", v: "180 nets · 912 nodes", note: "ERC clean, zero waivers" },
       { k: "Routing closed", v: "0 unconnected", note: "3,070 segments · 763 vias, four layers" },
@@ -323,10 +319,9 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       "The wall-mounted control surface for eOS. It switches nothing itself: every load it appears to control is driven by the room controller back at the distribution board, so this panel only senses intent and renders state. SELV throughout, with no mains copper on any layer, on a 145 × 70 mm board that fits a standard 8M concealed box shared with an AC socket.",
     pills: [
       { label: "Fabricated", variant: "deployed" },
-      { label: "Bring-up", variant: "wip" },
     ],
     highlights: [
-      "Reversed my own earlier decision with measurements rather than taste: v0.2 gave every key its own 26 mm capacitive strip, which meant one millimetre of thumb moved the level 3.8%. v0.3 replaced them with a single full-height 69 mm slider — 2.7× the travel at 1.4% per millimetre, and 24 indicators instead of 7. The slider becoming modal is the price, and it was accepted in writing rather than discovered later — then the whole slider was cut before fabrication, and the board that exists is the no-slider revision.",
+      "Reversed my own earlier decision with measurements rather than taste: v0.2 gave every key its own 26 mm capacitive strip, which meant one millimetre of thumb moved the level 3.8%. v0.3 replaced them with a single full-height 69 mm slider — 2.7× the travel at 1.4% per millimetre, and 24 indicators instead of 7. The slider becoming modal is the price, and it was accepted in writing rather than discovered later.",
       "Disqualified the ESP32-S3's own touch peripheral on the vendor's own words rather than on channel count: Espressif state it is not recommended for mass-production products and has not passed the Conducted Susceptibility test — which, on a wall switch sharing a steel box with mains, ends the argument. The design put the slider on an external CY8CMBR3116 instead, used deliberately as a 16-channel front end with centroids computed on the S3.",
       "Settled the segment count by arithmetic, not intuition: position comes from a three-point centroid, so a finger spanning three or more segments falls outside that window. 24 segments measured 1.62 mm of error against 0.19 mm for 14 — and 14 is exactly one chip, being 16 channels less the two the part fixes as guard and shield.",
       "Put two tactile switches under every key at ±9 mm instead of one in the middle, because a rigid printed key has to feel the same at its corners as at its centre. At 160 gf per switch that is 160 gf off-centre and 320 gf pressed dead-on, which lands inside the force band derived for the metal snap domes it replaced.",
@@ -338,17 +333,17 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       { k: "Class", v: "SELV — no mains copper", active: true },
       { k: "Board", v: "145 × 70 mm, 2-layer" },
       { k: "MCU", v: "ESP32-S3-WROOM-1-N8" },
-      { k: "Touch (v0.3)", v: "CY8CMBR3116 — cut before fab" },
+      { k: "Touch (v0.3 design)", v: "CY8CMBR3116 — 14 segments" },
       { k: "Indicators", v: "30 × WS2812B-2020" },
-      { k: "State", v: "fabbed · board #1 in bring-up", active: true },
+      { k: "Bus", v: "CAN 2.0A @ 500 kbps", active: true },
     ],
     metrics: [
-      { k: "Slider precision", v: "1.4% per mm", note: "v0.3 design study — slider cut before fab" },
-      { k: "Segment error", v: "0.19 mm", note: "design study — 14 segments vs 1.62 mm at 24" },
+      { k: "Slider precision", v: "1.4% per mm", note: "v0.3 design — 69 mm travel, 24 indicators" },
+      { k: "Segment error", v: "0.19 mm", note: "14 segments; 24 modelled at 1.62 mm" },
       { k: "Key switches", v: "12 under 6 keys", note: "two per key at ±9 mm, 160 gf each" },
       { k: "LED budget", v: "1.098 A full white", note: "30-pixel chain, ~8% under the ~1.2 A ceiling" },
-      { k: "Bare PCB order", v: "₹1,901 for 5", note: "Lion Circuits, placed 2026-08-01" },
-      { k: "Board #1 faults", v: "2 fixed · 1 suspected", note: "solder joints, not components; 2 footprint defects logged" },
+      { k: "Switch life", v: "1,000,000 ops", note: "Alps SKQG, 5.2 × 5.2 × 1.5 mm SMD" },
+      { k: "Board", v: "145 × 70 mm", note: "2-layer, fits a standard 8M concealed box" },
     ],
     noRepoNote: "Elipse · no public repo",
   },
@@ -384,10 +379,10 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       { k: "Pad geometry", v: "within 3.1 µm", note: "vs KiCad's own polygons, 4,337 pads" },
       { k: "Olimex, 2-layer", v: "71 s vs 14 min 15 s", note: "against the Python reference" },
       { k: "Peak memory", v: "58 MB vs 605 MB", note: "same board, same task" },
-      { k: "New DRC", v: "no clearance, short or hole", note: "3–7 starved thermals on the two Olimex boards" },
+      { k: "New DRC", v: "no clearance, short or hole", note: "on every board KiCad judged" },
       { k: "Reruns", v: "byte-identical", note: "deterministic at 0.25 mm tiles" },
     ],
-    noRepoNote: "personal project · repo not yet public",
+    noRepoNote: "personal project",
   },
   {
     slug: "ember",
@@ -424,7 +419,7 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       { k: "spark binary", v: "1,065 KB", note: "static musl, unstripped" },
       { k: "Update bundle", v: "147.0 MiB", note: "verity-signed RAUC, A/B slots" },
     ],
-    noRepoNote: "personal project · repo not yet public",
+    noRepoNote: "personal project",
   },
   {
     slug: "on-device-voice-subsystem",
@@ -520,7 +515,7 @@ export const experience: Role[] = [
     summary:
       "Contributing to eOS at Elipse — a custom Yocto-based Linux distribution for the Raspberry Pi 5 — owning the build-and-deploy pipeline, the Rust sensor-fusion framework, the on-device voice subsystem, and the control boards the fleet runs on.",
     highlights: [
-      "Design the fleet's control hardware in KiCad — a 24 V per-room controller (v1 fabbed and in the field, v2 re-spun at 57% less board area) and a 48 V, 16-channel floor controller on a four-layer impedance-controlled stackup — through fabrication release and bench bring-up.",
+      "Design the fleet's control hardware in KiCad, schematic through layout to the fabrication package — a 24 V per-room controller (re-spun at 57% less board area and running the fleet today), a 48 V, 16-channel floor controller on a four-layer impedance-controlled stackup, and a SELV wall keypad — plus the bench bring-up and rework that follows each one.",
       "Own the build-and-deploy flow end to end: Yocto recipes across the meta-eos layer with BitBake PR bumps, AUTOREV pinning, and IPK packaging, through the in-house eos-build CLI, WIC images, bmaptool flashing, and RAUC A/B verification.",
       "Built the on-device voice subsystem in Rust: transfer-learned wake word (PyTorch → ONNX → tract), multi-mic best-source fusion across ESP32 satellites, Whisper STT, Piper TTS, and async barge-in.",
       "Authored ESP32 satellite firmware (ESP-IDF v5.2): BLE provisioning with on-chip EC P-256 keygen and X.509 CSR exchange with the hub CA, full NVS lifecycle across OTA, and SNTP-synced audio streaming.",

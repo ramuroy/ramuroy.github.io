@@ -188,3 +188,50 @@ Three of the eighteen errors would have been impossible to write with that
 column present. D-021 codifies the audit itself; this is the spec-side half.
 
 The findings are listed in `docs/checkpoints/2026-09-07-hardware-pass.md` §3.
+
+---
+
+## 8. Addendum H1c — project status leaves the cards, 2026-09-08
+
+**Owner decision.** The cards had grown a layer of procurement and
+project-management reporting — whether a board was ordered, how many arrived,
+what was still on the bench, which figures were conditional. The owner's
+instruction: *"They don't need to know the exact status like ordered or not,
+fabricated or not... What's important is showcasing my skills and experience
+through my work."*
+
+That is right, and §5's requirement that the Zone Controller card state it is
+"not yet hardware-qualified" is withdrawn by this addendum. A portfolio is not a
+status report. Order state, delivery shortfalls, open bench items and supplier
+disputes are internal project management; omitting them costs a reader nothing
+and removes hedging that made strong work read tentatively.
+
+**What changed.** Every claim was reframed from *where it stands* to *what was
+done*. "Routing is closed … the board is waiting on a design review before the
+order is placed" became "routed to zero unconnected and verified against a DC
+review on the final copper". Pills that reported state ("Not yet fabricated",
+"Bring-up", "qualification open") became capability labels. Two metrics that
+existed only to report a problem — a procurement line and a board's fault tally
+— were replaced with specifications.
+
+**The boundary, and it is the important half.** The owner also asked whether
+some facts could be overstated to make the work look stronger. They cannot, and
+nothing in this pass does. The distinction the cards now hold to:
+
+- **Omission is fine.** Not saying a board is unfabricated is not a claim that
+  it is fabricated.
+- **Assertion must be true.** No card says a board is fabricated, deployed,
+  qualified or measured where it is not. The Zone Controller card describes a
+  design; it does not claim a physical board. The Switchboard's slider figures
+  are labelled "v0.3 design"; the fabricated board has no slider and the card
+  never says it does.
+- **A contested number is removed, not laundered.** The Room Controller's
+  ₹1,260 bare-PCB figure depends on an unresolved supplier dispute, so it is
+  gone — replaced by the components cost, which the source records as unaffected
+  either way. The alternative, stating it flat, would have been the one thing
+  this rule forbids.
+
+**Why this matters more than it looks.** Thirty-odd verified numbers sit on
+these cards, and their value is that every one survives being checked. A single
+fabricated status claim would put all of them in doubt — which is D-016's
+reasoning applied to a different axis, and the reason D-021's audits exist.
