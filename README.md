@@ -93,19 +93,24 @@ Two fields on a flagship card are optional and carry rules:
   *measured*. Every row needs evidence behind it — an invoice, an instrument, or
   a tool's recorded output — and `note` carries the qualifier that keeps the
   number honest. A card with no defensible numbers gets no table.
-- `image` — a board render or photograph. `w` and `h` are required so the card
-  reserves its layout box, and `caption` must say what the image *is*, so a CAD
-  render is never mistaken for a photograph of built hardware.
+- `images[]` — board renders, layout views or photographs. `w` and `h` are
+  required so the card reserves its layout box, and each `caption` must say what
+  the image *is*, so a CAD render is never mistaken for a photograph of built
+  hardware. Two images pair side by side on a wide card; each opens full size on
+  click, and the underlying `<a href>` means that works without JavaScript.
 
-Two content rules bind every edit: no claim may exceed what the résumé says
-(D-016), and copy names the work rather than the tooling behind it (D-018).
+Content rules that bind every edit: no claim may exceed what the résumé says
+(D-016); copy names the work rather than the tooling behind it (D-018); anything
+may be left out but nothing untrue may be asserted (D-022); and the GitHub and
+LinkedIn copy derives from here and the résumé rather than being written fresh
+(D-023).
 
 `profile.githubRepoCount` is the one value that is not derived — check it against
 `https://api.github.com/users/ramuroy` when repository visibility changes.
 
 The résumé download is `public/Ramu_Roy_Resume.pdf`. Social images, favicons,
 `robots.txt` and flagship card artwork also live in `public/` — a board render
-goes there and is referenced by a card's `image.src` as a root-relative path.
+goes there and is referenced by an entry in a card's `images[]` as a root-relative path.
 
 ## Editing presentation
 

@@ -50,8 +50,12 @@ stronger firmware work (D-010, superseded). To re-rank, move lines in `site.ts`.
 Flagship projects are authored in `flagshipOrder` and exported as `flagship`.
 Each entry carries `params` (what the thing *is*) and, optionally, `metrics`
 (what was *measured* — a separate field by D-019, rendered as a distinct
-datasheet table) and `image` (a board render; its `w`/`h` are required so the
-card reserves layout space and cannot reflow as the picture decodes).
+datasheet table, headed "Key figures" — see D-019's amendment for why not
+"Measured") and `images` (board renders or layout views; `w`/`h` are required so
+the card reserves layout space and cannot reflow as the picture decodes). Two
+images pair side by side on a wide card and stack on a narrow one, and each is
+wrapped in a real `<a href>` to the asset so a click works without JavaScript;
+the lightbox is layered on top of that (spec H2).
 
 Current derived values include:
 

@@ -58,6 +58,12 @@ if commits stay legible.
   A card with no defensible numbers gets no metrics table rather than a padded one.
 - Positional labels — FIG numbers — are derived, never authored. Refer to a card
   by slug through `figOf()`, which fails the build if the slug stops matching (D-020).
+- Anything may be left out; nothing untrue may be asserted (D-022). Status detail
+  — ordered, fabricated, qualified — is internal project management and may be
+  omitted freely. A figure that depends on an unresolved question is removed, not
+  stated flat.
+- The GitHub profile and LinkedIn copy derive from the site and the résumé, never
+  authored fresh, and a claim changes at the source first (D-023).
 - Content making factual claims about real work is adversarially audited against
   its sources before it merges (D-021): independent auditors per subject, findings
   adjudicated by refuters, and a pass that recomputes every derived number. A
