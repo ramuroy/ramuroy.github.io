@@ -47,7 +47,7 @@ command: [2026-09-07 checkpoint](checkpoints/2026-09-07-hardware-pass.md) §3.
 | H-v3 | Settle the schematic-wording tension (owner input I8) | S | **DONE 2026-09-08** — owner chose to claim neither method and state ownership scope instead; D-018 amended with the general rule |
 | H-v4 | Split `metrics[]` rows into measured and modelled, or move the soft rows to `params` — the field as shipped does not yet honour D-019 | M | ready |
 | H-v5 | CV refresh | M | **DONE 2026-09-08** — source found in the private `profile-workspace` repo, edits applied and recompiled locally (4 → 3 pages), PDF installed. **D-016 CLEARED** |
-| H-v6 | Add the Zone Controller and Switchboard renders — cleared by H-c, not yet done | S | ready |
+| H-v6 | Board imagery | S | **PARTIAL 2026-09-08** — Zone Controller carries a 3D render and a four-layer copper plot, with a click-to-full-size lightbox (spec H2). Switchboard has none; the Room Controller render was withdrawn (terminal blocks out of position) |
 
 **Already done and shipped 2026-07-17:** all 31 curated defects B1–B31, CI
 verify workflow, branded 404, font preloads, dependabot, full 15-project
