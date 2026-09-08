@@ -45,7 +45,7 @@ command: [2026-09-07 checkpoint](checkpoints/2026-09-07-hardware-pass.md) §3.
 | H-v1 | Adjudicate the second audit's 48 candidate findings | S | **DONE 2026-09-08** — 10 judges, 2 lenses per card, 0 failures: 29 held, 19 refuted, 14 of the held marked duplicates → **15 distinct defects** |
 | H-v2 | Fix what survives adjudication, one commit per card | M | **DONE 2026-09-08** — 14 of 15 fixed across four commits; the fifteenth is the schematic wording, held for I8 |
 | H-v3 | Settle the schematic-wording tension (owner input I8) | S | **DONE 2026-09-08** — owner chose to claim neither method and state ownership scope instead; D-018 amended with the general rule |
-| H-v4 | Split `metrics[]` rows into measured and modelled, or move the soft rows to `params` — the field as shipped does not yet honour D-019 | M | ready |
+| H-v4 | Reconcile `metrics[]` with D-019 | M | **DONE 2026-09-08** — the over-claim was the table header, not the rows: 8 of 30 are design ratings or computed screens. Header is now "Key figures"; D-019 amended. Per-row tagging was rejected as re-hedging |
 | H-v5 | CV refresh | M | **DONE 2026-09-08** — source found in the private `profile-workspace` repo, edits applied and recompiled locally (4 → 3 pages), PDF installed. **D-016 CLEARED** |
 | H-v6 | Board imagery | S | **PARTIAL 2026-09-08** — Zone Controller carries a 3D render and a four-layer copper plot, with a click-to-full-size lightbox (spec H2). Switchboard has none; the Room Controller render was withdrawn (terminal blocks out of position) |
 

@@ -78,6 +78,13 @@ until the résumé is refreshed. State, open findings and resume instructions:
 - **About** says the boards are sent to fabrication, not merely drawn; SEO
   keywords gain the hardware vocabulary.
 
+- **The figures table is headed "Key figures", not "Measured" (H-v4).** Across
+  the five cards 22 of 30 rows are measurements or tool outputs, but eight are
+  design ratings or computed screens, and for those the header was the
+  over-claim. Tagging the eight would have put the status hedging back that the
+  previous change removed; renaming the header fixes it at the root and is
+  accurate for all thirty. Every row still carries traceable evidence — D-019
+  amended to say so.
 - **Project status left the cards.** Order state, delivery counts, open bench
   items and conditional figures were internal project management, not
   engineering, and they made strong work read tentatively. Every claim is now

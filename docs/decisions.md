@@ -397,10 +397,21 @@ was the obvious place to put them, and the wrong one.
 
 **Decision:** `Flagship.metrics[]` is a distinct field from `Flagship.params[]`
 and renders as a distinct, heavier element. **Params describe what a thing is;
-metrics record what was measured.** Every metric row must be a number with
-evidence behind it — an invoice, an instrument, or a tool's own recorded output
-— and the build spec's evidence table names the source for each one. The
-optional `note` carries the qualifier that keeps the number honest.
+metrics carry the figures that make it checkable.** Every metric row must be a
+number with evidence behind it — an invoice, an instrument, a tool's own
+recorded output, or a stated design rating — and the build spec's evidence table
+names the source for each one. The optional `note` carries the qualifier that
+keeps the number honest.
+
+**Amended 2026-09-08.** The table was originally headed *"Measured"*. Across the
+five cards, 22 of 30 rows are measurements or tool outputs, but eight are design
+ratings or computed screens — a board rating, a channel budget, a DC screen, a
+centroid model. For those the header itself was the over-claim. Two fixes were
+available: tag the eight rows, or stop the header asserting something untrue of
+them. The header is now **"Key figures"**, which is accurate for all thirty and
+adds no per-row hedging — the alternative would have reintroduced exactly the
+status qualifiers D-018's H1c addendum removed. The rule that every row carries
+traceable evidence is unchanged; only the claim about *how* it was obtained is.
 
 **Why:** Mixing the two erases the distinction that gives the numbers their
 weight. "48 V DC" and "46.544 mV against a 50 mV budget" are different kinds of
