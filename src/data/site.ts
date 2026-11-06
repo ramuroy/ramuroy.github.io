@@ -110,7 +110,7 @@ export const about = {
     { k: "Role", v: "Embedded Systems Engineer" },
     { k: "Focus", v: "Embedded Linux + on-device ML", active: true },
     { k: "Edu", v: "B.Tech ECE, RGUKT (CGPA 8.3)" },
-    { k: "Languages", v: "English · Telugu · Hindi" },
+    { k: "Languages", v: "English · Telugu · Hindi · Japanese" },
   ],
 };
 
@@ -581,6 +581,7 @@ export const spokenLanguages = [
   { name: "English", level: "Proficient" },
   { name: "Telugu", level: "Native" },
   { name: "Hindi", level: "Native" },
+  { name: "Japanese", level: "Professional working" },
 ];
 
 /* Section signatures (eyebrow / numeral / heading) */
