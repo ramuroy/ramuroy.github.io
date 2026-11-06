@@ -3,7 +3,7 @@
 This project follows a lightweight, date-based changelog. Entries describe changes
 that affect the source, generated site, development workflow, or deployment safety.
 
-## 2026-11-07 — role, location and language corrections
+## 2026-11-07 — role, location, language and company name corrections
 
 Corrections the owner confirmed on 6 Nov 2026, made in the order D-023 sets:
 résumé first, then the site.
@@ -17,6 +17,10 @@ résumé first, then the site.
   glance and languages cards.
 - **`public/Ramu_Roy_Resume.pdf`** rebuilt from its LaTeX source with the same
   corrections. Still 3 pages; its text otherwise matches the previous PDF.
+- **Company name** is now Tata Steel Colors (formerly Tata BlueScope Steel) in the
+  résumé, the site copy and `public/og.png`. "Tata Steel BlueScope" was never the
+  name, and Tata Steel has since bought out BlueScope. Full sentences carry the full
+  form and labels the short one. Dated records under `docs/` keep the old wording.
 
 ## Released 2026-09-08 — the hardware and PCB pass
 
