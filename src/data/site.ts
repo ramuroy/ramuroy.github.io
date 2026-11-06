@@ -525,7 +525,7 @@ export const experience: Role[] = [
   },
   {
     company: "Radiogeet",
-    role: "Embedded Systems Engineer Intern",
+    role: "Embedded Engineer",
     period: "Sep 2025 – Mar 2026",
     location: "India",
     deployed: true,
