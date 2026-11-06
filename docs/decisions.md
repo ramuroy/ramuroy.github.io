@@ -521,7 +521,7 @@ qualifier, not inverting a fact.
 
 ## D-023 — The public surfaces derive from one source, in one direction
 
-**Status:** Accepted (2026-09-08)
+**Status:** Accepted (2026-09-08); the LinkedIn staging file moved under D-026
 
 **Context:** The work is now visible in four places: the site, the résumé PDF,
 the GitHub profile and LinkedIn. Written independently they drift, and the
@@ -544,3 +544,62 @@ where the evidence tables live — transitively covers the rest.
 LinkedIn draft. LinkedIn cannot be written by an agent — no API, and a login is
 never handled — so its deliverable is paste-ready text measured against the real
 field limits, not a posted profile.
+
+## D-024 — Owner corrections to the roles and spoken languages
+
+**Status:** Accepted (2026-11-07, owner)
+
+**Context:** A review of the LinkedIn profile found the site, the résumé and
+LinkedIn disagreeing about two roles and the spoken languages. The owner confirmed
+which facts were true.
+
+**Decision:** Radiogeet is Embedded Engineer. Ampnics is R&D Engineer Intern,
+Mumbai, hybrid. Japanese, at professional working proficiency, joins the spoken
+languages. Where the owner's answer and the site differed, the answer stands.
+
+**Why:** a screener reading two surfaces side by side sees only the discrepancy
+(D-023), and the owner is the only source for these facts.
+
+**Consequences:** Applied in the D-023 order: résumé, site, GitHub. "Intern" leaves
+the Radiogeet title, but the About paragraph and the Anti-Collision card still
+describe the work as an internship, so nothing is hidden. The résumé says
+"six-month engagement"; whether to add "(Internship)" there is open.
+
+## D-025 — The company is Tata Steel Colors, formerly Tata BlueScope Steel
+
+**Status:** Accepted (2026-11-07, owner)
+
+**Context:** Every surface said "Tata Steel BlueScope", which was never the
+company's name. It was Tata BlueScope Steel, a joint venture. Tata Steel has since
+bought out BlueScope, and the company now trades as Tata Steel Colors.
+
+**Decision:** Full sentences say "Tata Steel Colors (formerly Tata BlueScope
+Steel)". Labels and other tight spots say "Tata Steel Colors". Neither states a
+date for the buyout.
+
+**Why:** the copy is in the present tense ("live", "runs today"), so the current
+name fits. A reader can look it up, and it keeps the part most readers know. The
+former name ties it to when the work began. No date is given because the sources
+disagree, and D-022 prefers omission to a shaky assertion.
+
+**Consequences:** The name was changed in the résumé, the site copy, the `TERMS`
+list in `About.astro`, `og.png`, the READMEs and the repo description. Dated records
+in `docs/` and `CHANGELOG.md` keep the old wording, because they record what was
+true when written. The legal name was not checked in the company registry.
+
+## D-026 — LinkedIn copy is staged in the private `linkedin` repo
+
+**Status:** Accepted (2026-11-07, owner); supersedes the staging detail in D-023
+
+**Context:** D-023 kept the LinkedIn text in `LINKEDIN.md` in `profile-workspace`.
+A dedicated private `linkedin` repo now holds the profile snapshot, audit and
+posts, and that file had fallen out of date.
+
+**Decision:** The checked text is `profile/rewrite.md` in the `linkedin` repo, and
+the checklist of what to apply is `profile/update-plan.md`. D-023 otherwise stands:
+LinkedIn derives from the site and the résumé, never the other way round.
+
+**Why:** one place for the text, beside the record of what the profile says today.
+The profile is still edited by hand, for the reason D-023 gives.
+
+**Consequences:** `LINKEDIN.md` carries a notice pointing to the new file.
