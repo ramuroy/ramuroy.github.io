@@ -17,6 +17,16 @@
       })();
     "
 
+  Or, without Playwright, serve the repository root so the fonts in
+  ../node_modules load, then render with headless Firefox:
+
+    python3 -m http.server 4330 --bind 127.0.0.1
+    firefox --headless --window-size=1200,630 --screenshot public/og.png \
+      http://127.0.0.1:4330/scripts/og-card.html
+
+  Add --no-remote --profile <empty dir> if Firefox is already open. Text
+  anti-aliasing differs slightly from a Chromium render.
+
   Colors/typography mirror src/styles/tokens.css.
 -->
 <html lang="en">

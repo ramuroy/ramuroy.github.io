@@ -108,7 +108,9 @@ LinkedIn copy derives from here and the résumé rather than being written fresh
 `profile.githubRepoCount` is the one value that is not derived — check it against
 `https://api.github.com/users/ramuroy` when repository visibility changes.
 
-The résumé download is `public/Ramu_Roy_Resume.pdf`. Social images, favicons,
+The résumé download is `public/Ramu_Roy_Resume.pdf`, built from `Resume.tex` in the
+private `profile-workspace` repo. `public/og.png` is rendered from
+`scripts/og-card.html`, so a text change there needs a new render. Social images, favicons,
 `robots.txt` and flagship card artwork also live in `public/` — a board render
 goes there and is referenced by an entry in a card's `images[]` as a root-relative path.
 
