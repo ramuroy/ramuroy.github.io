@@ -3,6 +3,21 @@
 This project follows a lightweight, date-based changelog. Entries describe changes
 that affect the source, generated site, development workflow, or deployment safety.
 
+## 2026-11-07 — role, location and language corrections
+
+Corrections the owner confirmed on 6 Nov 2026, made in the order D-023 sets:
+résumé first, then the site.
+
+### Changed
+
+- **Radiogeet** title is now Embedded Engineer. The About paragraph and the
+  Anti-Collision card still describe the work as an internship.
+- **Ampnics** is now R&D Engineer Intern, Mumbai, Hybrid. Dates unchanged.
+- **Spoken languages** gain Japanese (Professional working), in both the At a
+  glance and languages cards.
+- **`public/Ramu_Roy_Resume.pdf`** rebuilt from its LaTeX source with the same
+  corrections. Still 3 pages; its text otherwise matches the previous PDF.
+
 ## Released 2026-09-08 — the hardware and PCB pass
 
 Merged to `main` and deployed. Built on `codex/site-hardening-20260713` from
