@@ -26,7 +26,7 @@ export const seo = {
   // untruncated (audit T1.7).
   title: "Ramu Roy — Embedded Systems Engineer · Yocto, ESP32, Rust",
   description:
-    "Ramu Roy builds the whole embedded stack — PCB design, ESP32/STM32 firmware, custom Yocto Linux, on-device ML in Rust — deployed at Tata Steel BlueScope.",
+    "Ramu Roy builds the whole embedded stack — PCB design, ESP32/STM32 firmware, custom Yocto Linux, on-device ML in Rust — deployed at Tata Steel Colors.",
   ogDescription:
     "Embedded systems engineer building the whole stack — PCB & hardware design, bare-metal firmware, custom Yocto Linux for Raspberry Pi 5, ESP32/STM32, and on-device ML & voice in Rust.",
   keywords: [
@@ -58,7 +58,7 @@ export const termPrompt = "rr@embedded:~$";
 /* Boot / POST intro lines (first visit only). dmesg-style bring-up (T2.6):
    every line is grounded in the published stack (ESP32-S3 = dual-core Xtensa
    LX7; RAUC A/B slots; KWS on tract; anti-collision live at Tata Steel
-   BlueScope). Lines land in `group` beats within the 1.3s dismiss budget. */
+   Colors). Lines land in `group` beats within the 1.3s dismiss budget. */
 export type BootLine = { ts: string; text: string; ok?: boolean; group: number };
 export const bootLines: BootLine[] = [
   { ts: "", text: `${termPrompt} boot --portfolio`, group: 0 },
@@ -66,7 +66,7 @@ export const bootLines: BootLine[] = [
   { ts: "0.184", text: "mounting profile rev.2026", ok: true, group: 1 },
   { ts: "0.310", text: "rauc: booted slot A, marked good", ok: true, group: 1 },
   { ts: "0.492", text: "eos-voice: kws model loaded (tract)", ok: true, group: 1 },
-  { ts: "0.771", text: "uwb: anti-collision live @ tata steel bluescope", ok: true, group: 2 },
+  { ts: "0.771", text: "uwb: anti-collision live @ tata steel colors", ok: true, group: 2 },
   { ts: "1.020", text: "signal acquired", group: 2 },
 ];
 
@@ -94,7 +94,7 @@ export const hero = {
     { k: "Location", v: "Hyderabad, IN" },
     { k: "Degree", v: "B.Tech ECE (CGPA 8.3)" },
     { k: "Core", v: "Yocto · ESP-IDF · STM32 · Rust", active: true },
-    { k: "Shipped", v: "Anti-Collision @ Tata Steel BlueScope", active: true },
+    { k: "Shipped", v: "Anti-Collision @ Tata Steel Colors", active: true },
     { k: "Status", v: profile.available ? "AVAILABLE" : "NOT CURRENTLY AVAILABLE", status: true, available: profile.available },
   ],
 };
@@ -104,7 +104,7 @@ export const about = {
   // One paragraph, deliberately: the projects above and the experience below
   // carry the specifics; About carries only what no other section can (T1.2).
   paragraphs: [
-    "I'm an Electronics & Communication Engineering graduate (RGUKT Srikakulam, 2026) who works across the entire embedded stack: control boards drawn in KiCad and sent to fabrication, bare-metal and RTOS firmware on ESP32 and STM32, a custom Yocto Linux distribution built from the recipe up, and ML and voice models running directly on-device. The interesting problems usually live at the seams between those layers — that's where I spend my time, and it's why I like owning a system end to end, from the device tree to the deploy flow. Right now that means contributing to eOS at Elipse; before that, an anti-collision safety system I built firmware for as an intern went into production at Tata Steel BlueScope — the projects above tell both stories in full.",
+    "I'm an Electronics & Communication Engineering graduate (RGUKT Srikakulam, 2026) who works across the entire embedded stack: control boards drawn in KiCad and sent to fabrication, bare-metal and RTOS firmware on ESP32 and STM32, a custom Yocto Linux distribution built from the recipe up, and ML and voice models running directly on-device. The interesting problems usually live at the seams between those layers — that's where I spend my time, and it's why I like owning a system end to end, from the device tree to the deploy flow. Right now that means contributing to eOS at Elipse; before that, an anti-collision safety system I built firmware for as an intern went into production at Tata Steel Colors (formerly Tata BlueScope Steel) — the projects above tell both stories in full.",
   ],
   glance: [
     { k: "Role", v: "Embedded Systems Engineer" },
@@ -229,9 +229,9 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
   {
     slug: "industrial-anti-collision-system",
     title: "Industrial Anti-Collision System",
-    tagline: "UWB crane anti-collision safety system, deployed at Tata Steel BlueScope",
+    tagline: "UWB crane anti-collision safety system, deployed at Tata Steel Colors",
     description:
-      "A real-time industrial Anti-Collision System for crane operations, built during an embedded internship at Radiogeet and deployed at Tata Steel BlueScope. It uses UWB proximity detection and zone-based safety logic to trigger industrial outputs that prevent hazardous crane movements.",
+      "A real-time industrial Anti-Collision System for crane operations, built during an embedded internship at Radiogeet and deployed at Tata Steel Colors (formerly Tata BlueScope Steel). It uses UWB proximity detection and zone-based safety logic to trigger industrial outputs that prevent hazardous crane movements.",
     pills: [{ label: "Deployed", variant: "deployed" }],
     highlights: [
       "Architected ESP32-S3 dual-core firmware: core 1 runs time-critical UWB distance measurement while core 2 handles zone calculation, system logic, and an embedded web UI",
@@ -245,7 +245,7 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       { k: "Sensing", v: "UWB ranging", active: true },
       { k: "Links", v: "ESP-NOW · RS485" },
       { k: "I/O", v: "Masibus 8-ch relays" },
-      { k: "Result", v: "Live @ Tata Steel BlueScope", active: true },
+      { k: "Result", v: "Live @ Tata Steel Colors", active: true },
     ],
     partitions: {
       caption: "esp-idf ota partition scheme (two app slots)",
@@ -530,9 +530,9 @@ export const experience: Role[] = [
     location: "India",
     deployed: true,
     summary:
-      "Developed an industrial Anti-Collision System for crane operations — deployed at Tata Steel BlueScope — using real-time UWB proximity detection and zone-based safety logic to prevent hazardous crane movements.",
+      "Developed an industrial Anti-Collision System for crane operations — deployed at Tata Steel Colors (formerly Tata BlueScope Steel) — using real-time UWB proximity detection and zone-based safety logic to prevent hazardous crane movements.",
     highlights: [
-      "Shipped the Anti-Collision System to production at Tata Steel BlueScope: real-time UWB proximity sensing with zone-based safety logic driving industrial relays that halt unsafe crane motion.",
+      "Shipped the Anti-Collision System to production at Tata Steel Colors: real-time UWB proximity sensing with zone-based safety logic driving industrial relays that halt unsafe crane motion.",
       "Wrote ESP32-S3 dual-core firmware — one core for time-critical UWB ranging, the other for zone logic and the embedded web UI — linked over ESP-NOW and driving 8-channel Masibus relays via MODBUS RTU over RS485.",
       "Interfaced STM32 with AHT10 and ADS1115 — timers, internal ADC/DAC, 2/4-wire RS485, LoRa long-range links, and Masibus DI/DO/AI/AO cards (STM32CubeIDE).",
     ],
