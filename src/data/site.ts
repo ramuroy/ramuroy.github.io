@@ -541,9 +541,9 @@ export const experience: Role[] = [
   },
   {
     company: "Ampnics",
-    role: "R&D Engineer",
+    role: "R&D Engineer Intern",
     period: "Mar 2025 – Sep 2025",
-    location: "Remote",
+    location: "Mumbai, Hybrid",
     summary:
       "Worked on open-source hardware — designing and reviewing PCB schematics and layouts, and supporting rapid prototyping.",
     highlights: [
