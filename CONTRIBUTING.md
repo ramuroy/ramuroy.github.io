@@ -25,13 +25,12 @@ if commits stay legible.
 
 ## Branch safety
 
-- Work happens on the hardening branch; **never push or merge `main` without
-  the owner's explicit instruction** — pushes to `main` deploy the live site
-  (see `docs/decisions.md` D-001).
-- Two gates currently hold this branch out of `main`, both open: **D-016** (the
-  résumé describes none of the hardware work, so the site would outbid it) and
-  **D-021** (the second audit's findings are not yet adjudicated). Pushing the
-  *branch* is safe and deploys nothing.
+- **Never push or merge `main` without the owner's explicit instruction** —
+  pushes to `main` deploy the live site (see `docs/decisions.md` D-001).
+- Work happens on a short-lived branch, fast-forwarded to `main` once verified.
+  Pushing a branch is safe and deploys nothing.
+- No merge gates are open: **D-016** and **D-021** both cleared on 2026-09-08.
+  Both still bind content. When a claim changes, the résumé changes first.
 
 ## Process
 
