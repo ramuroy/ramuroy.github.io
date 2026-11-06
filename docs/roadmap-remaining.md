@@ -6,6 +6,10 @@ roadmap with full implementation sketches), `audit-data-2026-07-16.json`
 (machine-readable roadmap + all 45 raw design proposals), and the audit's §3 P3 /
 §7 lists. Update the Status column as items land; delete rows only when shipped.
 
+**Corrections, 2026-11-07:** role, language and company name corrections are live
+(D-024, D-025). Current state and open items:
+[2026-11-07 checkpoint](checkpoints/2026-11-07-corrections.md).
+
 **Hardware & PCB pass, 2026-09-07 (branch, awaiting owner review and the CV
 refresh before merge):** five new flagship cards — eOS Room Controller, eOS
 Zone Controller, eOS Switchboard, pcbrouter and Ember (scope extended by the
@@ -55,12 +59,14 @@ command: [2026-09-07 checkpoint](checkpoints/2026-09-07-hardware-pass.md) §3.
 
 | # | Item | Status |
 |---|---|---|
-| P1 | Résumé refreshed, 4 → 3 pages, D-016 cleared | **DONE 2026-09-08** — source in the private `profile-workspace` repo, branch `cv/hardware-refresh-2026-09-08`. **Owner: merge that branch** or the PDF and its source drift |
+| P1 | Résumé refreshed, 4 → 3 pages, D-016 cleared | **DONE 2026-09-08** — source in the private `profile-workspace` repo, branch `cv/hardware-refresh-2026-09-08`. **Merged to `main` 2026-11-07.** |
 | P2 | GitHub profile README leads with the 2026 work | **DONE 2026-09-08** |
 | P3 | Pinned repos | **DONE 2026-09-08 (owner)** — agents cannot pin; GitHub's API has no repository-pin mutation |
 | P4 | Repo metadata | **DONE 2026-09-08** — `IN4007`→`1N4007` on the most-starred repo, ten topics added to `aegis` (it had none), four descriptions rewritten |
-| P5 | LinkedIn | **DRAFTED 2026-09-08**, not posted. `LINKEDIN.md` in `profile-workspace`, every block measured against the real field caps. **Owner-only — no API, and a login is never handled** |
+| P5 | LinkedIn | **REDRAFTED 2026-11-07**, not applied. Checked text and checklist are in the private `linkedin` repo (D-026). **Owner-only, applied by hand** |
 | P6 | Make `pcbrouter` public | **owner decision** — Apache-2.0, re-runnable benchmarks, verifiable claims; the strongest artefact the owner controls and currently invisible |
+| P7 | Role, language and company name corrections | **DONE 2026-11-07** — résumé, site, `og.png`, GitHub profile README, Anti-Collision README and description (D-024, D-025) |
+| P8 | GitHub account bio still has the old company name | **OPEN, owner** — the login here cannot edit account details; see the 2026-11-07 checkpoint, section 5 |
 
 **Already done and shipped 2026-07-17:** all 31 curated defects B1–B31, CI
 verify workflow, branded 404, font preloads, dependabot, full 15-project
@@ -75,7 +81,7 @@ See CHANGELOG and the 2026-07-17 checkpoint.
 
 | # | Input | Unblocks |
 |---|---|---|
-| I1 | Real flagship metrics: UWB ranging rate, zone-decision→relay-trip latency, node count, months in production at Tata Steel BlueScope; eOS image size, cold-boot time, A/B swap+verify time, recipe count; wake-word FAR/hr + FRR %, Whisper RTF on Pi 5, barge-in latency (ms) | T1.1, T1.6 — **hardware subset supplied 2026-09-07** (H1); still open for eOS, anti-collision and voice |
+| I1 | Real flagship metrics: UWB ranging rate, zone-decision→relay-trip latency, node count, months in production at Tata Steel Colors; eOS image size, cold-boot time, A/B swap+verify time, recipe count; wake-word FAR/hr + FRR %, Whisper RTF on Pi 5, barge-in latency (ms) | T1.1, T1.6 — **hardware subset supplied 2026-09-07** (H1); still open for eOS, anti-collision and voice |
 | I2 | Availability logistics: available from, notice period, work mode, relocation | T1.4 |
 | I3 | Official NPTEL certificate verification URLs (replace Google Drive links) | T1.5 |
 | I4 | Employer permission for bench/deployment photos (Radiogeet, Elipse) | T2.2 — **CAD renders cleared 2026-09-07** (owner decision H-c, Elipse logo included); bench/deployment photographs still open |
