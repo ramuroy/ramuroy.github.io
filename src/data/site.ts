@@ -164,10 +164,10 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       "eOS is a from-scratch embedded Linux platform built on Yocto/OpenEmbedded for the Raspberry Pi 5 (16GB). It pairs A/B RAUC OTA updates with an MQTT service bus, SQLite persistence, a Qt6/QML local UI, a Rust sensor-fusion framework, and a fully on-device voice subsystem.",
     pills: [{ label: "Active dev", variant: "production" }],
     highlights: [
-      "Authored and extended Yocto recipes (.bb/.bbappend) across the meta-eos layer, with BitBake PR bumps, AUTOREV pinning, and IPK packaging for incremental on-device deployment",
-      "Work across the Linux subsystem stack: systemd unit design, D-Bus interfaces (org.eos.Config1, org.eos.RoomCommands1, org.eos.RoomAggregates1), a Mosquitto MQTT broker hardened with TLS and ACLs, and SQLite schema migrations with multi-writer concurrency tuning",
-      "Wrote a generic Rust RoomAggregator framework for per-room sensor fusion across thermal, mmWave radar, air-quality, ambient-light, and PIR motion inputs, with D-Bus calibration and SQLite-backed persistence",
-      "Owned the build and deploy flow end to end: extended kas orchestration plus an in-house eos-build CLI, cross-compilation, WIC image builds, bmaptool SD flashing, and RAUC A/B verification",
+      "Authored and extended Yocto recipes (.bb/.bbappend) with IPK packaging for incremental on-device deployment",
+      "Work across the Linux subsystem stack: systemd unit design, D-Bus interfaces, a Mosquitto MQTT broker hardened with TLS and ACLs, and SQLite schema migrations with multi-writer concurrency tuning",
+      "Wrote a generic Rust framework for per-room sensor fusion across thermal, mmWave radar, air-quality, ambient-light, and PIR motion inputs, with D-Bus calibration and SQLite-backed persistence",
+      "Owned the build and deploy flow end to end: extended kas orchestration plus an in-house build CLI, cross-compilation, WIC image builds, bmaptool SD flashing, and RAUC A/B verification",
     ],
     tech: ["Yocto", "BitBake", "OpenEmbedded", "kas", "RAUC A/B OTA", "systemd", "D-Bus", "Mosquitto MQTT", "SQLite", "Qt6/QML", "Rust", "Raspberry Pi 5"],
     params: [
@@ -200,11 +200,10 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       { label: "In the field", variant: "deployed" },
     ],
     highlights: [
-      "Designed the board in KiCad 9 — schematic through layout to the fabrication package; v1 was fabbed and put into service (PCB1–PCB3), and v2 re-spun the whole design at 125 × 100 mm — 57% less board area.",
+      "Designed the board in KiCad 9 — schematic through layout to the fabrication package; v1 was fabbed and put into service, and v2 re-spun the whole design at 125 × 100 mm — 57% less board area.",
       "Rebuilt the power path around what actually failed: v1's MP1584 burned twice and its AMS1117 drifted to ~4.4 V and killed a W5500 rated 3.63 V absolute maximum. v2 answers with five protection stages — 6.3 A SMD fuse → TPS26631 60 V eFuse (reverse polarity, 6 A OCP, 33 V OVP, 18 V UVLO, inrush control) → SMCJ24A TVS → tap fuse → TPS25947 eFuse guarding the whole 5 V rail.",
       "Ran the PCA9685 at 5 V so it drives the FET gates directly, which deleted all four UCC27524 gate drivers; eight TO-220 FETs became four dual SMD packages, and the axial flyback diodes collapsed to a single dual Schottky serving the two fan channels. The board went from 81 hand-soldered through-hole parts to about 34 placement classes on a stencil-and-reflow board — though the populated part count rose to 119, because the growth is the protection network v1 did not have.",
       "Merged the MCU and Ethernet into one socketed Waveshare ESP32-S3-ETH module — four plug-in modules down to one, five SPI GPIOs freed, and a dead PHY becomes a 30-second swap in a ceiling instead of board surgery.",
-      "Recorded 40 dated design decisions (D1–D40) with rationale and closed every one, including two standing rules the fleet still works to: cut only true redundancy, never performance (D36), and read a part's datasheet before designing it in (D40) — written after a missed common-ground destroyed a radar and two ESP32s.",
       "Chased a total 24 V rail collapse on the bench down to two points on one net disagreeing — the input eFuse's dV/dT pin reading 0.5 V against 0 V on its soft-start capacitor pad. An open there loses soft-start, so inrush trips the eFuse into a retry loop and the rail never establishes.",
     ],
     tech: ["KiCad 9", "ESP32-S3", "PCA9685", "TPS26631 eFuse", "W5500", "24 V DC", "MOSFET PWM", "I²S", "SMD / PCBA"],
@@ -218,11 +217,9 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
     ],
     metrics: [
       { k: "Board area", v: "−57%", note: "173×168 → 125×100 mm" },
-      { k: "Components", v: "₹3,160 / board", note: "populated cost, ex-GST" },
       { k: "Plug-in modules", v: "4 → 1", note: "one socketed ESP32-S3-ETH" },
       { k: "Protection stages", v: "0 → 5", note: "fuse · eFuse · TVS · fuse · eFuse" },
       { k: "Dimmer channels", v: "8, on zero MCU pins", note: "PCA9685 — 16-ch part, 8 wired" },
-      { k: "Decisions closed", v: "40 of 40", note: "D1–D40, no open verdicts" },
     ],
     noRepoNote: "Elipse · no public repo",
   },
@@ -265,16 +262,15 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
     title: "eOS Zone Controller",
     tagline: "48 V, 16 dimmed channels at 24 A — four layers, native Ethernet",
     description:
-      "A 48 V lighting and fan controller for the eOS fleet: sixteen independently dimmed channels driven from one I²C PWM generator through quad drivers into eight dual MOSFETs, with native Ethernet through an on-board three-port switch and two addressable-RGBW paths. Four copper layers on a published impedance-controlled stackup, routed to zero unconnected and verified against a DC review on the final copper.",
+      "A 48 V lighting and fan controller for the eOS fleet: sixteen independently dimmed channels driven from one I²C PWM generator through quad drivers into eight dual MOSFETs, with native Ethernet through an on-board three-port switch and two addressable-RGBW paths. Four copper layers on a published impedance-controlled stackup.",
     pills: [{ label: "Four-layer design", variant: "production" }],
     highlights: [
       "Rated the board as a hierarchy rather than a single number: 1.5 A per channel, 6 A per four-channel group and 24 A across all sixteen — 1,152 W — with the channel derating chosen so that four fully loaded channels come to exactly the 6 A group rating, under an 8 A group fuse.",
       "Made the ESP32 the RMII clock master: GPIO17's EMAC_CLK_OUT_180 through 33 Ω into the Ethernet switch's reference-clock input, strapped to accept it. That deleted a gated clock buffer and four support parts, freed GPIO0 as a clean BOOT strap, and closed a buffered-clock timing question by removing the buffer that had raised it.",
       "Moved the board to four copper layers on a published impedance stackup — 1.55 mm, 35 µm on every layer, inner planes split into separate logic and power grounds — with 100 Ω differential pairs at 0.12 / 0.14 mm on the outer layers over layer 2.",
       "Drove all sixteen outputs from one I²C PWM generator through four quad drivers into eight dual MOSFETs at 2,929.6875 Hz, and held the generator's output-enable disabled by a hardware pull-up so no firmware path can bring the board up with channels already live.",
-      "Closed the first board's routing at zero unconnected and zero shorts after roughly twelve strategies, the decisive one being that connections reported as closed were not touching: endpoints were being reached on the wrong copper layer, so a front pad was 'met' from the back.",
-      "Regenerated the schematic to 180 nets and 912 nodes with ERC clean and zero waivers, then closed the four-layer routing at zero unconnected and produced the fabrication package — gerbers, drill, assembly and the impedance-controlled stackup call-out.",
-      "Derived its two-layer successor, Board A: the Ethernet replaced by an isolated RS-485 Modbus RTU link, and fourteen low-side outputs — two at 4 A, four at 2 A, eight at 1 A — inside the same 6 A group and 24 A board limits, on 181.3 × 144.3 mm. ERC and DRC clean at zero unconnected, with its DC, thermal and short-circuit screens all passing.",
+      "Produced the full fabrication package — gerbers, drill, assembly and the impedance-controlled stackup call-out.",
+      "Derived its two-layer successor: the Ethernet replaced by an isolated RS-485 Modbus RTU link, and fourteen low-side outputs — two at 4 A, four at 2 A, eight at 1 A — inside the same 6 A group and 24 A board limits, on 181.3 × 144.3 mm, checked with DC-drop, thermal and short-circuit analysis.",
     ],
     images: [
       {
@@ -304,10 +300,6 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
     metrics: [
       { k: "Board rating", v: "24 A / 1,152 W", note: "1.5 A × 16 channels at 48 V" },
       { k: "Channel budget", v: "1.5 A × 16", note: "6 A per four-channel group" },
-      { k: "Schematic", v: "180 nets · 912 nodes", note: "ERC clean, zero waivers" },
-      { k: "Routing closed", v: "0 unconnected", note: "3,070 segments · 763 vias, four layers" },
-      { k: "DC drop screen", v: "19.9 mV", note: "worst driver distribution, 50 mV bound" },
-      { k: "Ground return", v: "1.00 W / 44 mV", note: "at 24.16 A on the final copper" },
     ],
     noRepoNote: "Elipse · no public repo",
     full: true,
@@ -319,7 +311,7 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
     description:
       "The wall-mounted control surface for eOS. It switches nothing itself: every load it appears to control is driven by the room controller back at the distribution board, so this panel only senses intent and renders state. SELV throughout, with no mains copper on any layer, on a 145 × 70 mm board that fits a standard 8M concealed box shared with an AC socket.",
     pills: [
-      { label: "Fabricated", variant: "deployed" },
+      { label: "SELV design", variant: "production" },
     ],
     highlights: [
       "Reversed my own earlier decision with measurements rather than taste: v0.2 gave every key its own 26 mm capacitive strip, which meant one millimetre of thumb moved the level 3.8%. v0.3 replaced them with a single full-height 69 mm slider — 2.7× the travel at 1.4% per millimetre, and 24 indicators instead of 7. The slider becoming modal is the price, and it was accepted in writing rather than discovered later.",
@@ -327,19 +319,18 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       "Settled the segment count by arithmetic, not intuition: position comes from a three-point centroid, so a finger spanning three or more segments falls outside that window. 24 segments measured 1.62 mm of error against 0.19 mm for 14 — and 14 is exactly one chip, being 16 channels less the two the part fixes as guard and shield.",
       "Put two tactile switches under every key at ±9 mm instead of one in the middle, because a rigid printed key has to feel the same at its corners as at its centre. At 160 gf per switch that is 160 gf off-centre and 320 gf pressed dead-on, which lands inside the force band derived for the metal snap domes it replaced.",
       "Gave the logic and the LEDs independent bucks rather than one buck and an LDO: slider sensitivity tracks logic-rail noise, so 30 addressable pixels stepping current must not land on that rail. The 3.3 V buck's input is Schottky-ORed between the 24 V tap and USB VBUS, so the board comes up and flashes on USB alone with the 5 V LED rail dead.",
-      "Wrote down what could not be known. The tactile switch's snap ratio is uncomputable because Alps publishes operating force, travel and life for the part but not release force; an earlier revision of the spec quoted 85.7%, that figure belonged to a different, retired switch, and the spec now records the withdrawal and forbids citing a number at all.",
     ],
     tech: ["KiCad 9", "ESP32-S3", "CY8CMBR3116", "WS2812B", "CAN 2.0A", "SELV", "Alps SKQG", "SHT30", "BH1750"],
     params: [
       { k: "Class", v: "SELV — no mains copper", active: true },
       { k: "Board", v: "145 × 70 mm, 2-layer" },
       { k: "MCU", v: "ESP32-S3-WROOM-1-N8" },
-      { k: "Touch (v0.3 design)", v: "CY8CMBR3116 — 14 segments" },
+      { k: "Touch", v: "CY8CMBR3116 — 14 segments" },
       { k: "Indicators", v: "30 × WS2812B-2020" },
       { k: "Bus", v: "CAN 2.0A @ 500 kbps", active: true },
     ],
     metrics: [
-      { k: "Slider precision", v: "1.4% per mm", note: "v0.3 design — 69 mm travel, 24 indicators" },
+      { k: "Slider precision", v: "1.4% per mm", note: "69 mm travel, 24 indicators" },
       { k: "Segment error", v: "0.19 mm", note: "14 segments; 24 modelled at 1.62 mm" },
       { k: "Key switches", v: "12 under 6 keys", note: "two per key at ±9 mm, 160 gf each" },
       { k: "LED budget", v: "1.098 A full white", note: "30-pixel chain, ~8% under the ~1.2 A ceiling" },
@@ -363,7 +354,7 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       "Designed it so PID 1 cannot die — a PID 1 that exits panics the kernel — with no unwrap on the live path, `panic = \"abort\"`, and a panic hook that logs to `/dev/kmsg` and hangs alive rather than terminating. It also refuses to act as init unless it really is PID 1.",
       "Put every syscall behind a single trait, so the reap, mount and supervision logic lives in a library that stays `#![forbid(unsafe_code)]` and is unit-tested against a fake kernel: spark never has to be PID 1 to be tested. The FFI is a thin binary holding two justified, SAFETY-argued unsafe blocks.",
       "Drains SIGCHLD correctly rather than naively — one signal can mean several dead children because the signal coalesces, so it calls `waitpid(-1, WNOHANG)` until the kernel says stop, with a pid-to-service map that makes every death attributable.",
-      "Wrote hearth, the shell: lexer, parser, expansion, evaluator, operators, job control and a line-editor layer, shipped as root's login shell on the running system and held by 122 unit tests, 34 CLI tests and 40 pty assertions.",
+      "Wrote hearth, the shell: lexer, parser, expansion, evaluator, operators, job control and a line-editor layer, shipped as root's login shell on the running system.",
       "Built the distro as a Yocto layer with spark registered as a first-class init manager. The x86-64 image carries signed A/B RAUC slots, read-only roots, autonomous rollback and persistent home and SSH identity, and boots an HP Victus from a USB stick through UEFI and GRUB-EFI.",
     ],
     tech: ["Rust", "Yocto / OpenEmbedded", "PID 1 / init", "cgroup v2", "epoll", "RAUC A/B", "GRUB-EFI", "musl", "Smithay / Wayland", "QEMU"],
@@ -376,10 +367,7 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       { k: "Metal", v: "HP Victus — UEFI → GRUB → wic" },
     ],
     metrics: [
-      { k: "Workspace tests", v: "341", note: "spark 166 · hearth 156 · probe 19" },
-      { k: "Authored unsafe", v: "5 blocks", note: "each SAFETY-argued; the libraries forbid it" },
-      { k: "Kernel → interactive shell", v: "8.32 s", note: "0.06 s of it inside spark; target default at 13.27 s" },
-      { k: "Hardware smoke", v: "59 checks pass", note: "on the Victus, signed bundle v0.15" },
+      { k: "Kernel → interactive shell", v: "8.32 s", note: "0.06 s of it inside spark" },
       { k: "spark binary", v: "1,065 KB", note: "static musl, unstripped" },
       { k: "Update bundle", v: "147.0 MiB", note: "verity-signed RAUC, A/B slots" },
     ],
