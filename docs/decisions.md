@@ -685,4 +685,6 @@ undersold it. The same change was made in the LinkedIn copy (linkedin L-029).
 
 **Consequences:** the résumé summary and Radiogeet entry, the About paragraph,
 the Anti-Collision card and the Radiogeet experience entry all carry the hardware
-work. The résumé stays two pages.
+work. The résumé stays two pages. Published 2026-11-08 on the owner's word ("publish and fix GitHub too"):
+deploy run 42421230132 passed, and the live PDF matched the build. The GitHub profile
+README and account bio were changed the same way; the Upwork drafts wait for his word.

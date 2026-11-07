@@ -14,6 +14,8 @@ The owner's request (D-029), made résumé first.
   hardware work. Still two pages.
 - **About**, the **Anti-Collision card** and the **Radiogeet experience entry**
   carry the same hardware work.
+- Published on the owner's word; deploy run 42421230132 passed and the live PDF
+  matched the build.
 
 ## 2026-11-08 (later) — a shorter, plainer profile
 
