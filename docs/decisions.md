@@ -603,3 +603,37 @@ LinkedIn derives from the site and the résumé, never the other way round.
 The profile is still edited by hand, for the reason D-023 gives.
 
 **Consequences:** `LINKEDIN.md` carries a notice pointing to the new file.
+
+## D-027 — The 8 Nov profile update: new boards, freelance work, pcbrouter out
+
+**Status:** Accepted (2026-11-08, owner)
+
+**Context:** The owner is sending the profile to a recruiter. The résumé, the site
+and the GitHub profile stopped at the September work, and two questions were open:
+the Radiogeet wording (D-024) and whether the autorouter should follow LinkedIn off
+the other surfaces (L-021 in the `linkedin` repo).
+
+**Decision:**
+- Board A, the two-layer RS-485 successor to Zone Controller V2, and the
+  room-sensing node join the hardware story. The Bluetooth remote appears only on
+  the résumé, as in mechanical design.
+- Freelance PCB design, Oct 2026 to present, joins Experience. The client is
+  unnamed, and the unreleased power bank is described without its parts (L-005).
+- pcbrouter leaves the résumé, the site and the GitHub profile.
+- Radiogeet is described by its title, Embedded Engineer, everywhere. This
+  supersedes the part of D-024 that kept "internship" in the About paragraph and
+  the Anti-Collision card. LinkedIn's employment-type field is left to the owner.
+
+**Why:** a screener comparing two surfaces should see one story (D-023). The new
+figures come from the Board A specification and its 2026-10-16 verification
+record, the room-sensing node's design records and fabrication package, and the
+freelance engagement records. Each subject was audited against those sources
+before merging (D-021), and the wording changed where an audit found a gap:
+"two revisions" became "its two-layer successor", because a V1 also exists, and
+the power bank's status names what is still to do.
+
+**Consequences:** Applied in the D-023 order: résumé (`profile-workspace`
+`7414df6`, `2778024`), site, GitHub profile, then the LinkedIn plan and the Upwork
+drafts. The résumé stays at three pages after the trims `ROADMAP.md` lists as
+needing no input. Zone Controller V2 was never built, so the bring-up wording now
+covers only the boards built so far.
