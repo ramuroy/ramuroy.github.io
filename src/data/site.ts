@@ -104,7 +104,7 @@ export const about = {
   // One paragraph, deliberately: the projects above and the experience below
   // carry the specifics; About carries only what no other section can (T1.2).
   paragraphs: [
-    "I'm an Electronics & Communication Engineering graduate (RGUKT Srikakulam, 2026) who works across the entire embedded stack: control boards drawn in KiCad and sent to fabrication, bare-metal and RTOS firmware on ESP32 and STM32, a custom Yocto Linux distribution built from the recipe up, and ML and voice models running directly on-device. The interesting problems usually live at the seams between those layers — that's where I spend my time, and it's why I like owning a system end to end, from the device tree to the deploy flow. Right now that means contributing to eOS at Elipse; before that, an anti-collision safety system I built firmware for as an intern went into production at Tata Steel Colors (formerly Tata BlueScope Steel) — the projects above tell both stories in full.",
+    "I'm an Electronics & Communication Engineering graduate (RGUKT Srikakulam, 2026) who works across the entire embedded stack: control boards drawn in KiCad and sent to fabrication, bare-metal and RTOS firmware on ESP32 and STM32, a custom Yocto Linux distribution built from the recipe up, and ML and voice models running directly on-device. The interesting problems usually live at the seams between those layers — that's where I spend my time, and it's why I like owning a system end to end, from the device tree to the deploy flow. Right now that means contributing to eOS at Elipse; before that, an anti-collision safety system I built firmware for at Radiogeet went into production at Tata Steel Colors (formerly Tata BlueScope Steel) — the projects above tell both stories in full.",
   ],
   glance: [
     { k: "Role", v: "Embedded Systems Engineer" },
@@ -231,7 +231,7 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
     title: "Industrial Anti-Collision System",
     tagline: "UWB crane anti-collision safety system, deployed at Tata Steel Colors",
     description:
-      "A real-time industrial Anti-Collision System for crane operations, built during an embedded internship at Radiogeet and deployed at Tata Steel Colors (formerly Tata BlueScope Steel). It uses UWB proximity detection and zone-based safety logic to trigger industrial outputs that prevent hazardous crane movements.",
+      "A real-time industrial Anti-Collision System for crane operations, built at Radiogeet and deployed at Tata Steel Colors (formerly Tata BlueScope Steel). It uses UWB proximity detection and zone-based safety logic to trigger industrial outputs that prevent hazardous crane movements.",
     pills: [{ label: "Deployed", variant: "deployed" }],
     highlights: [
       "Architected ESP32-S3 dual-core firmware: core 1 runs time-critical UWB distance measurement while core 2 handles zone calculation, system logic, and an embedded web UI",
