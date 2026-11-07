@@ -3,6 +3,29 @@
 This project follows a lightweight, date-based changelog. Entries describe changes
 that affect the source, generated site, development workflow, or deployment safety.
 
+## 2026-11-08 — newer boards, freelance work, pcbrouter removed
+
+The owner's choices of 8 Nov 2026 (D-027), made résumé first.
+
+### Added
+
+- **Freelance PCB design**, Oct 2026 to present, in Experience: the finished
+  secure USB-stick board and the power bank redesign in progress. The client is
+  unnamed.
+- **Board A** as a highlight on the Zone Controller card, and Board A and the
+  room-sensing node in the Elipse entry.
+
+### Changed
+
+- **Radiogeet** work is described by its title in the About paragraph and the
+  Anti-Collision card, as in the experience entry.
+- **Bring-up** in the Elipse entry covers only the boards built so far.
+- **`public/Ramu_Roy_Resume.pdf`** rebuilt with the same changes. Still 3 pages.
+
+### Removed
+
+- **pcbrouter** card and the "PCB autorouter" keyword.
+
 ## 2026-11-07 — role, location, language and company name corrections
 
 Corrections the owner confirmed on 6 Nov 2026, made in the order D-023 sets:
