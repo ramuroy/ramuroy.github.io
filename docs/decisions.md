@@ -637,3 +637,30 @@ the power bank's status names what is still to do.
 drafts. The résumé stays at three pages after the trims `ROADMAP.md` lists as
 needing no input. Zone Controller V2 was never built, so the bring-up wording now
 covers only the boards built so far.
+
+## D-028 — The profile describes the work, not its status or check counts
+
+**Status:** Accepted (2026-11-08, owner)
+
+**Context:** Reviewing the résumé before sending it to a recruiter, the owner
+asked for "routing closed at 0 unconnected", PCB order counts, and whether boards
+had arrived to come out, and for anything reading like an internal note to go. The
+résumé was also three pages for about a year and a half of experience.
+
+**Decision:** The résumé, the site and the GitHub profile say what was designed
+and what it does. Order and arrival status, ERC/DRC and unconnected counts,
+DC-review figures, test and smoke-check counts, internal decision IDs, board
+serials, interface names, build internals and the per-board cost are left out.
+Specifications, design reasoning and real outcomes ("live in three rooms",
+"deployed at Tata Steel Colors") stay. The résumé is now two pages, with work
+experience before education.
+
+**Why:** a recruiter skims, and these details read as project notes rather than
+experience. D-022 already allows any omission, and nothing true is lost from the
+record: the figures remain in the eOS and project repositories and in the dated
+entries of this file and `CHANGELOG.md`.
+
+**Consequences:** Unbuilt boards are described as designed, never as deployed,
+and work in progress keeps a present-tense verb ("Redesigning", "Currently
+designing"), so every line still holds up when asked about. D-019's metrics
+tables keep only rows that are specifications or measured results.
