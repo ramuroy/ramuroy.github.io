@@ -274,6 +274,7 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
       "Drove all sixteen outputs from one I²C PWM generator through four quad drivers into eight dual MOSFETs at 2,929.6875 Hz, and held the generator's output-enable disabled by a hardware pull-up so no firmware path can bring the board up with channels already live.",
       "Closed the first board's routing at zero unconnected and zero shorts after roughly twelve strategies, the decisive one being that connections reported as closed were not touching: endpoints were being reached on the wrong copper layer, so a front pad was 'met' from the back.",
       "Regenerated the schematic to 180 nets and 912 nodes with ERC clean and zero waivers, then closed the four-layer routing at zero unconnected and produced the fabrication package — gerbers, drill, assembly and the impedance-controlled stackup call-out.",
+      "Derived its two-layer successor, Board A: the Ethernet replaced by an isolated RS-485 Modbus RTU link, and fourteen low-side outputs — two at 4 A, four at 2 A, eight at 1 A — inside the same 6 A group and 24 A board limits, on 181.3 × 144.3 mm. ERC and DRC clean at zero unconnected, with its DC, thermal and short-circuit screens all passing.",
     ],
     images: [
       {
@@ -478,7 +479,7 @@ export const experience: Role[] = [
     summary:
       "Contributing to eOS at Elipse — a custom Yocto-based Linux distribution for the Raspberry Pi 5 — owning the build-and-deploy pipeline, the Rust sensor-fusion framework, the on-device voice subsystem, and the control boards the fleet runs on.",
     highlights: [
-      "Design the fleet's control hardware in KiCad, schematic through layout to the fabrication package — a 24 V per-room controller (re-spun at 57% less board area and running the fleet today), a 48 V, 16-channel floor controller on a four-layer impedance-controlled stackup, and a SELV wall keypad — plus the bench bring-up and rework that follows each one.",
+      "Design the fleet's control hardware in KiCad, schematic through layout to the fabrication package — a 24 V per-room controller (re-spun at 57% less board area and running the fleet today), a 48 V, 16-channel floor controller on a four-layer impedance-controlled stackup and its two-layer RS-485 successor, a room-sensing node, and a SELV wall keypad — plus the bench bring-up and rework on the boards built so far.",
       "Own the build-and-deploy flow end to end: Yocto recipes across the meta-eos layer with BitBake PR bumps, AUTOREV pinning, and IPK packaging, through the in-house eos-build CLI, WIC images, bmaptool flashing, and RAUC A/B verification.",
       "Built the on-device voice subsystem in Rust: transfer-learned wake word (PyTorch → ONNX → tract), multi-mic best-source fusion across ESP32 satellites, Whisper STT, Piper TTS, and async barge-in.",
       "Authored ESP32 satellite firmware (ESP-IDF v5.2): BLE provisioning with on-chip EC P-256 keygen and X.509 CSR exchange with the hub CA, full NVS lifecycle across OTA, and SNTP-synced audio streaming.",
