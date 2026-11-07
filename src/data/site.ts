@@ -468,7 +468,7 @@ export const experience: Role[] = [
       "Contributing to eOS at Elipse — a custom Yocto-based Linux distribution for the Raspberry Pi 5 — owning the build-and-deploy pipeline, the Rust sensor-fusion framework, the on-device voice subsystem, and the control boards the fleet runs on.",
     highlights: [
       "Design the fleet's control hardware in KiCad, schematic through layout to the fabrication package — a 24 V per-room controller (re-spun at 57% less board area and running the fleet today), a 48 V, 16-channel floor controller on a four-layer impedance-controlled stackup and its two-layer RS-485 successor, a room-sensing node, and a SELV wall keypad — plus the bench bring-up and rework on the boards built so far.",
-      "Own the build-and-deploy flow end to end: Yocto recipes across the meta-eos layer with BitBake PR bumps, AUTOREV pinning, and IPK packaging, through the in-house eos-build CLI, WIC images, bmaptool flashing, and RAUC A/B verification.",
+      "Own the build-and-deploy flow end to end: Yocto recipes and IPK packaging through the in-house build tooling, WIC images, SD-card flashing, and RAUC A/B verification.",
       "Built the on-device voice subsystem in Rust: transfer-learned wake word (PyTorch → ONNX → tract), multi-mic best-source fusion across ESP32 satellites, Whisper STT, Piper TTS, and async barge-in.",
       "Authored ESP32 satellite firmware (ESP-IDF v5.2): BLE provisioning with on-chip EC P-256 keygen and X.509 CSR exchange with the hub CA, full NVS lifecycle across OTA, and SNTP-synced audio streaming.",
     ],
@@ -483,8 +483,8 @@ export const experience: Role[] = [
     summary:
       "Board design for private clients: schematic fixes, placement and routing, and written guides that hand the design over.",
     highlights: [
-      "Fixed the schematic of a client's secure USB-stick board (STM32U5, eMMC, secure element), then placed and routed it to ERC 0 and DRC 0 errors, 0 warnings, 0 unconnected, and wrote a 55-page self-study guide delivered with the design files.",
-      "In progress: redesigning a client's 1S power bank with a new charger, output stage, fuel gauge and safety microcontroller. The charger and safety schematics and a two-layer pack BMS board are designed; the output and ESP32 sheets and the four-layer main board are still to do.",
+      "Corrected the schematic and completed placement and routing of a client's secure USB-stick board (STM32U5, eMMC, secure element), delivering the full design files with a 55-page design guide.",
+      "Redesigning a client's 1S power bank: new charger, output stage, fuel gauge and safety microcontroller, with a dedicated two-layer pack BMS board.",
     ],
     tags: ["KiCad", "PCB design", "Schematic review", "STM32U5", "Battery management"],
   },
