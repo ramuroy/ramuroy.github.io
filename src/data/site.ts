@@ -487,6 +487,19 @@ export const experience: Role[] = [
     tags: ["KiCad", "PCB design", "Yocto", "BitBake", "RAUC OTA", "Rust", "D-Bus", "MQTT", "SQLite", "Qt6/QML", "ESP-IDF", "ONNX/tract", "Whisper", "Piper"],
   },
   {
+    company: "Freelance",
+    role: "PCB Design",
+    period: "Oct 2026 – Present",
+    location: "Remote",
+    summary:
+      "Board design for private clients: schematic fixes, placement and routing, and written guides that hand the design over.",
+    highlights: [
+      "Fixed the schematic of a client's secure USB-stick board (STM32U5, eMMC, secure element), then placed and routed it to ERC 0 and DRC 0 errors, 0 warnings, 0 unconnected, and wrote a 55-page self-study guide delivered with the design files.",
+      "In progress: redesigning a client's 1S power bank with a new charger, output stage, fuel gauge and safety microcontroller. The charger and safety schematics and a two-layer pack BMS board are designed; the output and ESP32 sheets and the four-layer main board are still to do.",
+    ],
+    tags: ["KiCad", "PCB design", "Schematic review", "STM32U5", "Battery management"],
+  },
+  {
     company: "Radiogeet",
     role: "Embedded Engineer",
     period: "Sep 2025 – Mar 2026",
