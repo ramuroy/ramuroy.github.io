@@ -3,6 +3,20 @@
 This project follows a lightweight, date-based changelog. Entries describe changes
 that affect the source, generated site, development workflow, or deployment safety.
 
+## 2026-11-08 (later) — a shorter, plainer profile
+
+The owner's request (D-028), made résumé first.
+
+### Changed
+
+- **`public/Ramu_Roy_Resume.pdf`** is now two pages: a three-line summary, work
+  experience before education, and no internal names or check counts.
+- **Project cards** drop unconnected and net counts, DC-review figures, test and
+  smoke-check counts, decision IDs, board serials, interface names, build
+  internals and the per-board cost. The Switchboard's "Fabricated" pill became
+  "SELV design".
+- **Experience** entries use the résumé's shorter wording.
+
 ## 2026-11-08 — newer boards, freelance work, pcbrouter removed
 
 The owner's choices of 8 Nov 2026 (D-027), made résumé first.
