@@ -3,6 +3,18 @@
 This project follows a lightweight, date-based changelog. Entries describe changes
 that affect the source, generated site, development workflow, or deployment safety.
 
+## 2026-11-08 (evening) — Anti-Collision hardware work
+
+The owner's request (D-029), made résumé first.
+
+### Changed
+
+- **`public/Ramu_Roy_Resume.pdf`**: the summary and the Radiogeet entry say he
+  built the Anti-Collision System's hardware and firmware, with a line on the
+  hardware work. Still two pages.
+- **About**, the **Anti-Collision card** and the **Radiogeet experience entry**
+  carry the same hardware work.
+
 ## 2026-11-08 (later) — a shorter, plainer profile
 
 The owner's request (D-028), made résumé first.

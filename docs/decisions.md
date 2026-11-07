@@ -664,3 +664,25 @@ entries of this file and `CHANGELOG.md`.
 and work in progress keeps a present-tense verb ("Redesigning", "Currently
 designing"), so every line still holds up when asked about. D-019's metrics
 tables keep only rows that are specifications or measured results.
+
+## D-029 — The Anti-Collision work is hardware and firmware
+
+**Status:** Accepted (2026-11-08, owner)
+
+**Context:** Updating his LinkedIn headline, the owner said: "I don't want it to
+be like I only did firmware in the Tata Steel colors as I did hardware also." The
+résumé and the site said only that he built the system's firmware. The
+Anti-Collision README already listed his hardware work.
+
+**Decision:** The résumé, then the site, say he built the system's hardware and
+firmware: he chose the hardware, wired and integrated the Masibus DO cards and the
+8-channel industrial relay system, built the RS485 links between nodes, and
+tested and commissioned the system on site. Nothing more is claimed; in
+particular, no custom PCB for this system.
+
+**Why:** the README is the record of his role, and the narrower wording
+undersold it. The same change was made in the LinkedIn copy (linkedin L-029).
+
+**Consequences:** the résumé summary and Radiogeet entry, the About paragraph,
+the Anti-Collision card and the Radiogeet experience entry all carry the hardware
+work. The résumé stays two pages.
