@@ -691,7 +691,7 @@ README and account bio were changed the same way; the Upwork drafts wait for his
 
 ## D-030 — Anti-Collision details: DWM1000, traffic-light zones, PLC braking, logging
 
-**Status:** Accepted (2026-11-17, owner); waiting for "publish"
+**Status:** Accepted and published (2026-11-17, owner said "Publish"); deploy run 44137056158 passed, live PDF identical to the build
 
 **Context:** While drafting a LinkedIn post (linkedin L-043), the owner gave details of the
 Anti-Collision System that no page carried: the UWB modules were Qorvo DWM1000; Bluetooth
