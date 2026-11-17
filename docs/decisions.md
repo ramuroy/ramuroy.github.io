@@ -688,3 +688,21 @@ the Anti-Collision card and the Radiogeet experience entry all carry the hardwar
 work. The résumé stays two pages. Published 2026-11-08 on the owner's word ("publish and fix GitHub too"):
 deploy run 42421230132 passed, and the live PDF matched the build. The GitHub profile
 README and account bio were changed the same way; the Upwork drafts wait for his word.
+
+## D-030 — Anti-Collision details: DWM1000, traffic-light zones, PLC braking, logging
+
+**Status:** Accepted (2026-11-17, owner); waiting for "publish"
+
+**Context:** While drafting a LinkedIn post (linkedin L-043), the owner gave details of the
+Anti-Collision System that no page carried: the UWB modules were Qorvo DWM1000; Bluetooth
+signal strength was tried first and did not hold over the warehouse's distances; the display
+works like traffic lights (green above 25 m with the live distance shown, yellow and a warning
+from 15 to 25 m, under 15 m a siren and automatic braking); the relay outputs feed the plant PLC,
+which applies the brakes; every warning and near miss is logged with its time on a PC and in the
+PLC. He asked for every page that mentions the project to carry them.
+
+**Decision:** The résumé first, then the Anti-Collision card (description, two new highlights,
+the relay-to-PLC chain, Sensing and a new Zones parameter) and the Radiogeet experience entry.
+
+**Consequences:** the same facts go into the case-study README, the GitHub profile README, the
+LinkedIn copy and the Upwork drafts. The DWM1000's 10 cm is the maker's rating, not a measurement.

@@ -228,19 +228,22 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
     title: "Industrial Anti-Collision System",
     tagline: "UWB crane anti-collision safety system, deployed at Tata Steel Colors",
     description:
-      "A real-time industrial Anti-Collision System for crane operations, built at Radiogeet and deployed at Tata Steel Colors (formerly Tata BlueScope Steel). It uses UWB proximity detection and zone-based safety logic to trigger industrial outputs that prevent hazardous crane movements.",
+      "A real-time industrial Anti-Collision System for crane operations, built at Radiogeet and deployed at Tata Steel Colors (formerly Tata BlueScope Steel). It measures the distance between cranes with UWB and shows it as traffic lights: green above 25 m with the live distance on display, yellow and a warning from 15 to 25 m, and under 15 m a siren and automatic braking through the plant's PLC.",
     pills: [{ label: "Deployed", variant: "deployed" }],
     highlights: [
       "Chose the system's hardware, wired and integrated the Masibus DO cards and the 8-channel industrial relay system, built the RS485 links between nodes, and tested and commissioned the system on site",
+      "Chose UWB time-of-flight ranging on Qorvo DWM1000 modules (rated to about 10 cm) after Bluetooth signal strength could not hold over the warehouse's distances",
+      "Designed the traffic-light safety zones: warning from 25 m, and under 15 m a siren and automatic braking through the plant PLC; every warning and near miss is logged with its time, on a PC and in the PLC",
       "Architected ESP32-S3 dual-core firmware: core 1 runs time-critical UWB distance measurement while core 2 handles zone calculation, system logic, and an embedded web UI",
       "Linked nodes over ESP-NOW for low-latency peer-to-peer communication",
-      "Drove an 8-channel industrial relay system via MODBUS RTU over RS485 to Masibus DO cards",
+      "Drove an 8-channel industrial relay system via MODBUS RTU over RS485 to Masibus DO cards; the relay outputs feed the plant PLC, which applies the crane brakes",
       "Extended the platform with STM32 work: AHT10 and ADS1115 interfacing, timers and ADC/DAC, 2/4-wire RS485, LoRa links, and Masibus DI/DO/AI/AO cards",
     ],
     tech: ["ESP32-S3", "FreeRTOS dual-core", "ESP-IDF", "UWB", "ESP-NOW", "MODBUS RTU", "RS485", "STM32", "LoRa"],
     params: [
       { k: "MCU", v: "ESP32-S3 (dual-core)" },
-      { k: "Sensing", v: "UWB ranging", active: true },
+      { k: "Sensing", v: "UWB · DWM1000", active: true },
+      { k: "Zones", v: "25 m warn · 15 m brake" },
       { k: "Links", v: "ESP-NOW · RS485" },
       { k: "I/O", v: "Masibus 8-ch relays" },
       { k: "Result", v: "Live @ Tata Steel Colors", active: true },
@@ -498,7 +501,7 @@ export const experience: Role[] = [
     summary:
       "Developed an industrial Anti-Collision System for crane operations — deployed at Tata Steel Colors (formerly Tata BlueScope Steel) — using real-time UWB proximity detection and zone-based safety logic to prevent hazardous crane movements.",
     highlights: [
-      "Shipped the Anti-Collision System to production at Tata Steel Colors: real-time UWB proximity sensing with zone-based safety logic driving industrial relays that halt unsafe crane motion.",
+      "Shipped the Anti-Collision System to production at Tata Steel Colors: UWB ranging between cranes (Qorvo DWM1000) with traffic-light zones, a warning from 25 m and, under 15 m, a siren and automatic braking through the plant PLC; every warning and near miss is logged.",
       "Chose the system's hardware, wired and integrated the Masibus DO cards and the 8-channel industrial relay system, built the RS485 links between nodes, and commissioned the system on site.",
       "Wrote ESP32-S3 dual-core firmware — one core for time-critical UWB ranging, the other for zone logic and the embedded web UI — linked over ESP-NOW and driving 8-channel Masibus relays via MODBUS RTU over RS485.",
       "Interfaced STM32 with AHT10 and ADS1115 — timers, internal ADC/DAC, 2/4-wire RS485, LoRa long-range links, and Masibus DI/DO/AI/AO cards (STM32CubeIDE).",
