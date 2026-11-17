@@ -232,8 +232,8 @@ const flagshipOrder: Omit<Flagship, "fig">[] = [
     pills: [{ label: "Deployed", variant: "deployed" }],
     highlights: [
       "Chose the system's hardware, wired and integrated the Masibus DO cards and the 8-channel industrial relay system, built the RS485 links between nodes, and tested and commissioned the system on site",
-      "Chose UWB time-of-flight ranging on Qorvo DWM1000 modules (rated to about 10 cm) after Bluetooth signal strength could not hold over the warehouse's distances",
-      "Designed the traffic-light safety zones: warning from 25 m, and under 15 m a siren and automatic braking through the plant PLC; every warning and near miss is logged with its time, on a PC and in the PLC",
+      "Ranges with UWB time of flight on Qorvo DWM1000 modules (rated to about 10 cm) after Bluetooth signal strength, tried first, could not hold over the warehouse's distances",
+      "Implemented the traffic-light safety zones in firmware: warning from 25 m, and under 15 m a siren and automatic braking through the plant PLC; every warning and near miss is logged with its time, on a PC and in the PLC",
       "Architected ESP32-S3 dual-core firmware: core 1 runs time-critical UWB distance measurement while core 2 handles zone calculation, system logic, and an embedded web UI",
       "Linked nodes over ESP-NOW for low-latency peer-to-peer communication",
       "Drove an 8-channel industrial relay system via MODBUS RTU over RS485 to Masibus DO cards; the relay outputs feed the plant PLC, which applies the crane brakes",
